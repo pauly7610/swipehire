@@ -10,9 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   User, MapPin, Briefcase, GraduationCap, Upload, Plus, X, Edit2, 
-  Video, FileText, Star, Zap, Crown, ChevronRight
+  Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -262,6 +264,114 @@ export default function CandidateProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Experience Level & Culture */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Experience & Preferences</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-500">Experience Level</Label>
+                    {editing ? (
+                      <Select 
+                        value={editData.experience_level || ''} 
+                        onValueChange={(v) => setEditData({ ...editData, experience_level: v })}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="entry">Entry Level</SelectItem>
+                          <SelectItem value="mid">Mid Level</SelectItem>
+                          <SelectItem value="senior">Senior</SelectItem>
+                          <SelectItem value="lead">Lead</SelectItem>
+                          <SelectItem value="executive">Executive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="font-medium capitalize">{candidate?.experience_level || 'Not set'}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-500">Years of Experience</Label>
+                    {editing ? (
+                      <Input 
+                        type="number" 
+                        value={editData.experience_years || ''} 
+                        onChange={(e) => setEditData({ ...editData, experience_years: parseInt(e.target.value) || 0 })}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="font-medium">{candidate?.experience_years ? `${candidate.experience_years} years` : 'Not set'}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-gray-500">Culture Preferences</Label>
+                  {editing ? (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {['Remote-first', 'Collaborative', 'Fast-paced', 'Work-life balance', 'Innovative', 'Startup', 'Corporate'].map(trait => (
+                        <Badge
+                          key={trait}
+                          className={`cursor-pointer transition-all ${
+                            editData.culture_preferences?.includes(trait)
+                              ? 'swipe-gradient text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          onClick={() => {
+                            const prefs = editData.culture_preferences || [];
+                            if (prefs.includes(trait)) {
+                              setEditData({ ...editData, culture_preferences: prefs.filter(p => p !== trait) });
+                            } else {
+                              setEditData({ ...editData, culture_preferences: [...prefs, trait] });
+                            }
+                          }}
+                        >
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {candidate?.culture_preferences?.map(pref => (
+                        <Badge key={pref} className="bg-purple-100 text-purple-600">{pref}</Badge>
+                      )) || <p className="text-gray-400">No preferences set</p>}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Deal Breakers */}
+            {editing && (
+              <DealBreakersEditor
+                dealBreakers={editData.deal_breakers || []}
+                onChange={(dealBreakers) => setEditData({ ...editData, deal_breakers: dealBreakers })}
+              />
+            )}
+
+            {!editing && candidate?.deal_breakers?.length > 0 && (
+              <Card className="border-amber-200 bg-amber-50/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                    Your Deal Breakers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {candidate.deal_breakers.map((db, i) => (
+                      <Badge key={i} variant="secondary">
+                        {db.type}: {db.value}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Video Intro */}
             <Card>
