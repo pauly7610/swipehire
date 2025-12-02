@@ -7,12 +7,15 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Send, ArrowLeft, Building2, Briefcase, Calendar, Video, 
-  CheckCircle2, Clock, Loader2, MoreVertical
+  CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import RecordedInterview from '@/components/interview/RecordedInterview';
+import LiveVideoCall from '@/components/interview/LiveVideoCall';
+import InterviewInviteCard from '@/components/interview/InterviewInviteCard';
 
 export default function Chat() {
   const [searchParams] = useSearchParams();
@@ -26,6 +29,10 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [user, setUser] = useState(null);
+  const [interviews, setInterviews] = useState([]);
+  const [showRecordedInterview, setShowRecordedInterview] = useState(false);
+  const [showLiveCall, setShowLiveCall] = useState(false);
+  const [activeInterview, setActiveInterview] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -55,11 +62,46 @@ export default function Chat() {
 
         const chatMessages = await base44.entities.Message.filter({ match_id: matchId });
         setMessages(chatMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+
+        // Load interviews
+        const matchInterviews = await base44.entities.Interview.filter({ match_id: matchId });
+        setInterviews(matchInterviews);
       }
     } catch (error) {
       console.error('Failed to load chat:', error);
     }
     setLoading(false);
+  };
+
+  const handleStartRecording = (interview) => {
+    setActiveInterview(interview);
+    setShowRecordedInterview(true);
+  };
+
+  const handleJoinLiveCall = (interview) => {
+    setActiveInterview(interview);
+    setShowLiveCall(true);
+  };
+
+  const handleRecordingComplete = async (responses) => {
+    // Update interview with recording
+    await base44.entities.Interview.update(activeInterview.id, {
+      status: 'completed',
+      recording_url: responses[0]?.video_url
+    });
+    
+    // Send completion message
+    await base44.entities.Message.create({
+      match_id: matchId,
+      sender_id: user.id,
+      sender_type: 'candidate',
+      content: '✅ I have completed my video interview responses!',
+      message_type: 'system'
+    });
+    
+    setShowRecordedInterview(false);
+    setActiveInterview(null);
+    loadChat();
   };
 
   const sendMessage = async () => {
@@ -87,6 +129,31 @@ export default function Chat() {
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
       </div>
+    );
+  }
+
+  if (showRecordedInterview && activeInterview) {
+    return (
+      <RecordedInterview
+        interview={activeInterview}
+        onComplete={handleRecordingComplete}
+        onClose={() => {
+          setShowRecordedInterview(false);
+          setActiveInterview(null);
+        }}
+      />
+    );
+  }
+
+  if (showLiveCall) {
+    return (
+      <LiveVideoCall
+        participant={{ name: company?.name }}
+        onEnd={() => {
+          setShowLiveCall(false);
+          setActiveInterview(null);
+        }}
+      />
     );
   }
 
@@ -129,7 +196,7 @@ export default function Chat() {
 
       {/* Job Info Card */}
       <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-3">
           <Card className="p-4 border-0 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -141,6 +208,17 @@ export default function Chat() {
               </Badge>
             </div>
           </Card>
+
+          {/* Interview Cards */}
+          {interviews.map((interview) => (
+            <InterviewInviteCard
+              key={interview.id}
+              interview={interview}
+              isCandidate={true}
+              onStartRecording={() => handleStartRecording(interview)}
+              onJoinCall={() => handleJoinLiveCall(interview)}
+            />
+          ))}
         </div>
       </div>
 
