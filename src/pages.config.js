@@ -14,6 +14,7 @@ import SwipePeople from './pages/SwipePeople';
 import JobAlerts from './pages/JobAlerts';
 import SkillTests from './pages/SkillTests';
 import CompanyBranding from './pages/CompanyBranding';
+import EmployerAnalytics from './pages/EmployerAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "JobAlerts": JobAlerts,
     "SkillTests": SkillTests,
     "CompanyBranding": CompanyBranding,
+    "EmployerAnalytics": EmployerAnalytics,
 }
 
 export const pagesConfig = {

@@ -49,6 +49,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
         { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
         { name: 'Matches', icon: MessageCircle, page: 'EmployerMatches' },
+        { name: 'Analytics', icon: Bell, page: 'EmployerAnalytics' },
         { name: 'Branding', icon: User, page: 'CompanyBranding' },
       ];
 
