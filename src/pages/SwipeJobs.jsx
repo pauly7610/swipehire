@@ -5,6 +5,7 @@ import JobCard from '@/components/swipe/JobCard';
 import SwipeControls from '@/components/swipe/SwipeControls';
 import MatchModal from '@/components/swipe/MatchModal';
 import { useAIMatching } from '@/components/matching/useAIMatching';
+import CandidateChatbot from '@/components/engagement/CandidateChatbot';
 import { Loader2, Inbox, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -275,14 +276,17 @@ export default function SwipeJobs() {
       </div>
 
       {/* Match Modal */}
-      <MatchModal
-        isOpen={showMatch}
-        onClose={() => setShowMatch(false)}
-        match={matchData?.match}
-        candidate={matchData?.candidate}
-        company={matchData?.company}
-        job={matchData?.job}
-      />
-    </div>
-  );
-}
+              <MatchModal
+                isOpen={showMatch}
+                onClose={() => setShowMatch(false)}
+                match={matchData?.match}
+                candidate={matchData?.candidate}
+                company={matchData?.company}
+                job={matchData?.job}
+              />
+
+              {/* AI Chatbot */}
+              <CandidateChatbot company={currentCompany} job={currentJob} />
+            </div>
+          );
+        }
