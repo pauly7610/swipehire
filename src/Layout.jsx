@@ -41,7 +41,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
         { name: 'Feed', icon: Home, page: 'VideoFeed' },
         { name: 'Matches', icon: MessageCircle, page: 'Matches' },
-        { name: 'Network', icon: Bell, page: 'Connections' },
+        { name: 'Network', icon: Users, page: 'Connections' },
         { name: 'Profile', icon: User, page: 'CandidateProfile' },
       ];
 
@@ -82,13 +82,13 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-        <div className="flex justify-around items-center h-16 px-2">
+        <div className="flex justify-around items-center h-14 px-1">
           {navItems.map((item) => (
             <Link
               key={item.name}
               to={createPageUrl(item.page)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
+                "flex flex-col items-center justify-center flex-1 py-1.5 transition-colors",
                 currentPageName === item.page 
                   ? "text-transparent" 
                   : "text-gray-400 hover:text-gray-600"
@@ -96,13 +96,13 @@ export default function Layout({ children, currentPageName }) {
             >
               <item.icon 
                 className={cn(
-                  "w-6 h-6 mb-1",
+                  "w-5 h-5 mb-0.5",
                   currentPageName === item.page && "stroke-[url(#gradient)]"
                 )}
                 style={currentPageName === item.page ? { stroke: '#FF005C' } : {}}
               />
               <span className={cn(
-                "text-xs font-medium",
+                "text-[10px] font-medium",
                 currentPageName === item.page && "swipe-gradient-text"
               )}>
                 {item.name}
