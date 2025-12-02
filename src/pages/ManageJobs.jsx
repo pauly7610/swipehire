@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
   Plus, Briefcase, MapPin, DollarSign, Users, Eye, 
-  Edit2, Trash2, MoreVertical, Loader2
+  Edit2, Trash2, MoreVertical, Loader2, Sparkles, ChevronDown, ChevronUp
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -16,13 +16,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import CandidateSuggestions from '@/components/matching/CandidateSuggestions';
 
 export default function ManageJobs() {
   const [jobs, setJobs] = useState([]);
   const [matches, setMatches] = useState([]);
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedJob, setExpandedJob] = useState(null);
 
   useEffect(() => {
     loadJobs();
@@ -217,9 +219,33 @@ export default function ManageJobs() {
                           >
                             Find Candidates →
                           </Link>
+                          <button
+                            onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
+                            className="ml-auto flex items-center gap-1 text-sm text-gray-500 hover:text-pink-500 transition-colors"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            AI Suggestions
+                            {expandedJob === job.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
                         </div>
                       </div>
                     </div>
+
+                    {/* Candidate Suggestions */}
+                    <AnimatePresence>
+                      {expandedJob === job.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t"
+                        >
+                          <div className="p-4 bg-gray-50">
+                            <CandidateSuggestions job={job} company={company} />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </CardContent>
                 </Card>
               </motion.div>

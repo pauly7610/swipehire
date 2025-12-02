@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 import PortfolioSection from '@/components/profile/PortfolioSection';
+import JobSuggestions from '@/components/matching/JobSuggestions';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -459,6 +460,13 @@ export default function CandidateProfile() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Job Suggestions */}
+        {candidate?.id && !editing && (
+          <div className="mt-6">
+            <JobSuggestions candidate={candidate} />
+          </div>
+        )}
 
         {/* Premium Upsell */}
         {!candidate?.is_premium && (
