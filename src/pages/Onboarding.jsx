@@ -1,0 +1,400 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus } from 'lucide-react';
+
+export default function Onboarding() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [step, setStep] = useState(1);
+  const [userType, setUserType] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Candidate fields
+  const [candidateData, setCandidateData] = useState({
+    headline: '',
+    bio: '',
+    skills: [],
+    location: '',
+    photo_url: ''
+  });
+  const [newSkill, setNewSkill] = useState('');
+
+  // Company fields
+  const [companyData, setCompanyData] = useState({
+    name: '',
+    description: '',
+    industry: '',
+    location: '',
+    website: '',
+    logo_url: '',
+    size: '11-50'
+  });
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (e) {
+        navigate(createPageUrl('Welcome'));
+      }
+    };
+    loadUser();
+  }, [navigate]);
+
+  const handlePhotoUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      if (type === 'candidate') {
+        setCandidateData({ ...candidateData, photo_url: file_url });
+      } else {
+        setCompanyData({ ...companyData, logo_url: file_url });
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+  };
+
+  const addSkill = () => {
+    if (newSkill.trim() && !candidateData.skills.includes(newSkill.trim())) {
+      setCandidateData({
+        ...candidateData,
+        skills: [...candidateData.skills, newSkill.trim()]
+      });
+      setNewSkill('');
+    }
+  };
+
+  const removeSkill = (skillToRemove) => {
+    setCandidateData({
+      ...candidateData,
+      skills: candidateData.skills.filter(s => s !== skillToRemove)
+    });
+  };
+
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      if (userType === 'candidate') {
+        await base44.entities.Candidate.create({
+          user_id: user.id,
+          ...candidateData
+        });
+        navigate(createPageUrl('SwipeJobs'));
+      } else {
+        await base44.entities.Company.create({
+          user_id: user.id,
+          ...companyData
+        });
+        navigate(createPageUrl('EmployerDashboard'));
+      }
+    } catch (error) {
+      console.error('Failed to create profile:', error);
+    }
+    setLoading(false);
+  };
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="text-center"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome, {user?.full_name}!</h2>
+            <p className="text-gray-600 mb-12">What brings you to SwipeHire?</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl mx-auto">
+              <button
+                onClick={() => { setUserType('candidate'); setStep(2); }}
+                className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-lg"
+              >
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <User className="w-10 h-10 text-pink-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm Looking for a Job</h3>
+                <p className="text-gray-500">Find opportunities, swipe on jobs, and connect with employers</p>
+              </button>
+
+              <button
+                onClick={() => { setUserType('employer'); setStep(2); }}
+                className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-lg"
+              >
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Building2 className="w-10 h-10 text-orange-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm Hiring</h3>
+                <p className="text-gray-500">Post jobs, discover talent, and build your team</p>
+              </button>
+            </div>
+          </motion.div>
+        );
+
+      case 2:
+        if (userType === 'candidate') {
+          return (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="max-w-lg mx-auto"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Your Profile</h2>
+              <p className="text-gray-600 mb-8">Let employers know who you are</p>
+
+              <div className="space-y-6">
+                {/* Photo Upload */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    {candidateData.photo_url ? (
+                      <img
+                        src={candidateData.photo_url}
+                        alt="Profile"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <User className="w-12 h-12 text-pink-400" />
+                      </div>
+                    )}
+                    <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
+                      <Upload className="w-5 h-5 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'candidate')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Professional Headline</Label>
+                  <Input
+                    placeholder="e.g., Data Analyst | SQL Expert"
+                    value={candidateData.headline}
+                    onChange={(e) => setCandidateData({ ...candidateData, headline: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Short Bio (max 250 characters)</Label>
+                  <Textarea
+                    placeholder="Tell employers about yourself..."
+                    value={candidateData.bio}
+                    onChange={(e) => setCandidateData({ ...candidateData, bio: e.target.value.slice(0, 250) })}
+                    className="mt-2 rounded-xl resize-none"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{candidateData.bio.length}/250</p>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Location</Label>
+                  <Input
+                    placeholder="e.g., New York, NY"
+                    value={candidateData.location}
+                    onChange={(e) => setCandidateData({ ...candidateData, location: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Skills</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      placeholder="Add a skill"
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                      className="h-12 rounded-xl"
+                    />
+                    <Button onClick={addSkill} className="swipe-gradient h-12 px-4 rounded-xl">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {candidateData.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-50 to-orange-50 text-pink-600 rounded-full text-sm font-medium"
+                      >
+                        {skill}
+                        <button onClick={() => removeSkill(skill)}>
+                          <X className="w-4 h-4" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        } else {
+          return (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="max-w-lg mx-auto"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Set Up Your Company</h2>
+              <p className="text-gray-600 mb-8">Tell candidates about your organization</p>
+
+              <div className="space-y-6">
+                {/* Logo Upload */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    {companyData.logo_url ? (
+                      <img
+                        src={companyData.logo_url}
+                        alt="Company Logo"
+                        className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <Building2 className="w-12 h-12 text-orange-400" />
+                      </div>
+                    )}
+                    <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
+                      <Upload className="w-5 h-5 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Company Name</Label>
+                  <Input
+                    placeholder="Your company name"
+                    value={companyData.name}
+                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Industry</Label>
+                  <Input
+                    placeholder="e.g., Technology, Healthcare, Finance"
+                    value={companyData.industry}
+                    onChange={(e) => setCompanyData({ ...companyData, industry: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Description</Label>
+                  <Textarea
+                    placeholder="Tell candidates about your company..."
+                    value={companyData.description}
+                    onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
+                    className="mt-2 rounded-xl resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-700">Location</Label>
+                    <Input
+                      placeholder="City, State"
+                      value={companyData.location}
+                      onChange={(e) => setCompanyData({ ...companyData, location: e.target.value })}
+                      className="mt-2 h-12 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-700">Website</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={companyData.website}
+                      onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
+                      className="mt-2 h-12 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <style>{`
+        .swipe-gradient {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+        }
+        .swipe-gradient-text {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      `}</style>
+
+      {/* Header */}
+      <header className="p-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold swipe-gradient-text">SwipeHire</h1>
+        {step > 1 && (
+          <Button
+            variant="ghost"
+            onClick={() => setStep(step - 1)}
+            className="text-gray-600"
+          >
+            <ChevronLeft className="w-5 h-5 mr-1" />
+            Back
+          </Button>
+        )}
+      </header>
+
+      {/* Progress */}
+      <div className="px-6 mb-8">
+        <div className="max-w-lg mx-auto">
+          <div className="flex gap-2">
+            <div className={`h-1.5 flex-1 rounded-full ${step >= 1 ? 'swipe-gradient' : 'bg-gray-200'}`} />
+            <div className={`h-1.5 flex-1 rounded-full ${step >= 2 ? 'swipe-gradient' : 'bg-gray-200'}`} />
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <main className="px-6 pb-32">
+        <AnimatePresence mode="wait">
+          {renderStep()}
+        </AnimatePresence>
+      </main>
+
+      {/* Footer */}
+      {step === 2 && (
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100">
+          <div className="max-w-lg mx-auto">
+            <Button
+              onClick={handleComplete}
+              disabled={loading || (userType === 'candidate' ? !candidateData.headline : !companyData.name)}
+              className="w-full swipe-gradient text-white h-14 rounded-2xl text-lg font-semibold shadow-lg shadow-pink-500/25 disabled:opacity-50"
+            >
+              {loading ? 'Setting up...' : 'Complete Setup'}
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
