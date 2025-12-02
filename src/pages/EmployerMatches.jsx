@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +19,18 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import InterviewScheduler from '@/components/interview/InterviewScheduler';
+import { sendStatusChangeNotification } from '@/components/status/StatusChangeHandler';
 
 export default function EmployerMatches() {
   const [matches, setMatches] = useState([]);
   const [candidates, setCandidates] = useState({});
   const [users, setUsers] = useState({});
   const [jobs, setJobs] = useState({});
+  const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [schedulingMatch, setSchedulingMatch] = useState(null);
 
   useEffect(() => {
     loadMatches();
@@ -37,6 +42,7 @@ export default function EmployerMatches() {
       const [company] = await base44.entities.Company.filter({ user_id: user.id });
 
       if (company) {
+        setCompany(company);
         const allMatches = await base44.entities.Match.filter({ company_id: company.id });
         setMatches(allMatches);
 
@@ -64,6 +70,16 @@ export default function EmployerMatches() {
   const updateMatchStatus = async (matchId, status) => {
     await base44.entities.Match.update(matchId, { status });
     setMatches(matches.map(m => m.id === matchId ? { ...m, status } : m));
+    
+    // Send automatic notification
+    const match = matches.find(m => m.id === matchId);
+    if (match) {
+      const candidate = candidates[match.candidate_id];
+      const job = jobs[match.job_id];
+      if (candidate && job && company) {
+        sendStatusChangeNotification(match, status, candidate, job, company);
+      }
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -207,7 +223,7 @@ export default function EmployerMatches() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => updateMatchStatus(match.id, 'interviewing')}
+                                onClick={() => setSchedulingMatch(match)}
                               >
                                 <Calendar className="w-4 h-4 mr-2" /> Schedule Interview
                               </Button>
@@ -255,6 +271,28 @@ export default function EmployerMatches() {
           </div>
         )}
       </div>
+
+      {/* Interview Scheduler Dialog */}
+      <Dialog open={!!schedulingMatch} onOpenChange={() => setSchedulingMatch(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Interview</DialogTitle>
+          </DialogHeader>
+          {schedulingMatch && (
+            <InterviewScheduler
+              match={schedulingMatch}
+              candidate={candidates[schedulingMatch.candidate_id]}
+              job={jobs[schedulingMatch.job_id]}
+              company={company}
+              onScheduled={() => {
+                setSchedulingMatch(null);
+                loadMatches();
+              }}
+              onClose={() => setSchedulingMatch(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

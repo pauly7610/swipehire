@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import HiringMetrics from '@/components/analytics/HiringMetrics';
 import JobPerformanceChart from '@/components/analytics/JobPerformanceChart';
 import TopJobsTable from '@/components/analytics/TopJobsTable';
 import AIRecommendations from '@/components/analytics/AIRecommendations';
+import PredictiveAnalytics from '@/components/analytics/PredictiveAnalytics';
 
 export default function EmployerAnalytics() {
   const [company, setCompany] = useState(null);
@@ -12,6 +14,7 @@ export default function EmployerAnalytics() {
   const [matches, setMatches] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [swipes, setSwipes] = useState([]);
+  const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,17 +29,19 @@ export default function EmployerAnalytics() {
       if (companyData) {
         setCompany(companyData);
         
-        const [companyJobs, companyMatches, companyInterviews, allSwipes] = await Promise.all([
+        const [companyJobs, companyMatches, companyInterviews, allSwipes, allCandidates] = await Promise.all([
           base44.entities.Job.filter({ company_id: companyData.id }),
           base44.entities.Match.filter({ company_id: companyData.id }),
           base44.entities.Interview.filter({ company_id: companyData.id }),
-          base44.entities.Swipe.filter({ swiper_type: 'employer' })
+          base44.entities.Swipe.filter({ swiper_type: 'employer' }),
+          base44.entities.Candidate.list()
         ]);
         
         setJobs(companyJobs);
         setMatches(companyMatches);
         setInterviews(companyInterviews);
         setSwipes(allSwipes.filter(s => companyJobs.some(j => j.id === s.job_id)));
+        setCandidates(allCandidates);
       }
     } catch (error) {
       console.error('Failed to load analytics:', error);
@@ -75,14 +80,31 @@ export default function EmployerAnalytics() {
         {/* Key Metrics */}
         <HiringMetrics jobs={jobs} matches={matches} interviews={interviews} />
 
-        {/* Charts */}
-        <JobPerformanceChart jobs={jobs} matches={matches} swipes={swipes} />
+        <Tabs defaultValue="performance" className="space-y-4">
+          <TabsList className="bg-white rounded-xl p-1 shadow-sm">
+            <TabsTrigger value="performance" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg">
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="predictive" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg">
+              Predictive Analytics
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Bottom Section */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <TopJobsTable jobs={jobs} matches={matches} />
-          <AIRecommendations company={company} jobs={jobs} matches={matches} interviews={interviews} />
-        </div>
+          <TabsContent value="performance" className="space-y-6">
+            {/* Charts */}
+            <JobPerformanceChart jobs={jobs} matches={matches} swipes={swipes} />
+
+            {/* Bottom Section */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <TopJobsTable jobs={jobs} matches={matches} />
+              <AIRecommendations company={company} jobs={jobs} matches={matches} interviews={interviews} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="predictive">
+            <PredictiveAnalytics company={company} jobs={jobs} matches={matches} candidates={candidates} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
