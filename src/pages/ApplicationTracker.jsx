@@ -35,9 +35,7 @@ export default function ApplicationTracker() {
       setCandidate(candidateData);
 
       if (candidateData) {
-        const apps = await base44.entities.Application.filter({ candidate_id: candidateData.id }, '-created_date');
-        setApplications(apps);
-
+        // Get all jobs and companies first
         const allJobs = await base44.entities.Job.list();
         const jobMap = {};
         allJobs.forEach(j => { jobMap[j.id] = j; });
@@ -47,6 +45,43 @@ export default function ApplicationTracker() {
         const companyMap = {};
         allCompanies.forEach(c => { companyMap[c.id] = c; });
         setCompanies(companyMap);
+
+        // Get swipes (right swipes = applications)
+        const swipes = await base44.entities.Swipe.filter({ 
+          swiper_id: currentUser.id, 
+          swiper_type: 'candidate'
+        }, '-created_date');
+        
+        const rightSwipes = swipes.filter(s => s.direction === 'right' || s.direction === 'super');
+
+        // Get matches for this candidate
+        const matches = await base44.entities.Match.filter({ candidate_id: candidateData.id });
+        const matchByJobId = {};
+        matches.forEach(m => { matchByJobId[m.job_id] = m; });
+
+        // Build applications from swipes and matches
+        const combinedApps = rightSwipes.map(swipe => {
+          const job = jobMap[swipe.job_id];
+          const match = matchByJobId[swipe.job_id];
+          
+          let status = 'applied';
+          if (match) {
+            status = match.status || 'matched';
+            if (status === 'matched') status = 'viewed'; // Map matched to viewed stage
+          }
+
+          return {
+            id: swipe.id,
+            job_id: swipe.job_id,
+            company_id: job?.company_id,
+            status: status,
+            created_date: swipe.created_date,
+            match_id: match?.id,
+            match_score: match?.match_score
+          };
+        });
+
+        setApplications(combinedApps);
       }
     } catch (error) {
       console.error('Failed to load applications:', error);
@@ -62,7 +97,8 @@ export default function ApplicationTracker() {
   const getStatusConfig = (status) => {
     const configs = {
       applied: { color: 'bg-blue-100 text-blue-700', icon: FileText, label: 'Applied' },
-      viewed: { color: 'bg-purple-100 text-purple-700', icon: Eye, label: 'Viewed' },
+      viewed: { color: 'bg-purple-100 text-purple-700', icon: Eye, label: 'Matched' },
+      matched: { color: 'bg-purple-100 text-purple-700', icon: Eye, label: 'Matched' },
       shortlisted: { color: 'bg-amber-100 text-amber-700', icon: Users, label: 'Shortlisted' },
       interviewing: { color: 'bg-indigo-100 text-indigo-700', icon: Calendar, label: 'Interviewing' },
       offered: { color: 'bg-green-100 text-green-700', icon: CheckCircle2, label: 'Offer Received' },
@@ -79,9 +115,9 @@ export default function ApplicationTracker() {
 
   const stats = {
     total: applications.length,
-    active: applications.filter(a => ['applied', 'viewed', 'shortlisted', 'interviewing'].includes(a.status)).length,
+    active: applications.filter(a => ['applied', 'viewed', 'matched', 'shortlisted', 'interviewing'].includes(a.status)).length,
     interviews: applications.filter(a => a.status === 'interviewing').length,
-    offers: applications.filter(a => a.status === 'offered').length
+    offers: applications.filter(a => ['offered', 'hired'].includes(a.status)).length
   };
 
   if (loading) {
