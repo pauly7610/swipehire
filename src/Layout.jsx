@@ -19,7 +19,7 @@ export default function Layout({ children, currentPageName }) {
         // Check if user has a candidate or company profile
         const candidates = await base44.entities.Candidate.filter({ user_id: currentUser.id });
         const companies = await base44.entities.Company.filter({ user_id: currentUser.id });
-        if (companies.length > 0) {
+        if (companies.length > 0 || currentUser.role === 'admin') {
           setUserType('employer');
         } else if (candidates.length > 0) {
           setUserType('candidate');
