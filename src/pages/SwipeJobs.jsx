@@ -21,8 +21,9 @@ export default function SwipeJobs() {
   const [matchData, setMatchData] = useState(null);
   const [swipedJobIds, setSwipedJobIds] = useState(new Set());
   const [dealBreakerWarnings, setDealBreakerWarnings] = useState([]);
+  const [currentMatchScore, setCurrentMatchScore] = useState(null);
 
-  const { checkDealBreakers } = useAIMatching();
+  const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
@@ -68,15 +69,19 @@ export default function SwipeJobs() {
   const currentJob = jobs[currentIndex];
   const currentCompany = currentJob ? companies[currentJob.company_id] : null;
 
-  // Check deal breakers for current job
-  useEffect(() => {
-    if (currentJob && candidate && currentCompany) {
-      const { violations } = checkDealBreakers(candidate, currentJob, currentCompany);
-      setDealBreakerWarnings(violations);
-    } else {
-      setDealBreakerWarnings([]);
-    }
-  }, [currentJob, candidate, currentCompany, checkDealBreakers]);
+  // Check deal breakers and calculate match score for current job
+    useEffect(() => {
+      if (currentJob && candidate && currentCompany) {
+        const { violations } = checkDealBreakers(candidate, currentJob, currentCompany);
+        setDealBreakerWarnings(violations);
+
+        const { score } = calculateMatchScore(candidate, currentJob, currentCompany);
+        setCurrentMatchScore(score);
+      } else {
+        setDealBreakerWarnings([]);
+        setCurrentMatchScore(null);
+      }
+    }, [currentJob, candidate, currentCompany, checkDealBreakers, calculateMatchScore]);
 
   const handleSwipe = async (direction) => {
     if (!currentJob || !candidate) return;
@@ -195,11 +200,12 @@ export default function SwipeJobs() {
                 onDragEnd={handleDragEnd}
               >
                 <JobCard
-                  job={currentJob}
-                  company={currentCompany}
-                  isFlipped={isFlipped}
-                  onFlip={() => setIsFlipped(!isFlipped)}
-                />
+                                        job={currentJob}
+                                        company={currentCompany}
+                                        isFlipped={isFlipped}
+                                        onFlip={() => setIsFlipped(!isFlipped)}
+                                        matchScore={currentMatchScore}
+                                      />
 
                 {/* Swipe indicators */}
                 <motion.div

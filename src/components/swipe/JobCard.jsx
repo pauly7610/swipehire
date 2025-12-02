@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function JobCard({ job, company, isFlipped, onFlip }) {
+export default function JobCard({ job, company, isFlipped, onFlip, matchScore }) {
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     if (min && max) {
@@ -25,6 +25,16 @@ export default function JobCard({ job, company, isFlipped, onFlip }) {
           className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl p-6 flex flex-col backface-hidden"
           style={{ backfaceVisibility: 'hidden' }}
         >
+          {/* Match Score Badge */}
+          {matchScore && (
+            <div className="absolute top-4 right-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg z-10">
+              <span className={`font-bold ${matchScore >= 80 ? 'text-green-500' : matchScore >= 65 ? 'text-amber-500' : 'text-gray-500'}`}>
+                {matchScore}%
+              </span>
+              <span className="text-gray-500 text-sm ml-1">match</span>
+            </div>
+          )}
+
           {/* Company Logo */}
           <div className="flex items-start gap-4 mb-6">
             {company?.logo_url ? (
