@@ -15,6 +15,9 @@ import JobAlerts from './pages/JobAlerts';
 import SkillTests from './pages/SkillTests';
 import CompanyBranding from './pages/CompanyBranding';
 import EmployerAnalytics from './pages/EmployerAnalytics';
+import CandidateCareerHub from './pages/CandidateCareerHub';
+import Community from './pages/Community';
+import Connections from './pages/Connections';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +39,9 @@ export const PAGES = {
     "SkillTests": SkillTests,
     "CompanyBranding": CompanyBranding,
     "EmployerAnalytics": EmployerAnalytics,
+    "CandidateCareerHub": CandidateCareerHub,
+    "Community": Community,
+    "Connections": Connections,
 }
 
 export const pagesConfig = {
