@@ -118,7 +118,17 @@ export default function SwipeJobs() {
           job_id: currentJob.id,
           candidate_user_id: user.id,
           company_user_id: currentCompany?.user_id,
-          match_score: 85
+          match_score: currentMatchScore || 85
+        });
+        
+        // Create notification for candidate
+        await base44.entities.Notification.create({
+          user_id: user.id,
+          type: 'new_match',
+          title: '🎉 New Match!',
+          message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
+          match_id: match.id,
+          job_id: currentJob.id
         });
         
         setMatchData({ match, job: currentJob, company: currentCompany, candidate });

@@ -135,18 +135,38 @@ export default function SwipeCandidates() {
       const mutualSwipe = candidateSwipes.find(s => s.direction === 'right' || s.direction === 'super');
 
       if (mutualSwipe) {
-                    const match = await base44.entities.Match.create({
-                      candidate_id: currentCandidate.id,
-                      company_id: company.id,
-                      job_id: selectedJobId,
-                      candidate_user_id: currentCandidate.user_id,
-                      company_user_id: user.id,
-                      match_score: currentScore
-                    });
+                                const match = await base44.entities.Match.create({
+                                  candidate_id: currentCandidate.id,
+                                  company_id: company.id,
+                                  job_id: selectedJobId,
+                                  candidate_user_id: currentCandidate.user_id,
+                                  company_user_id: user.id,
+                                  match_score: currentScore
+                                });
 
-        setMatchData({ match, job: selectedJob, company, candidate: currentCandidate });
-        setShowMatch(true);
-      }
+                    // Notify both parties
+                    await Promise.all([
+                      base44.entities.Notification.create({
+                        user_id: currentCandidate.user_id,
+                        type: 'new_match',
+                        title: '🎉 New Match!',
+                        message: `You matched with ${company.name} for ${selectedJob.title}!`,
+                        match_id: match.id,
+                        job_id: selectedJobId
+                      }),
+                      base44.entities.Notification.create({
+                        user_id: user.id,
+                        type: 'new_match',
+                        title: '🎉 New Match!',
+                        message: `${currentCandidateUser?.full_name || 'A candidate'} matched for ${selectedJob.title}!`,
+                        match_id: match.id,
+                        job_id: selectedJobId
+                      })
+                    ]);
+
+                    setMatchData({ match, job: selectedJob, company, candidate: currentCandidate });
+                    setShowMatch(true);
+                  }
     }
 
     setIsFlipped(false);
@@ -306,14 +326,15 @@ export default function SwipeCandidates() {
       </div>
 
       {/* Match Modal */}
-      <MatchModal
-        isOpen={showMatch}
-        onClose={() => setShowMatch(false)}
-        match={matchData?.match}
-        candidate={matchData?.candidate}
-        company={matchData?.company}
-        job={matchData?.job}
-      />
+                  <MatchModal
+                    isOpen={showMatch}
+                    onClose={() => setShowMatch(false)}
+                    match={matchData?.match}
+                    candidate={matchData?.candidate}
+                    company={matchData?.company}
+                    job={matchData?.job}
+                    viewerType="employer"
+                  />
     </div>
   );
 }

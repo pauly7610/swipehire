@@ -1,12 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Briefcase, Sparkles } from 'lucide-react';
+import { MessageCircle, Briefcase, Sparkles, Calendar, PartyPopper, Star, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import confetti from 'canvas-confetti';
 
-export default function MatchModal({ isOpen, onClose, match, candidate, company, job }) {
+export default function MatchModal({ isOpen, onClose, match, candidate, company, job, viewerType = 'candidate' }) {
   const navigate = useNavigate();
+  const [showScheduler, setShowScheduler] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fire confetti
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#FF005C', '#FF7B00', '#FFD700']
+          });
+          confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#FF005C', '#FF7B00', '#FFD700']
+          });
+        }
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -188,6 +221,16 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
               <MessageCircle className="w-5 h-5 mr-2" />
               Start a Conversation
             </Button>
+            {viewerType === 'candidate' && (
+              <Button
+                onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match?.id}&scheduleInterview=true`)}
+                variant="outline"
+                className="w-full h-12 rounded-xl border-pink-200 text-pink-600 hover:bg-pink-50"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                Schedule Interview
+              </Button>
+            )}
             <Button
               onClick={onClose}
               variant="outline"
@@ -197,6 +240,29 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
               Keep Swiping
             </Button>
           </motion.div>
+
+          {/* Floating hearts animation */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={`heart-${i}`}
+                initial={{ y: 400, x: 50 + i * 60, opacity: 0, scale: 0 }}
+                animate={{ 
+                  y: -100, 
+                  opacity: [0, 1, 1, 0],
+                  scale: [0, 1, 1, 0.5]
+                }}
+                transition={{ 
+                  duration: 4,
+                  delay: i * 0.5,
+                  repeat: Infinity,
+                  ease: "easeOut"
+                }}
+              >
+                <Heart className="w-6 h-6 text-pink-400 fill-pink-400" />
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
