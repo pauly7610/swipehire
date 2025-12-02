@@ -30,7 +30,7 @@ export default function Layout({ children, currentPageName }) {
     loadUser();
   }, []);
 
-  const hideLayout = ['Welcome', 'Onboarding'].includes(currentPageName);
+  const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
 
   if (hideLayout) {
     return <>{children}</>;
