@@ -8,6 +8,9 @@ import EmployerDashboard from './pages/EmployerDashboard';
 import PostJob from './pages/PostJob';
 import ManageJobs from './pages/ManageJobs';
 import SwipeCandidates from './pages/SwipeCandidates';
+import EmployerMatches from './pages/EmployerMatches';
+import EmployerChat from './pages/EmployerChat';
+import SwipePeople from './pages/SwipePeople';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +25,9 @@ export const PAGES = {
     "PostJob": PostJob,
     "ManageJobs": ManageJobs,
     "SwipeCandidates": SwipeCandidates,
+    "EmployerMatches": EmployerMatches,
+    "EmployerChat": EmployerChat,
+    "SwipePeople": SwipePeople,
 }
 
 export const pagesConfig = {
