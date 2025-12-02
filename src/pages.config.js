@@ -20,6 +20,7 @@ import Community from './pages/Community';
 import Connections from './pages/Connections';
 import VideoFeed from './pages/VideoFeed';
 import ApplicationTracker from './pages/ApplicationTracker';
+import CompanyProfile from './pages/CompanyProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "Connections": Connections,
     "VideoFeed": VideoFeed,
     "ApplicationTracker": ApplicationTracker,
+    "CompanyProfile": CompanyProfile,
 }
 
 export const pagesConfig = {
