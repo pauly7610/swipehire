@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function JobCard({ job, company, isFlipped, onFlip, matchScore }) {
   const formatSalary = (min, max, type) => {
@@ -37,16 +40,20 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore })
 
           {/* Company Logo */}
           <div className="flex items-start gap-4 mb-6">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-2xl object-cover" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl swipe-gradient flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-white" />
-              </div>
-            )}
+            <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}>
+              {company?.logo_url ? (
+                <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-2xl object-cover hover:ring-2 hover:ring-pink-500 transition-all" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl swipe-gradient flex items-center justify-center hover:opacity-90 transition-opacity">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+              )}
+            </Link>
             <div className="flex-1">
               <h3 className="text-2xl font-bold text-gray-900 leading-tight">{job.title}</h3>
-              <p className="text-gray-600 font-medium">{company?.name || 'Company'}</p>
+              <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} className="text-gray-600 font-medium hover:text-pink-500 transition-colors">
+                {company?.name || 'Company'}
+              </Link>
             </div>
           </div>
 
@@ -122,6 +129,13 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore })
               </div>
             </>
           )}
+
+          {/* Company Profile Link */}
+          <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} className="mb-4">
+            <Button variant="outline" size="sm" className="w-full">
+              <ExternalLink className="w-4 h-4 mr-1" /> View Company Profile
+            </Button>
+          </Link>
 
           <button
             onClick={onFlip}
