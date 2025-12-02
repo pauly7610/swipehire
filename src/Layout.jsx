@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut } from 'lucide-react';
+import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing } from 'lucide-react';
+import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 
 export default function Layout({ children, currentPageName }) {
@@ -37,11 +38,12 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const candidateNav = [
-    { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
-    { name: 'People', icon: Users, page: 'SwipePeople' },
-    { name: 'Matches', icon: MessageCircle, page: 'Matches' },
-    { name: 'Profile', icon: User, page: 'CandidateProfile' },
-  ];
+        { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
+        { name: 'People', icon: Users, page: 'SwipePeople' },
+        { name: 'Matches', icon: MessageCircle, page: 'Matches' },
+        { name: 'Alerts', icon: BellRing, page: 'JobAlerts' },
+        { name: 'Profile', icon: User, page: 'CandidateProfile' },
+      ];
 
   const employerNav = [
     { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
@@ -110,10 +112,13 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 flex-col z-50">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold swipe-gradient-text">SwipeHire</h1>
-          <p className="text-xs text-gray-500 mt-1">Swipe. Match. Interview. Hired.</p>
-        </div>
+        <div className="p-6 flex items-center justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold swipe-gradient-text">SwipeHire</h1>
+                      <p className="text-xs text-gray-500 mt-1">Swipe. Match. Interview. Hired.</p>
+                    </div>
+                    <NotificationBell />
+                  </div>
         
         <nav className="flex-1 px-4 space-y-1">
           {navItems.map((item) => (

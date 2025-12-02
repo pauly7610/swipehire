@@ -11,6 +11,7 @@ import SwipeCandidates from './pages/SwipeCandidates';
 import EmployerMatches from './pages/EmployerMatches';
 import EmployerChat from './pages/EmployerChat';
 import SwipePeople from './pages/SwipePeople';
+import JobAlerts from './pages/JobAlerts';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "EmployerMatches": EmployerMatches,
     "EmployerChat": EmployerChat,
     "SwipePeople": SwipePeople,
+    "JobAlerts": JobAlerts,
 }
 
 export const pagesConfig = {
