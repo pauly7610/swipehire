@@ -39,9 +39,8 @@ export default function Layout({ children, currentPageName }) {
 
   const candidateNav = [
         { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
-        { name: 'People', icon: Users, page: 'SwipePeople' },
         { name: 'Matches', icon: MessageCircle, page: 'Matches' },
-        { name: 'Alerts', icon: BellRing, page: 'JobAlerts' },
+        { name: 'Tests', icon: Users, page: 'SkillTests' },
         { name: 'Profile', icon: User, page: 'CandidateProfile' },
       ];
 

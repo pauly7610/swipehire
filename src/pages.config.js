@@ -12,6 +12,7 @@ import EmployerMatches from './pages/EmployerMatches';
 import EmployerChat from './pages/EmployerChat';
 import SwipePeople from './pages/SwipePeople';
 import JobAlerts from './pages/JobAlerts';
+import SkillTests from './pages/SkillTests';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "EmployerChat": EmployerChat,
     "SwipePeople": SwipePeople,
     "JobAlerts": JobAlerts,
+    "SkillTests": SkillTests,
 }
 
 export const pagesConfig = {
