@@ -26,6 +26,8 @@ export default function SwipeJobs() {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
+  const passOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
+  const applyOpacity = useTransform(x, [0, 50, 100], [0, 0.5, 1]);
 
   useEffect(() => {
     loadData();
@@ -203,7 +205,7 @@ export default function SwipeJobs() {
                 <motion.div
                   className="absolute top-8 left-8 px-4 py-2 border-4 border-red-500 rounded-lg"
                   style={{ 
-                    opacity: useTransform(x, [-100, -50, 0], [1, 0.5, 0]),
+                    opacity: passOpacity,
                     rotate: -20
                   }}
                 >
@@ -212,7 +214,7 @@ export default function SwipeJobs() {
                 <motion.div
                   className="absolute top-8 right-8 px-4 py-2 border-4 border-green-500 rounded-lg"
                   style={{ 
-                    opacity: useTransform(x, [0, 50, 100], [0, 0.5, 1]),
+                    opacity: applyOpacity,
                     rotate: 20
                   }}
                 >
