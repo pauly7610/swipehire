@@ -243,11 +243,35 @@ export default function VideoFeed() {
         base44.entities.Company.list()
       ]);
 
-      // Algorithm: mix content types and prioritize engagement
-      const scoredPosts = allPosts.map(p => ({
-        ...p,
-        score: (p.likes || 0) * 2 + (p.views || 0) * 0.1 + Math.random() * 10
-      })).sort((a, b) => b.score - a.score);
+      // Enhanced Algorithm: personalized feed based on engagement, recency, and diversity
+      const now = new Date();
+      const candidateData = allCandidates.find(c => c.user_id === currentUser.id);
+      const userSkills = candidateData?.skills || [];
+      
+      const scoredPosts = allPosts.map(p => {
+        // Base engagement score
+        const engagementScore = (p.likes || 0) * 3 + (p.views || 0) * 0.5 + (p.shares || 0) * 5;
+        
+        // Recency boost (posts from last 24h get higher priority)
+        const postAge = (now - new Date(p.created_date)) / (1000 * 60 * 60);
+        const recencyBoost = postAge < 24 ? 50 : postAge < 72 ? 30 : postAge < 168 ? 15 : 0;
+        
+        // Content type diversity bonus
+        const typeBonus = { job_post: 20, tips: 15, day_in_life: 10, company_culture: 12, intro: 8 }[p.type] || 5;
+        
+        // Relevance score based on matching tags with user skills
+        const relevanceScore = p.tags?.filter(tag => 
+          userSkills.some(skill => skill.toLowerCase().includes(tag.toLowerCase()) || tag.toLowerCase().includes(skill.toLowerCase()))
+        ).length * 25 || 0;
+        
+        // Random factor for discovery
+        const discoveryBoost = Math.random() * 20;
+        
+        return {
+          ...p,
+          score: engagementScore + recencyBoost + typeBonus + relevanceScore + discoveryBoost
+        };
+      }).sort((a, b) => b.score - a.score);
 
       setPosts(scoredPosts);
 

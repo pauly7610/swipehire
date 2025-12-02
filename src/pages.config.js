@@ -19,6 +19,7 @@ import CandidateCareerHub from './pages/CandidateCareerHub';
 import Community from './pages/Community';
 import Connections from './pages/Connections';
 import VideoFeed from './pages/VideoFeed';
+import ApplicationTracker from './pages/ApplicationTracker';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "Community": Community,
     "Connections": Connections,
     "VideoFeed": VideoFeed,
+    "ApplicationTracker": ApplicationTracker,
 }
 
 export const pagesConfig = {

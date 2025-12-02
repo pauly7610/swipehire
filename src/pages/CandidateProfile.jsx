@@ -38,9 +38,21 @@ export default function CandidateProfile() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
-      setCandidate(candidateData || {});
-      setEditData(candidateData || {});
+      let [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+      
+      // Create candidate profile if it doesn't exist
+      if (!candidateData) {
+        candidateData = await base44.entities.Candidate.create({
+          user_id: currentUser.id,
+          skills: [],
+          experience: [],
+          culture_preferences: [],
+          deal_breakers: []
+        });
+      }
+      
+      setCandidate(candidateData);
+      setEditData(candidateData);
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
