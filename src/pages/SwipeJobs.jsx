@@ -4,7 +4,9 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-mo
 import JobCard from '@/components/swipe/JobCard';
 import SwipeControls from '@/components/swipe/SwipeControls';
 import MatchModal from '@/components/swipe/MatchModal';
-import { Loader2, Inbox } from 'lucide-react';
+import { useAIMatching } from '@/components/matching/useAIMatching';
+import { Loader2, Inbox, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function SwipeJobs() {
   const [jobs, setJobs] = useState([]);
@@ -18,7 +20,9 @@ export default function SwipeJobs() {
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
   const [swipedJobIds, setSwipedJobIds] = useState(new Set());
+  const [dealBreakerWarnings, setDealBreakerWarnings] = useState([]);
 
+  const { checkDealBreakers } = useAIMatching();
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
@@ -61,6 +65,16 @@ export default function SwipeJobs() {
 
   const currentJob = jobs[currentIndex];
   const currentCompany = currentJob ? companies[currentJob.company_id] : null;
+
+  // Check deal breakers for current job
+  useEffect(() => {
+    if (currentJob && candidate && currentCompany) {
+      const { violations } = checkDealBreakers(candidate, currentJob, currentCompany);
+      setDealBreakerWarnings(violations);
+    } else {
+      setDealBreakerWarnings([]);
+    }
+  }, [currentJob, candidate, currentCompany, checkDealBreakers]);
 
   const handleSwipe = async (direction) => {
     if (!currentJob || !candidate) return;
@@ -217,15 +231,32 @@ export default function SwipeJobs() {
           )}
         </div>
 
-        {/* Controls */}
-        {currentJob && (
-          <SwipeControls
-            onSwipe={handleSwipe}
-            onUndo={handleUndo}
-            canUndo={swipeHistory.length > 0}
-            isPremium={candidate?.is_premium}
-          />
-        )}
+        {/* Deal Breaker Warnings */}
+                  {dealBreakerWarnings.length > 0 && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-amber-700 mb-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span className="font-medium text-sm">Deal Breaker Warnings</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {dealBreakerWarnings.map((warning, i) => (
+                          <Badge key={i} variant="secondary" className="bg-amber-100 text-amber-700 text-xs">
+                            {warning.text}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Controls */}
+                  {currentJob && (
+                    <SwipeControls
+                      onSwipe={handleSwipe}
+                      onUndo={handleUndo}
+                      canUndo={swipeHistory.length > 0}
+                      isPremium={candidate?.is_premium}
+                    />
+                  )}
 
         {/* Progress */}
         {jobs.length > 0 && (
