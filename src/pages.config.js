@@ -13,6 +13,7 @@ import EmployerChat from './pages/EmployerChat';
 import SwipePeople from './pages/SwipePeople';
 import JobAlerts from './pages/JobAlerts';
 import SkillTests from './pages/SkillTests';
+import CompanyBranding from './pages/CompanyBranding';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "SwipePeople": SwipePeople,
     "JobAlerts": JobAlerts,
     "SkillTests": SkillTests,
+    "CompanyBranding": CompanyBranding,
 }
 
 export const pagesConfig = {

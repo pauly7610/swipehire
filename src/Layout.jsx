@@ -45,11 +45,12 @@ export default function Layout({ children, currentPageName }) {
       ];
 
   const employerNav = [
-    { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
-    { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
-    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
-    { name: 'Matches', icon: MessageCircle, page: 'EmployerMatches' },
-  ];
+        { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
+        { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
+        { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
+        { name: 'Matches', icon: MessageCircle, page: 'EmployerMatches' },
+        { name: 'Branding', icon: User, page: 'CompanyBranding' },
+      ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;
 
