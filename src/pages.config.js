@@ -4,6 +4,8 @@ import SwipeJobs from './pages/SwipeJobs';
 import CandidateProfile from './pages/CandidateProfile';
 import Matches from './pages/Matches';
 import Chat from './pages/Chat';
+import EmployerDashboard from './pages/EmployerDashboard';
+import PostJob from './pages/PostJob';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +16,8 @@ export const PAGES = {
     "CandidateProfile": CandidateProfile,
     "Matches": Matches,
     "Chat": Chat,
+    "EmployerDashboard": EmployerDashboard,
+    "PostJob": PostJob,
 }
 
 export const pagesConfig = {
