@@ -18,6 +18,7 @@ import EmployerAnalytics from './pages/EmployerAnalytics';
 import CandidateCareerHub from './pages/CandidateCareerHub';
 import Community from './pages/Community';
 import Connections from './pages/Connections';
+import VideoFeed from './pages/VideoFeed';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "CandidateCareerHub": CandidateCareerHub,
     "Community": Community,
     "Connections": Connections,
+    "VideoFeed": VideoFeed,
 }
 
 export const pagesConfig = {

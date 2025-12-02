@@ -1,0 +1,435 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Heart, MessageCircle, Share2, Plus, Play, Pause,
+  Volume2, VolumeX, User, Briefcase, Building2, Loader2,
+  Sparkles, BookmarkPlus, Send
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company }) => {
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [liked, setLiked] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isActive) {
+        videoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+        onView?.();
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  }, [isActive]);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleDoubleTap = () => {
+    if (!liked) {
+      setLiked(true);
+      setShowHeart(true);
+      onLike?.();
+      setTimeout(() => setShowHeart(false), 1000);
+    }
+  };
+
+  const handleLike = () => {
+    setLiked(!liked);
+    if (!liked) onLike?.();
+  };
+
+  const getTypeLabel = (type) => {
+    const labels = {
+      job_post: '💼 Job Opening',
+      intro: '👋 Introduction',
+      day_in_life: '📅 Day in Life',
+      tips: '💡 Career Tips',
+      company_culture: '🏢 Culture'
+    };
+    return labels[type] || type;
+  };
+
+  const authorName = user?.full_name || 'User';
+  const authorHeadline = candidate?.headline || company?.name || '';
+
+  return (
+    <div className="relative w-full h-full bg-black snap-start snap-always">
+      {/* Video */}
+      <video
+        ref={videoRef}
+        src={post.video_url}
+        className="w-full h-full object-cover"
+        loop
+        muted={isMuted}
+        playsInline
+        onClick={togglePlay}
+        onDoubleClick={handleDoubleTap}
+      />
+
+      {/* Play/Pause overlay */}
+      <AnimatePresence>
+        {!isPlaying && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/20"
+            onClick={togglePlay}
+          >
+            <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+              <Play className="w-10 h-10 text-white ml-1" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Double tap heart */}
+      <AnimatePresence>
+        {showHeart && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 1.5, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          >
+            <Heart className="w-32 h-32 text-pink-500 fill-pink-500" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Type badge */}
+      <div className="absolute top-4 left-4">
+        <Badge className="bg-black/50 backdrop-blur-sm text-white border-0">
+          {getTypeLabel(post.type)}
+        </Badge>
+      </div>
+
+      {/* Mute button */}
+      <button
+        onClick={() => setIsMuted(!isMuted)}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
+      >
+        {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+      </button>
+
+      {/* Right side actions */}
+      <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6">
+        {/* Profile */}
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden">
+            {candidate?.photo_url || company?.logo_url ? (
+              <img src={candidate?.photo_url || company?.logo_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
+                <span className="text-white font-bold">{authorName.charAt(0)}</span>
+              </div>
+            )}
+          </div>
+          <button className="w-6 h-6 -mt-3 rounded-full bg-pink-500 flex items-center justify-center">
+            <Plus className="w-4 h-4 text-white" />
+          </button>
+        </div>
+
+        {/* Like */}
+        <button onClick={handleLike} className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+            <Heart className={`w-7 h-7 ${liked ? 'text-pink-500 fill-pink-500' : 'text-white'}`} />
+          </div>
+          <span className="text-white text-xs mt-1">{(post.likes || 0) + (liked ? 1 : 0)}</span>
+        </button>
+
+        {/* Comment */}
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1">0</span>
+        </button>
+
+        {/* Save */}
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+            <BookmarkPlus className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1">Save</span>
+        </button>
+
+        {/* Share */}
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1">{post.shares || 0}</span>
+        </button>
+      </div>
+
+      {/* Bottom info */}
+      <div className="absolute bottom-4 left-4 right-20 text-white">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-bold">@{authorName.replace(/\s/g, '').toLowerCase()}</span>
+          {post.author_type === 'employer' && <Building2 className="w-4 h-4" />}
+        </div>
+        {authorHeadline && (
+          <p className="text-sm text-white/80 mb-2">{authorHeadline}</p>
+        )}
+        <p className="text-sm mb-2">{post.caption}</p>
+        {post.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {post.tags.map((tag, i) => (
+              <span key={i} className="text-sm text-pink-400">#{tag}</span>
+            ))}
+          </div>
+        )}
+        {post.job_id && (
+          <Link to={createPageUrl('SwipeJobs')}>
+            <Button size="sm" className="mt-3 bg-pink-500 hover:bg-pink-600 text-white">
+              <Briefcase className="w-4 h-4 mr-1" /> View Job
+            </Button>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default function VideoFeed() {
+  const [posts, setPosts] = useState([]);
+  const [users, setUsers] = useState({});
+  const [candidates, setCandidates] = useState({});
+  const [companies, setCompanies] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [newPost, setNewPost] = useState({ caption: '', type: 'intro', tags: '' });
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+
+      const [allPosts, allUsers, allCandidates, allCompanies] = await Promise.all([
+        base44.entities.VideoPost.list('-created_date', 50),
+        base44.entities.User.list(),
+        base44.entities.Candidate.list(),
+        base44.entities.Company.list()
+      ]);
+
+      // Algorithm: mix content types and prioritize engagement
+      const scoredPosts = allPosts.map(p => ({
+        ...p,
+        score: (p.likes || 0) * 2 + (p.views || 0) * 0.1 + Math.random() * 10
+      })).sort((a, b) => b.score - a.score);
+
+      setPosts(scoredPosts);
+
+      const userMap = {};
+      allUsers.forEach(u => { userMap[u.id] = u; });
+      setUsers(userMap);
+
+      const candidateMap = {};
+      allCandidates.forEach(c => { candidateMap[c.user_id] = c; });
+      setCandidates(candidateMap);
+
+      const companyMap = {};
+      allCompanies.forEach(c => { companyMap[c.user_id] = c; });
+      setCompanies(companyMap);
+    } catch (error) {
+      console.error('Failed to load feed:', error);
+    }
+    setLoading(false);
+  };
+
+  const handleScroll = useCallback((e) => {
+    const container = e.target;
+    const scrollTop = container.scrollTop;
+    const itemHeight = container.clientHeight;
+    const newIndex = Math.round(scrollTop / itemHeight);
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
+    }
+  }, [currentIndex]);
+
+  const handleLike = async (post) => {
+    await base44.entities.VideoPost.update(post.id, { likes: (post.likes || 0) + 1 });
+  };
+
+  const handleView = async (post) => {
+    await base44.entities.VideoPost.update(post.id, { views: (post.views || 0) + 1 });
+  };
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const [candidateData] = await base44.entities.Candidate.filter({ user_id: user.id });
+      const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
+
+      const post = await base44.entities.VideoPost.create({
+        author_id: user.id,
+        author_type: companyData ? 'employer' : 'candidate',
+        video_url: file_url,
+        caption: newPost.caption,
+        type: newPost.type,
+        tags: newPost.tags.split(',').map(t => t.trim()).filter(Boolean)
+      });
+
+      setPosts([post, ...posts]);
+      setShowUpload(false);
+      setNewPost({ caption: '', type: 'intro', tags: '' });
+    } catch (error) {
+      console.error('Failed to upload:', error);
+    }
+    setUploading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-black relative">
+      {/* Feed */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+        style={{ scrollSnapType: 'y mandatory' }}
+      >
+        {posts.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-white p-8">
+            <Sparkles className="w-16 h-16 text-pink-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">No Videos Yet</h2>
+            <p className="text-gray-400 text-center mb-6">Be the first to share your story!</p>
+            <Button onClick={() => setShowUpload(true)} className="bg-pink-500 hover:bg-pink-600">
+              <Plus className="w-5 h-5 mr-2" /> Create Video
+            </Button>
+          </div>
+        ) : (
+          posts.map((post, index) => (
+            <div key={post.id} className="h-full w-full snap-start">
+              <VideoCard
+                post={post}
+                user={users[post.author_id]}
+                candidate={candidates[post.author_id]}
+                company={companies[post.author_id]}
+                isActive={index === currentIndex}
+                onLike={() => handleLike(post)}
+                onView={() => handleView(post)}
+              />
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
+        <h1 className="text-white font-bold text-xl">SwipeHire</h1>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-pink-500 text-white border-0">For You</Badge>
+          <Badge variant="outline" className="text-white border-white/50">Following</Badge>
+        </div>
+      </div>
+
+      {/* Create button */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="absolute bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center z-10"
+        style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
+      >
+        <Plus className="w-6 h-6 text-white" />
+      </button>
+
+      {/* Upload Dialog */}
+      <Dialog open={showUpload} onOpenChange={setShowUpload}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Video Post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={newPost.type} onValueChange={v => setNewPost({ ...newPost, type: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Post type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="intro">👋 Introduction</SelectItem>
+                <SelectItem value="job_post">💼 Job Opening</SelectItem>
+                <SelectItem value="day_in_life">📅 Day in Life</SelectItem>
+                <SelectItem value="tips">💡 Career Tips</SelectItem>
+                <SelectItem value="company_culture">🏢 Company Culture</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Textarea
+              placeholder="Write a caption..."
+              value={newPost.caption}
+              onChange={e => setNewPost({ ...newPost, caption: e.target.value })}
+              rows={3}
+            />
+
+            <Input
+              placeholder="Tags (comma separated)"
+              value={newPost.tags}
+              onChange={e => setNewPost({ ...newPost, tags: e.target.value })}
+            />
+
+            <label className="block">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-pink-500 transition-colors">
+                {uploading ? (
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-pink-500" />
+                ) : (
+                  <>
+                    <Plus className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500">Click to upload video</p>
+                  </>
+                )}
+              </div>
+              <input type="file" accept="video/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+            </label>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+    </div>
+  );
+}
