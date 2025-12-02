@@ -176,25 +176,29 @@ export default function EmployerMatches() {
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         {/* Candidate Photo */}
-                        {candidate?.photo_url ? (
-                          <img 
-                            src={candidate.photo_url}
-                            alt={candidateUser?.full_name}
-                            className="w-16 h-16 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
-                            <User className="w-8 h-8 text-pink-400" />
-                          </div>
-                        )}
+                        <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate?.id}`}>
+                          {candidate?.photo_url ? (
+                            <img 
+                              src={candidate.photo_url}
+                              alt={candidateUser?.full_name}
+                              className="w-16 h-16 rounded-xl object-cover hover:ring-2 hover:ring-pink-500 transition-all"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center hover:ring-2 hover:ring-pink-500 transition-all">
+                              <User className="w-8 h-8 text-pink-400" />
+                            </div>
+                          )}
+                        </Link>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {candidateUser?.full_name || 'Candidate'}
-                              </h3>
+                              <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate?.id}`} className="hover:text-pink-600 transition-colors">
+                                <h3 className="text-lg font-semibold text-gray-900 hover:text-pink-600">
+                                  {candidateUser?.full_name || 'Candidate'}
+                                </h3>
+                              </Link>
                               <p className="text-gray-600">{candidate?.headline}</p>
                               <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                                 <Briefcase className="w-4 h-4" />

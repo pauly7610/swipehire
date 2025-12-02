@@ -137,24 +137,32 @@ export default function Matches() {
                     <Card className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm">
                       <div className="flex items-start gap-4">
                         {/* Company Logo */}
-                        {company?.logo_url ? (
-                          <img 
-                            src={company.logo_url} 
-                            alt={company.name}
-                            className="w-14 h-14 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="w-14 h-14 rounded-xl swipe-gradient flex items-center justify-center">
-                            <Building2 className="w-7 h-7 text-white" />
-                          </div>
-                        )}
+                        <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} onClick={(e) => e.stopPropagation()}>
+                          {company?.logo_url ? (
+                            <img 
+                              src={company.logo_url} 
+                              alt={company.name}
+                              className="w-14 h-14 rounded-xl object-cover hover:ring-2 hover:ring-pink-500 transition-all"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl swipe-gradient flex items-center justify-center hover:opacity-90 transition-opacity">
+                              <Building2 className="w-7 h-7 text-white" />
+                            </div>
+                          )}
+                        </Link>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <h3 className="font-semibold text-gray-900 truncate">{job?.title || 'Position'}</h3>
-                              <p className="text-gray-600 text-sm">{company?.name || 'Company'}</p>
+                              <Link 
+                                to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} 
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-600 text-sm hover:text-pink-600 transition-colors"
+                              >
+                                {company?.name || 'Company'}
+                              </Link>
                             </div>
                             {getStatusBadge(match.status)}
                           </div>
