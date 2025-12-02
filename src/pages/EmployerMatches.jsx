@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import InterviewScheduler from '@/components/interview/InterviewScheduler';
 import { sendStatusChangeNotification } from '@/components/status/StatusChangeHandler';
+import HiredCelebration from '@/components/status/HiredCelebration';
 
 export default function EmployerMatches() {
   const [matches, setMatches] = useState([]);
@@ -31,6 +32,7 @@ export default function EmployerMatches() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [schedulingMatch, setSchedulingMatch] = useState(null);
+  const [hiredCelebration, setHiredCelebration] = useState(null);
 
   useEffect(() => {
     loadMatches();
@@ -78,6 +80,16 @@ export default function EmployerMatches() {
       const job = jobs[match.job_id];
       if (candidate && job && company) {
         sendStatusChangeNotification(match, status, candidate, job, company);
+        
+        // Show hired celebration
+        if (status === 'hired') {
+          const candidateUser = users[candidate.user_id];
+          setHiredCelebration({
+            candidateName: candidateUser?.full_name,
+            jobTitle: job.title,
+            companyName: company.name
+          });
+        }
       }
     }
   };
@@ -293,6 +305,15 @@ export default function EmployerMatches() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hired Celebration */}
+      <HiredCelebration
+        isOpen={!!hiredCelebration}
+        onClose={() => setHiredCelebration(null)}
+        candidateName={hiredCelebration?.candidateName}
+        jobTitle={hiredCelebration?.jobTitle}
+        companyName={hiredCelebration?.companyName}
+      />
     </div>
   );
 }

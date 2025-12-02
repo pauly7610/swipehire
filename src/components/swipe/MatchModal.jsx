@@ -27,31 +27,79 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
           className="bg-white rounded-3xl p-8 max-w-md w-full text-center relative overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Confetti Background */}
+          {/* Fireworks Background */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
+            {/* Confetti */}
+            {[...Array(30)].map((_, i) => (
               <motion.div
-                key={i}
+                key={`confetti-${i}`}
                 initial={{ 
                   y: -20, 
                   x: Math.random() * 400 - 200,
                   rotate: 0,
-                  opacity: 1 
+                  opacity: 1,
+                  scale: 0
                 }}
                 animate={{ 
-                  y: 500,
-                  rotate: Math.random() * 360,
-                  opacity: 0
+                  y: 600,
+                  rotate: Math.random() * 720,
+                  opacity: [1, 1, 0],
+                  scale: [0, 1, 1]
                 }}
                 transition={{ 
-                  duration: 2 + Math.random() * 2,
-                  delay: Math.random() * 0.5,
+                  duration: 3 + Math.random() * 2,
+                  delay: Math.random() * 0.8,
                   repeat: Infinity
                 }}
-                className={`absolute w-3 h-3 rounded-full ${
-                  ['bg-pink-500', 'bg-orange-500', 'bg-yellow-400', 'bg-purple-500'][i % 4]
+                className={`absolute ${
+                  i % 3 === 0 ? 'w-3 h-3 rounded-full' : i % 3 === 1 ? 'w-2 h-4 rounded-sm' : 'w-4 h-2 rounded-sm'
+                } ${
+                  ['bg-pink-500', 'bg-orange-500', 'bg-yellow-400', 'bg-purple-500', 'bg-green-400', 'bg-blue-400'][i % 6]
                 }`}
                 style={{ left: `${Math.random() * 100}%` }}
+              />
+            ))}
+            
+            {/* Sparkle bursts */}
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={`burst-${i}`}
+                initial={{ scale: 0, opacity: 1 }}
+                animate={{ 
+                  scale: [0, 1.5, 0],
+                  opacity: [1, 0.8, 0]
+                }}
+                transition={{ 
+                  duration: 1.5,
+                  delay: i * 0.3,
+                  repeat: Infinity,
+                  repeatDelay: 2
+                }}
+                className="absolute w-8 h-8 rounded-full"
+                style={{ 
+                  left: `${15 + (i % 4) * 25}%`, 
+                  top: `${20 + Math.floor(i / 4) * 40}%`,
+                  background: 'radial-gradient(circle, rgba(255,0,92,0.6) 0%, transparent 70%)'
+                }}
+              />
+            ))}
+
+            {/* Shooting stars */}
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={`star-${i}`}
+                initial={{ x: -50, y: 100 + i * 60, opacity: 0 }}
+                animate={{ 
+                  x: [null, 500],
+                  opacity: [0, 1, 0]
+                }}
+                transition={{ 
+                  duration: 1,
+                  delay: 0.5 + i * 0.4,
+                  repeat: Infinity,
+                  repeatDelay: 3
+                }}
+                className="absolute w-12 h-0.5 bg-gradient-to-r from-transparent via-yellow-300 to-transparent"
               />
             ))}
           </div>
