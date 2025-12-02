@@ -5,8 +5,10 @@ import { motion, useMotionValue, useTransform } from 'framer-motion';
 import CandidateCard from '@/components/swipe/CandidateCard';
 import SwipeControls from '@/components/swipe/SwipeControls';
 import MatchModal from '@/components/swipe/MatchModal';
+import MatchInsights from '@/components/matching/MatchInsights';
+import { useAIMatching } from '@/components/matching/useAIMatching';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Inbox, Briefcase } from 'lucide-react';
+import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
 
 export default function SwipeCandidates() {
   const [searchParams] = useSearchParams();
@@ -24,6 +26,10 @@ export default function SwipeCandidates() {
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
   const [user, setUser] = useState(null);
+  const [currentInsights, setCurrentInsights] = useState(null);
+  const [currentScore, setCurrentScore] = useState(75);
+
+  const { calculateMatchScore } = useAIMatching();
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
@@ -91,15 +97,14 @@ export default function SwipeCandidates() {
   const currentCandidateUser = currentCandidate ? users[currentCandidate.user_id] : null;
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
-  const calculateMatchScore = (candidate) => {
-    if (!selectedJob?.skills_required || !candidate?.skills) return 75;
-    const matchingSkills = candidate.skills.filter(s => 
-      selectedJob.skills_required.some(req => 
-        req.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(req.toLowerCase())
-      )
-    );
-    return Math.min(95, 60 + Math.floor((matchingSkills.length / Math.max(selectedJob.skills_required.length, 1)) * 35));
-  };
+  // Calculate insights when candidate changes
+  useEffect(() => {
+    if (currentCandidate && selectedJob && company) {
+      const { score, insights } = calculateMatchScore(currentCandidate, selectedJob, company);
+      setCurrentScore(score);
+      setCurrentInsights(insights);
+    }
+  }, [currentCandidate, selectedJob, company, calculateMatchScore]);
 
   const handleSwipe = async (direction) => {
     if (!currentCandidate || !selectedJobId) return;
@@ -128,14 +133,14 @@ export default function SwipeCandidates() {
       const mutualSwipe = candidateSwipes.find(s => s.direction === 'right' || s.direction === 'super');
 
       if (mutualSwipe) {
-        const match = await base44.entities.Match.create({
-          candidate_id: currentCandidate.id,
-          company_id: company.id,
-          job_id: selectedJobId,
-          candidate_user_id: currentCandidate.user_id,
-          company_user_id: user.id,
-          match_score: calculateMatchScore(currentCandidate)
-        });
+                    const match = await base44.entities.Match.create({
+                      candidate_id: currentCandidate.id,
+                      company_id: company.id,
+                      job_id: selectedJobId,
+                      candidate_user_id: currentCandidate.user_id,
+                      company_user_id: user.id,
+                      match_score: currentScore
+                    });
 
         setMatchData({ match, job: selectedJob, company, candidate: currentCandidate });
         setShowMatch(true);
@@ -217,32 +222,31 @@ export default function SwipeCandidates() {
           ) : currentCandidate ? (
             <>
               {/* Background card */}
-              {candidates[currentIndex + 1] && (
-                <div className="absolute inset-0 scale-95 opacity-50">
-                  <CandidateCard
-                    candidate={candidates[currentIndex + 1]}
-                    user={users[candidates[currentIndex + 1].user_id]}
-                    isFlipped={false}
-                    matchScore={calculateMatchScore(candidates[currentIndex + 1])}
-                  />
-                </div>
-              )}
+                              {candidates[currentIndex + 1] && (
+                                <div className="absolute inset-0 scale-95 opacity-50">
+                                  <CandidateCard
+                                    candidate={candidates[currentIndex + 1]}
+                                    user={users[candidates[currentIndex + 1].user_id]}
+                                    isFlipped={false}
+                                  />
+                                </div>
+                              )}
 
               {/* Active card */}
-              <motion.div
-                className="absolute inset-0 cursor-grab active:cursor-grabbing"
-                style={{ x, rotate, opacity }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={handleDragEnd}
-              >
-                <CandidateCard
-                  candidate={currentCandidate}
-                  user={currentCandidateUser}
-                  isFlipped={isFlipped}
-                  onFlip={() => setIsFlipped(!isFlipped)}
-                  matchScore={calculateMatchScore(currentCandidate)}
-                />
+                              <motion.div
+                                className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                                style={{ x, rotate, opacity }}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                onDragEnd={handleDragEnd}
+                              >
+                                <CandidateCard
+                                  candidate={currentCandidate}
+                                  user={currentCandidateUser}
+                                  isFlipped={isFlipped}
+                                  onFlip={() => setIsFlipped(!isFlipped)}
+                                  matchScore={currentScore}
+                                />
 
                 {/* Swipe indicators */}
                 <motion.div
@@ -274,15 +278,22 @@ export default function SwipeCandidates() {
           )}
         </div>
 
-        {/* Controls */}
-        {currentCandidate && selectedJobId && (
-          <SwipeControls
-            onSwipe={handleSwipe}
-            onUndo={handleUndo}
-            canUndo={swipeHistory.length > 0}
-            isPremium={true}
-          />
-        )}
+        {/* Match Insights */}
+                  {currentCandidate && selectedJobId && currentInsights && (
+                    <div className="mb-4">
+                      <MatchInsights insights={currentInsights} score={currentScore} />
+                    </div>
+                  )}
+
+                  {/* Controls */}
+                  {currentCandidate && selectedJobId && (
+                    <SwipeControls
+                      onSwipe={handleSwipe}
+                      onUndo={handleUndo}
+                      canUndo={swipeHistory.length > 0}
+                      isPremium={true}
+                    />
+                  )}
 
         {/* Progress */}
         {candidates.length > 0 && selectedJobId && (
