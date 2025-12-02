@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
+import PortfolioSection from '@/components/profile/PortfolioSection';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -199,6 +200,9 @@ export default function CandidateProfile() {
             </TabsTrigger>
             <TabsTrigger value="experience" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
               Experience
+            </TabsTrigger>
+            <TabsTrigger value="portfolio" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+              Portfolio
             </TabsTrigger>
             <TabsTrigger value="resume" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
               Resume
@@ -431,6 +435,15 @@ export default function CandidateProfile() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="portfolio">
+            <PortfolioSection
+              candidate={candidate}
+              editing={editing}
+              editData={editData}
+              setEditData={setEditData}
+            />
           </TabsContent>
 
           <TabsContent value="resume">
