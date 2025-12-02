@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
+import ResumeParser from '@/components/profile/ResumeParser';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -448,16 +449,22 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="resume">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Your Resume</h3>
-                <p className="text-gray-500 mb-6">PDF format recommended</p>
-                <Button className="swipe-gradient text-white">
-                  <Upload className="w-5 h-5 mr-2" /> Upload Resume
-                </Button>
-              </CardContent>
-            </Card>
+            <ResumeParser 
+              candidate={candidate}
+              onDataExtracted={(data) => {
+                const mergedData = {
+                  ...editData,
+                  ...data,
+                  skills: [...new Set([...(editData.skills || []), ...(data.skills || [])])],
+                  experience: [...(data.experience || []), ...(editData.experience || [])]
+                };
+                setEditData(mergedData);
+                if (candidate?.id) {
+                  base44.entities.Candidate.update(candidate.id, mergedData);
+                  setCandidate(mergedData);
+                }
+              }}
+            />
           </TabsContent>
         </Tabs>
 
