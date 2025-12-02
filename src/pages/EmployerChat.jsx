@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Send, ArrowLeft, User, Briefcase, Calendar, Video, 
-  FileText, CheckCircle2, Clock, Loader2, MoreVertical
+  FileText, CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ScheduleInterview from '@/components/interview/ScheduleInterview';
+import LiveVideoCall from '@/components/interview/LiveVideoCall';
+import InterviewInviteCard from '@/components/interview/InterviewInviteCard';
 
 export default function EmployerChat() {
   const [searchParams] = useSearchParams();
@@ -32,6 +35,9 @@ export default function EmployerChat() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [user, setUser] = useState(null);
+  const [interviews, setInterviews] = useState([]);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showLiveCall, setShowLiveCall] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -66,11 +72,39 @@ export default function EmployerChat() {
 
         const chatMessages = await base44.entities.Message.filter({ match_id: matchId });
         setMessages(chatMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+
+        // Load interviews
+        const matchInterviews = await base44.entities.Interview.filter({ match_id: matchId });
+        setInterviews(matchInterviews);
       }
     } catch (error) {
       console.error('Failed to load chat:', error);
     }
     setLoading(false);
+  };
+
+  const handleScheduleInterview = async (interviewData) => {
+    // Create interview
+    const interview = await base44.entities.Interview.create({
+      match_id: matchId,
+      candidate_id: candidate?.id,
+      company_id: match?.company_id,
+      job_id: match?.job_id,
+      ...interviewData
+    });
+
+    // Send message about interview
+    const messageContent = interviewData.interview_type === 'live'
+      ? `📹 Live Video Interview scheduled for ${format(new Date(interviewData.scheduled_at), 'MMMM d, yyyy at h:mm a')}`
+      : `📝 Recorded Interview Request - Please record your responses to ${interviewData.questions.length} questions`;
+
+    await sendMessage(messageContent, 'interview_invite');
+    
+    // Update match status
+    await base44.entities.Match.update(matchId, { status: 'interviewing' });
+    
+    setShowScheduleModal(false);
+    loadChat();
   };
 
   const sendMessage = async (content = newMessage, messageType = 'text') => {
@@ -94,8 +128,7 @@ export default function EmployerChat() {
   };
 
   const sendInterviewInvite = () => {
-    sendMessage("Hi! We'd love to schedule an interview with you for the " + job?.title + " position. Please let us know your availability.", 'interview_invite');
-    base44.entities.Match.update(matchId, { status: 'interviewing' });
+    setShowScheduleModal(true);
   };
 
   if (loading) {
@@ -106,6 +139,15 @@ export default function EmployerChat() {
     );
   }
 
+  if (showLiveCall) {
+    return (
+      <LiveVideoCall
+        participant={{ name: candidateUser?.full_name }}
+        onEnd={() => setShowLiveCall(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <style>{`
@@ -113,6 +155,14 @@ export default function EmployerChat() {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
+
+      {/* Schedule Interview Modal */}
+      {showScheduleModal && (
+        <ScheduleInterview
+          onSchedule={handleScheduleInterview}
+          onClose={() => setShowScheduleModal(false)}
+        />
+      )}
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
@@ -187,7 +237,7 @@ export default function EmployerChat() {
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={sendInterviewInvite}
+            onClick={() => setShowScheduleModal(true)}
             className="whitespace-nowrap"
           >
             <Calendar className="w-4 h-4 mr-2" /> Schedule Interview
@@ -195,9 +245,10 @@ export default function EmployerChat() {
           <Button 
             size="sm" 
             variant="outline"
+            onClick={() => setShowLiveCall(true)}
             className="whitespace-nowrap"
           >
-            <Video className="w-4 h-4 mr-2" /> Video Call
+            <Video className="w-4 h-4 mr-2" /> Video Call Now
           </Button>
           <Button 
             size="sm" 
@@ -208,6 +259,22 @@ export default function EmployerChat() {
           </Button>
         </div>
       </div>
+
+      {/* Interview Cards */}
+      {interviews.length > 0 && (
+        <div className="px-4 py-3 bg-gray-50">
+          <div className="max-w-2xl mx-auto space-y-3">
+            {interviews.map((interview) => (
+              <InterviewInviteCard
+                key={interview.id}
+                interview={interview}
+                isCandidate={false}
+                onJoinCall={() => setShowLiveCall(true)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4">
