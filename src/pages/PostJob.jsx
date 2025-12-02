@@ -11,14 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { 
   Briefcase, MapPin, DollarSign, Plus, X, Eye, ArrowRight, 
-  CheckCircle, Building2
+  CheckCircle, Building2, Wand2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AIJobWizard from '@/components/jobs/AIJobWizard';
 
 export default function PostJob() {
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showAIWizard, setShowAIWizard] = useState(false);
   const [step, setStep] = useState(1);
   const [newSkill, setNewSkill] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
@@ -80,6 +82,15 @@ export default function PostJob() {
       console.error('Failed to post job:', error);
     }
     setLoading(false);
+  };
+
+  const handleAIWizardComplete = async (jobData) => {
+    await base44.entities.Job.create({
+      ...jobData,
+      company_id: company.id,
+      is_active: true
+    });
+    navigate(createPageUrl('ManageJobs'));
   };
 
   const renderStep = () => {
@@ -289,11 +300,28 @@ export default function PostJob() {
         }
       `}</style>
 
+      {showAIWizard && (
+        <AIJobWizard
+          company={company}
+          onComplete={handleAIWizardComplete}
+          onClose={() => setShowAIWizard(false)}
+        />
+      )}
+
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
-          <p className="text-gray-500">Find the perfect candidate for your team</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
+            <p className="text-gray-500">Find the perfect candidate for your team</p>
+          </div>
+          <Button
+            onClick={() => setShowAIWizard(true)}
+            className="swipe-gradient text-white shadow-lg shadow-pink-500/25"
+          >
+            <Wand2 className="w-5 h-5 mr-2" />
+            Use AI Wizard
+          </Button>
         </div>
 
         {/* Progress */}
