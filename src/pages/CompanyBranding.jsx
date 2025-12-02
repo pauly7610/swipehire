@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,9 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Building2, Upload, Globe, MapPin, Users, Loader2, 
-  Plus, X, Palette, Eye, CheckCircle, Sparkles
+  Plus, X, Palette, Eye, CheckCircle, Sparkles, Image, Video,
+  Quote, UserPlus, Star, Linkedin, ExternalLink, Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -30,16 +34,32 @@ export default function CompanyBranding() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newBenefit, setNewBenefit] = useState('');
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
+  const [showValueModal, setShowValueModal] = useState(false);
+  const [newTeamMember, setNewTeamMember] = useState({ name: '', role: '', photo_url: '', linkedin_url: '' });
+  const [newTestimonial, setNewTestimonial] = useState({ quote: '', author: '', role: '' });
+  const [newValue, setNewValue] = useState({ title: '', description: '' });
   const [editData, setEditData] = useState({
     name: '',
     logo_url: '',
+    cover_image_url: '',
     description: '',
+    mission: '',
     industry: '',
     location: '',
     website: '',
+    linkedin_url: '',
     size: '',
+    founded_year: null,
     culture_traits: [],
-    benefits: []
+    benefits: [],
+    values: [],
+    team_members: [],
+    media_gallery: [],
+    testimonials: [],
+    office_perks: []
   });
 
   useEffect(() => {
@@ -55,13 +75,22 @@ export default function CompanyBranding() {
         setEditData({
           name: companyData.name || '',
           logo_url: companyData.logo_url || '',
+          cover_image_url: companyData.cover_image_url || '',
           description: companyData.description || '',
+          mission: companyData.mission || '',
           industry: companyData.industry || '',
           location: companyData.location || '',
           website: companyData.website || '',
+          linkedin_url: companyData.linkedin_url || '',
           size: companyData.size || '',
+          founded_year: companyData.founded_year || null,
           culture_traits: companyData.culture_traits || [],
-          benefits: companyData.benefits || []
+          benefits: companyData.benefits || [],
+          values: companyData.values || [],
+          team_members: companyData.team_members || [],
+          media_gallery: companyData.media_gallery || [],
+          testimonials: companyData.testimonials || [],
+          office_perks: companyData.office_perks || []
         });
       }
     } catch (error) {
@@ -109,6 +138,71 @@ export default function CompanyBranding() {
     setEditData({ ...editData, benefits: editData.benefits.filter(b => b !== benefit) });
   };
 
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setEditData({ ...editData, cover_image_url: file_url });
+  };
+
+  const handleMediaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const type = file.type.startsWith('video') ? 'video' : 'image';
+    setEditData({ 
+      ...editData, 
+      media_gallery: [...(editData.media_gallery || []), { type, url: file_url, caption: '' }] 
+    });
+  };
+
+  const handleTeamPhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setNewTeamMember({ ...newTeamMember, photo_url: file_url });
+  };
+
+  const addTeamMember = () => {
+    if (newTeamMember.name && newTeamMember.role) {
+      setEditData({ ...editData, team_members: [...(editData.team_members || []), newTeamMember] });
+      setNewTeamMember({ name: '', role: '', photo_url: '', linkedin_url: '' });
+      setShowTeamModal(false);
+    }
+  };
+
+  const removeTeamMember = (index) => {
+    setEditData({ ...editData, team_members: editData.team_members.filter((_, i) => i !== index) });
+  };
+
+  const addTestimonial = () => {
+    if (newTestimonial.quote && newTestimonial.author) {
+      setEditData({ ...editData, testimonials: [...(editData.testimonials || []), newTestimonial] });
+      setNewTestimonial({ quote: '', author: '', role: '' });
+      setShowTestimonialModal(false);
+    }
+  };
+
+  const removeTestimonial = (index) => {
+    setEditData({ ...editData, testimonials: editData.testimonials.filter((_, i) => i !== index) });
+  };
+
+  const addValue = () => {
+    if (newValue.title) {
+      setEditData({ ...editData, values: [...(editData.values || []), newValue] });
+      setNewValue({ title: '', description: '' });
+      setShowValueModal(false);
+    }
+  };
+
+  const removeValue = (index) => {
+    setEditData({ ...editData, values: editData.values.filter((_, i) => i !== index) });
+  };
+
+  const removeMedia = (index) => {
+    setEditData({ ...editData, media_gallery: editData.media_gallery.filter((_, i) => i !== index) });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -132,17 +226,43 @@ export default function CompanyBranding() {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Company Branding</h1>
             <p className="text-gray-500">Customize how candidates see your company</p>
           </div>
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            className="swipe-gradient text-white"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-            Save Changes
-          </Button>
+          <div className="flex gap-2">
+            <Link to={createPageUrl('CompanyProfile')}>
+              <Button variant="outline">
+                <Eye className="w-4 h-4 mr-2" /> Preview
+              </Button>
+            </Link>
+            <Button 
+              onClick={handleSave} 
+              disabled={saving}
+              className="swipe-gradient text-white"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+              Save
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">
+          {/* Cover Image */}
+          <Card className="overflow-hidden">
+            <div className="relative h-32 bg-gradient-to-r from-pink-500 to-orange-500">
+              {editData.cover_image_url ? (
+                <img src={editData.cover_image_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-white/80 text-sm">Add a cover image</p>
+                </div>
+              )}
+              <label className="absolute bottom-2 right-2 cursor-pointer">
+                <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                <Button size="sm" variant="secondary" asChild>
+                  <span><Image className="w-4 h-4 mr-1" /> {editData.cover_image_url ? 'Change' : 'Add'} Cover</span>
+                </Button>
+              </label>
+            </div>
+          </Card>
+
           {/* Logo & Basic Info */}
           <Card>
             <CardHeader>
@@ -244,10 +364,35 @@ export default function CompanyBranding() {
                   />
                 </div>
               </div>
+
+              {/* LinkedIn & Founded */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="flex items-center gap-1">
+                    <Linkedin className="w-4 h-4" /> LinkedIn
+                  </Label>
+                  <Input
+                    value={editData.linkedin_url}
+                    onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })}
+                    placeholder="https://linkedin.com/company/..."
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>Founded Year</Label>
+                  <Input
+                    type="number"
+                    value={editData.founded_year || ''}
+                    onChange={(e) => setEditData({ ...editData, founded_year: parseInt(e.target.value) || null })}
+                    placeholder="e.g., 2020"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Description */}
+          {/* Description & Mission */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -255,15 +400,58 @@ export default function CompanyBranding() {
                 About Your Company
               </CardTitle>
             </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Company Description</Label>
+                <Textarea
+                  value={editData.description}
+                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                  placeholder="Tell candidates what makes your company special..."
+                  className="mt-1 min-h-[100px]"
+                />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1">
+                  <Star className="w-4 h-4" /> Mission Statement
+                </Label>
+                <Textarea
+                  value={editData.mission}
+                  onChange={(e) => setEditData({ ...editData, mission: e.target.value })}
+                  placeholder="What is your company's mission?"
+                  className="mt-1"
+                  rows={2}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Company Values */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Star className="w-5 h-5 text-pink-500" />
+                Company Values
+              </CardTitle>
+            </CardHeader>
             <CardContent>
-              <Label>Company Description</Label>
-              <Textarea
-                value={editData.description}
-                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                placeholder="Tell candidates what makes your company special, your mission, and what it's like to work here..."
-                className="mt-1 min-h-[120px]"
-              />
-              <p className="text-xs text-gray-400 mt-1">{editData.description?.length || 0} characters</p>
+              {editData.values?.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  {editData.values.map((value, i) => (
+                    <div key={i} className="p-3 bg-gray-50 rounded-lg flex items-start justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{value.title}</h4>
+                        <p className="text-gray-500 text-sm">{value.description}</p>
+                      </div>
+                      <button onClick={() => removeValue(i)} className="text-gray-400 hover:text-red-500">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button variant="outline" onClick={() => setShowValueModal(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Add Value
+              </Button>
             </CardContent>
           </Card>
 
@@ -350,48 +538,208 @@ export default function CompanyBranding() {
             </CardContent>
           </Card>
 
-          {/* Preview */}
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-pink-50 to-orange-50">
-              <CardTitle className="text-lg">Preview</CardTitle>
+          {/* Team Members */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5 text-pink-500" />
+                Team Members
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-4 mb-4">
-                {editData.logo_url ? (
-                  <img src={editData.logo_url} alt="" className="w-16 h-16 rounded-2xl object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-2xl swipe-gradient flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-white" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{editData.name || 'Company Name'}</h3>
-                  <p className="text-gray-500">{editData.industry || 'Industry'} • {editData.size || 'Size'}</p>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-gray-400">
-                    {editData.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {editData.location}</span>}
-                    {editData.website && <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> {editData.website}</span>}
-                  </div>
-                </div>
-              </div>
-              {editData.description && <p className="text-gray-600 text-sm mb-4">{editData.description}</p>}
-              {editData.culture_traits?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {editData.culture_traits.map(trait => (
-                    <Badge key={trait} variant="secondary" className="text-xs">{trait}</Badge>
+            <CardContent>
+              {editData.team_members?.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  {editData.team_members.map((member, i) => (
+                    <div key={i} className="text-center relative group">
+                      <button 
+                        onClick={() => removeTeamMember(i)} 
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {member.photo_url ? (
+                        <img src={member.photo_url} alt={member.name} className="w-16 h-16 rounded-xl object-cover mx-auto mb-2" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center mx-auto mb-2 text-white font-bold">
+                          {member.name?.charAt(0)}
+                        </div>
+                      )}
+                      <p className="font-medium text-gray-900 text-sm">{member.name}</p>
+                      <p className="text-gray-500 text-xs">{member.role}</p>
+                    </div>
                   ))}
                 </div>
               )}
-              {editData.benefits?.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {editData.benefits.map(benefit => (
-                    <Badge key={benefit} className="bg-green-50 text-green-600 text-xs">{benefit}</Badge>
+              <Button variant="outline" onClick={() => setShowTeamModal(true)}>
+                <UserPlus className="w-4 h-4 mr-1" /> Add Team Member
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Media Gallery */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Image className="w-5 h-5 text-pink-500" />
+                Office Photos & Videos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {editData.media_gallery?.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-4">
+                  {editData.media_gallery.map((item, i) => (
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
+                      {item.type === 'video' ? (
+                        <video src={item.url} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={item.url} alt="" className="w-full h-full object-cover" />
+                      )}
+                      <button 
+                        onClick={() => removeMedia(i)} 
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
+              <label>
+                <input type="file" accept="image/*,video/*" className="hidden" onChange={handleMediaUpload} />
+                <Button variant="outline" asChild>
+                  <span><Plus className="w-4 h-4 mr-1" /> Add Photo/Video</span>
+                </Button>
+              </label>
+            </CardContent>
+          </Card>
+
+          {/* Testimonials */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Quote className="w-5 h-5 text-pink-500" />
+                Employee Testimonials
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {editData.testimonials?.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {editData.testimonials.map((t, i) => (
+                    <div key={i} className="p-3 bg-gray-50 rounded-lg flex items-start justify-between">
+                      <div>
+                        <p className="text-gray-700 italic text-sm">"{t.quote}"</p>
+                        <p className="text-gray-500 text-xs mt-1">— {t.author}, {t.role}</p>
+                      </div>
+                      <button onClick={() => removeTestimonial(i)} className="text-gray-400 hover:text-red-500">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button variant="outline" onClick={() => setShowTestimonialModal(true)}>
+                <Plus className="w-4 h-4 mr-1" /> Add Testimonial
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Add Team Member Modal */}
+      <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Team Member</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <label className="cursor-pointer">
+                {newTeamMember.photo_url ? (
+                  <img src={newTeamMember.photo_url} alt="" className="w-20 h-20 rounded-xl object-cover" />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <Upload className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handleTeamPhotoUpload} />
+              </label>
+            </div>
+            <Input
+              placeholder="Name"
+              value={newTeamMember.name}
+              onChange={(e) => setNewTeamMember({ ...newTeamMember, name: e.target.value })}
+            />
+            <Input
+              placeholder="Role / Title"
+              value={newTeamMember.role}
+              onChange={(e) => setNewTeamMember({ ...newTeamMember, role: e.target.value })}
+            />
+            <Input
+              placeholder="LinkedIn URL (optional)"
+              value={newTeamMember.linkedin_url}
+              onChange={(e) => setNewTeamMember({ ...newTeamMember, linkedin_url: e.target.value })}
+            />
+            <Button onClick={addTeamMember} className="w-full swipe-gradient text-white">
+              Add Member
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Testimonial Modal */}
+      <Dialog open={showTestimonialModal} onOpenChange={setShowTestimonialModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Employee Testimonial</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="What does this employee say about working here?"
+              value={newTestimonial.quote}
+              onChange={(e) => setNewTestimonial({ ...newTestimonial, quote: e.target.value })}
+              rows={3}
+            />
+            <Input
+              placeholder="Employee Name"
+              value={newTestimonial.author}
+              onChange={(e) => setNewTestimonial({ ...newTestimonial, author: e.target.value })}
+            />
+            <Input
+              placeholder="Their Role"
+              value={newTestimonial.role}
+              onChange={(e) => setNewTestimonial({ ...newTestimonial, role: e.target.value })}
+            />
+            <Button onClick={addTestimonial} className="w-full swipe-gradient text-white">
+              Add Testimonial
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Value Modal */}
+      <Dialog open={showValueModal} onOpenChange={setShowValueModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Company Value</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Value Title (e.g., Innovation)"
+              value={newValue.title}
+              onChange={(e) => setNewValue({ ...newValue, title: e.target.value })}
+            />
+            <Textarea
+              placeholder="Description of this value..."
+              value={newValue.description}
+              onChange={(e) => setNewValue({ ...newValue, description: e.target.value })}
+              rows={2}
+            />
+            <Button onClick={addValue} className="w-full swipe-gradient text-white">
+              Add Value
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
