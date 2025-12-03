@@ -9,6 +9,7 @@ import MatchInsights from '@/components/matching/MatchInsights';
 import { useAIMatching } from '@/components/matching/useAIMatching';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
+import SwipeFeedback from '@/components/matching/SwipeFeedback';
 
 export default function SwipeCandidates() {
   const [searchParams] = useSearchParams();
@@ -28,6 +29,9 @@ export default function SwipeCandidates() {
   const [user, setUser] = useState(null);
   const [currentInsights, setCurrentInsights] = useState(null);
   const [currentScore, setCurrentScore] = useState(75);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [pendingSwipe, setPendingSwipe] = useState(null);
+  const [swipeCount, setSwipeCount] = useState(0);
 
   const { calculateMatchScore } = useAIMatching();
 
@@ -108,7 +112,7 @@ export default function SwipeCandidates() {
     }
   }, [currentCandidate, selectedJob, company, calculateMatchScore]);
 
-  const handleSwipe = async (direction) => {
+  const handleSwipe = async (direction, feedback = null) => {
     if (!currentCandidate || !selectedJobId) return;
 
     const swipeData = {
@@ -117,10 +121,12 @@ export default function SwipeCandidates() {
       target_id: currentCandidate.id,
       target_type: 'candidate',
       direction,
-      job_id: selectedJobId
+      job_id: selectedJobId,
+      feedback: feedback || undefined
     };
 
     setSwipeHistory([...swipeHistory, { index: currentIndex, candidate: currentCandidate }]);
+    setSwipeCount(prev => prev + 1);
 
     await base44.entities.Swipe.create(swipeData);
 
@@ -183,12 +189,38 @@ export default function SwipeCandidates() {
 
   const handleDragEnd = (event, info) => {
     if (info.offset.x > 100) {
-      handleSwipe('right');
+      triggerSwipe('right');
     } else if (info.offset.x < -100) {
-      handleSwipe('left');
+      triggerSwipe('left');
     } else {
       x.set(0);
     }
+  };
+
+  const triggerSwipe = (direction) => {
+    // Show feedback dialog every 5 swipes
+    if ((swipeCount + 1) % 5 === 0) {
+      setPendingSwipe({ direction, candidate: currentCandidate });
+      setShowFeedback(true);
+    } else {
+      handleSwipe(direction);
+    }
+  };
+
+  const handleFeedbackSubmit = (feedback) => {
+    if (pendingSwipe) {
+      handleSwipe(pendingSwipe.direction, feedback);
+    }
+    setShowFeedback(false);
+    setPendingSwipe(null);
+  };
+
+  const handleFeedbackSkip = () => {
+    if (pendingSwipe) {
+      handleSwipe(pendingSwipe.direction);
+    }
+    setShowFeedback(false);
+    setPendingSwipe(null);
   };
 
   if (loading) {
@@ -310,7 +342,7 @@ export default function SwipeCandidates() {
                   {/* Controls */}
                   {currentCandidate && selectedJobId && (
                     <SwipeControls
-                      onSwipe={handleSwipe}
+                      onSwipe={triggerSwipe}
                       onUndo={handleUndo}
                       canUndo={swipeHistory.length > 0}
                       isPremium={true}
@@ -335,6 +367,16 @@ export default function SwipeCandidates() {
                     job={matchData?.job}
                     viewerType="employer"
                   />
+
+      {/* Feedback Dialog */}
+      <SwipeFeedback
+        open={showFeedback}
+        onOpenChange={setShowFeedback}
+        direction={pendingSwipe?.direction}
+        targetName={users[pendingSwipe?.candidate?.user_id]?.full_name || 'this candidate'}
+        onSubmit={handleFeedbackSubmit}
+        onSkip={handleFeedbackSkip}
+      />
     </div>
   );
 }
