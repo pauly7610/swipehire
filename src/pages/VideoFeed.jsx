@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
-  Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search
+  Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search,
+  UserPlus, UserCheck, Clock
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,7 +19,7 @@ import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -303,19 +304,43 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         </button>
 
         {/* Share */}
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onShare?.();
-          }} 
-          className="flex flex-col items-center"
-        >
-          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs mt-1">{post.shares || 0}</span>
-        </button>
-      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShare?.();
+                        }} 
+                        className="flex flex-col items-center"
+                      >
+                        <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                          <Share2 className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-white text-xs mt-1">{post.shares || 0}</span>
+                      </button>
+
+                      {/* Connect - only show for other users */}
+                      {!isOwner && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onConnect?.();
+                          }} 
+                          className="flex flex-col items-center"
+                        >
+                          <div className={`w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center ${isConnected ? 'bg-green-500' : hasPendingConnection ? 'bg-yellow-500' : 'bg-black/40'}`}>
+                            {isConnected ? (
+                              <UserCheck className="w-6 h-6 text-white" />
+                            ) : hasPendingConnection ? (
+                              <Clock className="w-6 h-6 text-white" />
+                            ) : (
+                              <UserPlus className="w-6 h-6 text-white" />
+                            )}
+                          </div>
+                          <span className="text-white text-xs mt-1">
+                            {isConnected ? 'Connected' : hasPendingConnection ? 'Pending' : 'Connect'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
 
       {/* Bottom info */}
       <div className="absolute bottom-4 left-3 right-16 text-white z-10">
@@ -382,6 +407,8 @@ export default function VideoFeed() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [viewerType, setViewerType] = useState(null); // 'candidate' or 'employer'
+  const [allPostsData, setAllPostsData] = useState([]);
+  const [connections, setConnections] = useState([]);
   const containerRef = useRef(null);
   const PAGE_SIZE = 20;
 
@@ -398,14 +425,19 @@ export default function VideoFeed() {
 
       const currentPage = isLoadMore ? page + 1 : 0;
       
-      const [allPosts, allUsers, allCandidates, allCompanies, allFollows, userSwipes] = await Promise.all([
-        base44.entities.VideoPost.list('-created_date', 100),
-        base44.entities.User.list(),
-        base44.entities.Candidate.list(),
-        base44.entities.Company.list(),
-        base44.entities.Follow.filter({ follower_id: currentUser.id }),
-        base44.entities.Swipe.filter({ swiper_id: currentUser.id })
-      ]);
+      const [allPosts, allUsers, allCandidates, allCompanies, allFollows, userSwipes, userConnections] = await Promise.all([
+                    base44.entities.VideoPost.list('-created_date', 100),
+                    base44.entities.User.list(),
+                    base44.entities.Candidate.list(),
+                    base44.entities.Company.list(),
+                    base44.entities.Follow.filter({ follower_id: currentUser.id }),
+                    base44.entities.Swipe.filter({ swiper_id: currentUser.id }),
+                    base44.entities.Connection.filter({
+                      $or: [{ requester_id: currentUser.id }, { receiver_id: currentUser.id }]
+                    })
+                  ]);
+
+                  if (!isLoadMore) setConnections(userConnections);
 
       const followedIds = new Set(allFollows.map(f => f.followed_id));
       if (!isLoadMore) setFollowedUserIds(followedIds);
@@ -460,7 +492,10 @@ export default function VideoFeed() {
       const recentTypeCount = {};
       const recentCreatorCount = {};
       
-      const scoredPosts = allPosts.map((p, index) => {
+      // Store all posts for filtering
+const allScoredPosts = allPosts;
+
+const scoredPosts = allScoredPosts.map((p, index) => {
         let score = 0;
         const reasons = []; // Track why content is ranked
         
@@ -637,28 +672,25 @@ export default function VideoFeed() {
         
         return searchText.includes(query);
       })
-      .filter(p => {
-        // Apply tab filter
-        if (activeTab === 'for_you') return true;
-        if (activeTab === 'following') return followedIds.has(p.author_id);
-        if (activeTab === 'jobs') return p.type === 'job_post';
-        if (activeTab === 'people') return p.type === 'intro' || p.author_type === 'candidate';
-        return true;
-      })
+      )
       .sort((a, b) => b.score - a.score);
 
       // Paginate results
       const startIndex = currentPage * PAGE_SIZE;
       const paginatedPosts = scoredPosts.slice(startIndex, startIndex + PAGE_SIZE);
       
-      if (isLoadMore) {
-        setPosts(prev => [...prev, ...paginatedPosts]);
-        setPage(currentPage);
-      } else {
-        setPosts(scoredPosts.slice(0, PAGE_SIZE));
-      }
-      
-      setHasMore(startIndex + PAGE_SIZE < scoredPosts.length);
+      if (!isLoadMore) {
+                    setAllPostsData(scoredPosts);
+                  }
+
+                  if (isLoadMore) {
+                    setPosts(prev => [...prev, ...paginatedPosts]);
+                    setPage(currentPage);
+                  } else {
+                    setPosts(scoredPosts.slice(0, PAGE_SIZE));
+                  }
+
+                  setHasMore(startIndex + PAGE_SIZE < scoredPosts.length);
 
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
@@ -879,7 +911,20 @@ export default function VideoFeed() {
         className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
         style={{ scrollSnapType: 'y mandatory' }}
       >
-        {posts.length === 0 ? (
+        {(() => {
+              // Filter posts based on active tab
+              let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+              
+              if (activeTab === 'following') {
+                filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
+              } else if (activeTab === 'jobs') {
+                filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
+              } else if (activeTab === 'people') {
+                filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
+              }
+              
+              return filteredPosts;
+            })().length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white p-8">
             <Sparkles className="w-16 h-16 text-pink-500 mb-4" />
             <h2 className="text-2xl font-bold mb-2">No Videos Yet</h2>
@@ -889,8 +934,21 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          <>
-          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0).map((post, index) => {
+                        <>
+                        {(() => {
+                      // Filter posts based on active tab
+                      let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+
+                      if (activeTab === 'following') {
+                        filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
+                      } else if (activeTab === 'jobs') {
+                        filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
+                      } else if (activeTab === 'people') {
+                        filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
+                      }
+
+                      return filteredPosts;
+                    })().map((post, index) => {
               // Determine if viewer can swipe on this content
                 // Candidates CAN swipe on other candidates' intro videos to connect
                 const canSwipe = true;
@@ -912,8 +970,41 @@ export default function VideoFeed() {
                   onDelete={() => handleDelete(post.id)}
                   isOwner={post.author_id === user?.id}
                   onReport={() => { setActivePostId(post.id); setShowReport(true); }}
-                  viewerType={viewerType}
-                  canSwipe={canSwipe}
+                                          viewerType={viewerType}
+                                          canSwipe={canSwipe}
+                                          isConnected={connections.some(c => 
+                                            (c.requester_id === post.author_id || c.receiver_id === post.author_id) && 
+                                            c.status === 'accepted'
+                                          )}
+                                          hasPendingConnection={connections.some(c => 
+                                            (c.requester_id === post.author_id || c.receiver_id === post.author_id) && 
+                                            c.status === 'pending'
+                                          )}
+                                          onConnect={async () => {
+                                            if (!user || !post.author_id || post.author_id === user.id) return;
+
+                                            const existingConn = connections.find(c => 
+                                              c.requester_id === post.author_id || c.receiver_id === post.author_id
+                                            );
+
+                                            if (existingConn) return;
+
+                                            const newConnection = await base44.entities.Connection.create({
+                                              requester_id: user.id,
+                                              receiver_id: post.author_id,
+                                              status: 'pending'
+                                            });
+                                            setConnections([...connections, newConnection]);
+
+                                            // Notify the user
+                                            await base44.entities.Notification.create({
+                                              user_id: post.author_id,
+                                              type: 'system',
+                                              title: '🤝 Connection Request',
+                                              message: `${user.full_name} wants to connect with you!`,
+                                              navigate_to: 'Connections'
+                                            });
+                                          }}
                   onSwipe={async (direction) => {
                     if (!canSwipe) return;
 
@@ -1137,29 +1228,29 @@ export default function VideoFeed() {
         
         <div className="flex items-center gap-2">
           <Badge 
-            className={`${activeTab === 'for_you' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-            onClick={() => setActiveTab('for_you')}
-          >
-            For You
-          </Badge>
-          <Badge 
-            className={`${activeTab === 'following' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-            onClick={() => setActiveTab('following')}
-          >
-            Following
-          </Badge>
-          <Badge 
-            className={`${activeTab === 'jobs' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-            onClick={() => setActiveTab('jobs')}
-          >
-            Jobs
-          </Badge>
-          <Badge 
-            className={`${activeTab === 'people' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-            onClick={() => setActiveTab('people')}
-          >
-            People
-          </Badge>
+                            className={`${activeTab === 'for_you' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                            onClick={() => { setActiveTab('for_you'); setCurrentIndex(0); }}
+                          >
+                            For You
+                          </Badge>
+                          <Badge 
+                            className={`${activeTab === 'following' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                            onClick={() => { setActiveTab('following'); setCurrentIndex(0); }}
+                          >
+                            Following
+                          </Badge>
+                          <Badge 
+                            className={`${activeTab === 'jobs' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                            onClick={() => { setActiveTab('jobs'); setCurrentIndex(0); }}
+                          >
+                            Jobs
+                          </Badge>
+                          <Badge 
+                            className={`${activeTab === 'people' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                            onClick={() => { setActiveTab('people'); setCurrentIndex(0); }}
+                          >
+                            People
+                          </Badge>
         </div>
       </div>
 
