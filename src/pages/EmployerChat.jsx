@@ -168,6 +168,7 @@ export default function EmployerChat() {
         candidateUser={candidateUser}
         job={job}
         company={company}
+        match={match}
         isRecruiter={true}
         onEnd={() => {
           setShowLiveCall(false);
@@ -297,33 +298,48 @@ export default function EmployerChat() {
 
       {/* Notes Section - Only visible to employer */}
       {showNotes && (
-        <div className="px-4 py-3 bg-amber-50 border-b border-amber-200">
+        <div className="px-4 py-4 bg-gradient-to-br from-amber-50 to-orange-50 border-b border-amber-100">
           <div className="max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
-                <StickyNote className="w-4 h-4" />
-                Private Notes (only you can see this)
-              </p>
-              <Button 
-                size="sm" 
-                onClick={saveNotes}
-                disabled={savingNotes}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                {savingNotes ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                ) : (
-                  <Save className="w-4 h-4 mr-1" />
+            <div className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-100 to-orange-100 border-b border-amber-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                    <StickyNote className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-amber-900">Private Notes</p>
+                    <p className="text-xs text-amber-600">Only visible to your team</p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={saveNotes}
+                  disabled={savingNotes}
+                  className="swipe-gradient text-white shadow-md"
+                >
+                  {savingNotes ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-1" />
+                  )}
+                  Save Notes
+                </Button>
+              </div>
+              <div className="p-4">
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="📝 Add notes about this candidate...&#10;&#10;• First impressions&#10;• Technical skills assessment&#10;• Culture fit observations&#10;• Follow-up items&#10;• Interview feedback"
+                  className="border-0 bg-amber-50/50 min-h-[150px] text-sm focus:ring-2 focus:ring-amber-200 rounded-lg resize-none"
+                />
+                {notes && (
+                  <p className="text-xs text-amber-500 mt-2 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {notes.split('\n').filter(l => l.trim()).length} lines • Interview notes auto-sync here
+                  </p>
                 )}
-                Save
-              </Button>
+              </div>
             </div>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add private notes about this candidate... (interview feedback, impressions, follow-up items)"
-              className="bg-white border-amber-200 min-h-[100px] text-sm"
-            />
           </div>
         </div>
       )}

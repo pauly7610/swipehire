@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
-export default function LiveVideoRoom({ interview, candidate, candidateUser, job, company, isRecruiter, onEnd }) {
+export default function LiveVideoRoom({ interview, candidate, candidateUser, job, company, isRecruiter, onEnd, match }) {
   const [localStream, setLocalStream] = useState(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -93,7 +93,19 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
     
     setSaving(true);
     try {
+      // Save to interview
       await base44.entities.Interview.update(interview.id, { interviewer_notes: notes });
+      
+      // Also save to Match for the candidate notes page
+      if (match?.id) {
+        const existingNotes = match.notes || '';
+        const timestamp = new Date().toLocaleString();
+        const updatedNotes = existingNotes 
+          ? `${existingNotes}\n\n--- Interview Notes (${timestamp}) ---\n${notes}`
+          : `--- Interview Notes (${timestamp}) ---\n${notes}`;
+        await base44.entities.Match.update(match.id, { notes: updatedNotes });
+      }
+      
       setLastSaved(new Date());
     } catch (error) {
       console.error('Failed to save notes:', error);
