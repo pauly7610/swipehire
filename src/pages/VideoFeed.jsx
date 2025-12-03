@@ -603,7 +603,7 @@ export default function VideoFeed() {
         caption: newPost.caption,
         type: newPost.type,
         tags: newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        moderation_status: 'approved',
+        
         likes: 0,
         views: 0,
         shares: 0,
