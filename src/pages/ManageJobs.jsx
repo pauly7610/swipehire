@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
   Plus, Briefcase, MapPin, DollarSign, Users, Eye, 
-  Edit2, Trash2, MoreVertical, Loader2, Sparkles, ChevronDown, ChevronUp
+  Edit2, Trash2, MoreVertical, Loader2, Sparkles, ChevronDown, ChevronUp, Share2, Check, Copy
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +61,16 @@ export default function ManageJobs() {
   };
 
   const getMatchCount = (jobId) => matches.filter(m => m.job_id === jobId).length;
+
+  const [copiedJobId, setCopiedJobId] = useState(null);
+
+  const shareJob = (jobId) => {
+    const shareUrl = `${window.location.origin}/PublicJobView?id=${jobId}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedJobId(jobId);
+    toast.success('Job link copied to clipboard!');
+    setTimeout(() => setCopiedJobId(null), 2000);
+  };
 
   const formatSalary = (min, max, type) => {
     if (!min && !max) return 'Not specified';
@@ -169,6 +180,14 @@ export default function ManageJobs() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => shareJob(job.id)}>
+                                  {copiedJobId === job.id ? (
+                                    <Check className="w-4 h-4 mr-2 text-green-500" />
+                                  ) : (
+                                    <Share2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  {copiedJobId === job.id ? 'Copied!' : 'Share Job'}
+                                </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   <Eye className="w-4 h-4 mr-2" /> View
                                 </DropdownMenuItem>
