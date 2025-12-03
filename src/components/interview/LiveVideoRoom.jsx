@@ -102,14 +102,9 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
         await base44.entities.Interview.update(interview.id, { interviewer_notes: notes });
       }
       
-      // Also save to Match for the candidate notes page
+      // Save directly to Match notes (replace, don't append)
       if (match?.id) {
-        const existingNotes = match.notes || '';
-        const timestamp = new Date().toLocaleString();
-        const updatedNotes = existingNotes 
-          ? `${existingNotes}\n\n--- Interview Notes (${timestamp}) ---\n${notes}`
-          : `--- Interview Notes (${timestamp}) ---\n${notes}`;
-        await base44.entities.Match.update(match.id, { notes: updatedNotes });
+        await base44.entities.Match.update(match.id, { notes: notes });
       }
       
       setLastSaved(new Date());
