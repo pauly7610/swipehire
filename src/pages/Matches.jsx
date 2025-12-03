@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageCircle, Briefcase, Building2, Clock, CheckCircle2, 
-  XCircle, Calendar, Loader2, Inbox
+  XCircle, Calendar, Loader2, Inbox, LogOut
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -92,8 +93,18 @@ export default function Matches() {
       `}</style>
 
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Matches</h1>
-        <p className="text-gray-500 mb-6">Connect with employers who are interested in you</p>
+        <div className="flex items-center justify-between mb-2">
+                        <h1 className="text-3xl font-bold text-gray-900">Your Matches</h1>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => base44.auth.logout()}
+                          className="text-gray-600 hover:text-red-600"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" /> Logout
+                        </Button>
+                      </div>
+                      <p className="text-gray-500 mb-6">Connect with employers who are interested in you</p>
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="mb-6">
