@@ -17,6 +17,10 @@ export default function NotificationBell() {
 
   useEffect(() => {
     loadNotifications();
+    
+    // Poll for new notifications every 10 seconds
+    const interval = setInterval(loadNotifications, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadNotifications = async () => {
@@ -78,7 +82,8 @@ export default function NotificationBell() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 top-12 w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+              className="absolute right-0 md:right-0 top-12 w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden max-w-[calc(100vw-2rem)]"
+              style={{ right: 0, maxWidth: 'min(384px, calc(100vw - 2rem))' }}
             >
               <div className="p-4 border-b flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Notifications</h3>
