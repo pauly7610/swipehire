@@ -61,8 +61,8 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const candidateNav = [
-        { name: 'Feed', icon: Home, page: 'DiscoverFeed' },
-        { name: 'Jobs', icon: Briefcase, page: 'JobsList' },
+        { name: 'Feed', icon: Home, page: 'VideoFeed' },
+        { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
         { name: 'Apps', icon: MessageCircle, page: 'ApplicationTracker' },
         { name: 'Rewards', icon: Trophy, page: 'Gamification' },
         { name: 'Profile', icon: User, page: 'CandidateProfile' },
