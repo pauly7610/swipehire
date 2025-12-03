@@ -31,8 +31,12 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   // Determine swipe labels based on content type and viewer
   const getSwipeLabels = () => {
     // Candidate intro video - employer swipes to interview
-    if (post.type === 'intro' && post.author_type === 'candidate') {
+    if (post.type === 'intro' && post.author_type === 'candidate' && viewerType === 'employer') {
       return { right: 'INTERVIEW', left: 'PASS' };
+    }
+    // Candidate viewing another candidate's intro - connect
+    if (post.type === 'intro' && post.author_type === 'candidate' && viewerType === 'candidate') {
+      return { right: 'CONNECT', left: 'PASS' };
     }
     // Job post - candidate swipes to apply
     if (post.type === 'job_post') {
@@ -888,9 +892,8 @@ export default function VideoFeed() {
           <>
           {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0).map((post, index) => {
               // Determine if viewer can swipe on this content
-              // Candidates can't swipe on other candidates' intro videos
-              const isAuthorCandidate = post.author_type === 'candidate' && post.type === 'intro';
-              const canSwipe = !(viewerType === 'candidate' && isAuthorCandidate);
+                // Candidates CAN swipe on other candidates' intro videos to connect
+                const canSwipe = true;
               
               return (
               <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
@@ -913,7 +916,7 @@ export default function VideoFeed() {
                   canSwipe={canSwipe}
                   onSwipe={async (direction) => {
                     if (!canSwipe) return;
-                    
+
                     // Handle swipe based on content type
                     if (direction === 'right') {
                       if (post.type === 'job_post' && post.job_id) {
@@ -937,6 +940,21 @@ export default function VideoFeed() {
                             target_type: 'candidate',
                             direction: 'right'
                           });
+                        }
+                      } else if (post.type === 'intro' && post.author_type === 'candidate' && viewerType === 'candidate') {
+                        // Candidate connecting with another candidate - send connection request
+                        const existingConnection = await base44.entities.Connection.filter({
+                          requester_id: user.id,
+                          receiver_id: post.author_id
+                        });
+                        if (existingConnection.length === 0) {
+                          await base44.entities.Connection.create({
+                            requester_id: user.id,
+                            receiver_id: post.author_id,
+                            status: 'pending'
+                          });
+                          // Also follow them
+                          handleFollow(post.author_id);
                         }
                       } else {
                         // Learn more - just follow
