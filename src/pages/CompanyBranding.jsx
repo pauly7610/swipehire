@@ -44,6 +44,9 @@ export default function CompanyBranding() {
   const [newTeamMember, setNewTeamMember] = useState({ name: '', role: '', photo_url: '', linkedin_url: '' });
   const [newTestimonial, setNewTestimonial] = useState({ quote: '', author: '', role: '' });
   const [newValue, setNewValue] = useState({ title: '', description: '' });
+  const [videos, setVideos] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [activeTab, setActiveTab] = useState('profile');
   const [editData, setEditData] = useState({
     name: '',
     logo_url: '',
