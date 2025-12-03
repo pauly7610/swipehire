@@ -7,8 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Send, ArrowLeft, Building2, Briefcase, Calendar, Video, 
-  CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play
+  CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play, Phone
 } from 'lucide-react';
+import VideoCallButton from '@/components/messaging/VideoCallButton';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
