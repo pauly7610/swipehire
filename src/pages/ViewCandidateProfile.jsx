@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   User, MapPin, Briefcase, Mail, Video, FileText, 
-  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink
+  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink, Download
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -276,17 +276,46 @@ export default function ViewCandidateProfile() {
         {/* Resume */}
         {candidate.resume_url && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-            <Card className="mb-6 border-0 shadow-sm">
-              <CardContent className="py-4">
-                <a 
-                  href={candidate.resume_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 text-pink-600 hover:text-pink-700"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span className="font-medium">View Resume</span>
-                </a>
+            <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-pink-50 to-orange-50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-pink-500" />
+                  Resume
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="bg-white rounded-xl p-4 border">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-pink-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Resume Document</p>
+                        <p className="text-sm text-gray-500">Click to view or download</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <a 
+                      href={candidate.resume_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View Resume
+                    </a>
+                    <a 
+                      href={candidate.resume_url} 
+                      download
+                      className="flex items-center justify-center gap-2 px-4 py-3 border border-pink-200 text-pink-600 rounded-xl hover:bg-pink-50 transition-colors"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Download
+                    </a>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
