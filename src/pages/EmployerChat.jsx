@@ -169,6 +169,7 @@ export default function EmployerChat() {
         job={job}
         company={company}
         match={match}
+        messages={messages}
         isRecruiter={true}
         onEnd={() => {
           setShowLiveCall(false);

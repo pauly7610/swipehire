@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 
-export default function LiveVideoRoom({ interview, candidate, candidateUser, job, company, isRecruiter, onEnd, match }) {
+export default function LiveVideoRoom({ interview, candidate, candidateUser, job, company, isRecruiter, onEnd, match, messages = [] }) {
   const [localStream, setLocalStream] = useState(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -133,26 +133,35 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
       const skills = candidate?.skills?.join(', ') || 'Not specified';
       const experience = candidate?.experience?.map(e => `${e.title} at ${e.company}`).join(', ') || 'Not specified';
       
+      // Format conversation for AI analysis
+      const conversationText = messages.length > 0 
+        ? messages.map(m => `${m.sender_type === 'employer' ? 'Recruiter' : 'Candidate'}: ${m.content}`).join('\n')
+        : 'No conversation messages yet.';
+      
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Generate interview notes template for a recruiter interviewing a candidate.
-        
-Candidate: ${candidateName}
-Position: ${jobTitle}
-Skills: ${skills}
-Experience: ${experience}
-Interview Duration: ${formatDuration(callDuration)}
+        prompt: `Analyze this interview conversation and generate professional interview notes for a recruiter.
 
-Create professional interview notes with the following sections:
-1. First Impressions
-2. Technical Skills Assessment
-3. Communication & Soft Skills
-4. Culture Fit
-5. Key Strengths
-6. Areas of Concern
-7. Follow-up Questions
-8. Overall Recommendation
+CANDIDATE INFO:
+- Name: ${candidateName}
+- Position Applied: ${jobTitle}
+- Skills: ${skills}
+- Experience: ${experience}
+- Interview Duration: ${formatDuration(callDuration)}
 
-Keep it concise with bullet points. Leave placeholders like [Add observation] where the recruiter should fill in details.`,
+CONVERSATION:
+${conversationText}
+
+Based on the conversation above, generate detailed interview notes with:
+1. **Summary** - Brief overview of the conversation
+2. **Key Discussion Points** - Main topics covered
+3. **Candidate Strengths** - Positives observed from the conversation
+4. **Areas of Concern** - Any red flags or concerns
+5. **Technical Assessment** - Based on discussion
+6. **Communication Style** - How well they communicated
+7. **Next Steps** - Recommended follow-up actions
+8. **Overall Impression** - Final assessment
+
+Be specific and reference actual conversation content where possible. Use bullet points.`,
         response_json_schema: {
           type: "object",
           properties: {
