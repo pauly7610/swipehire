@@ -519,7 +519,7 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          posts.filter(p => p.moderation_status !== 'rejected').map((post, index) => (
+          posts.filter(p => !p.moderation_status || p.moderation_status !== 'rejected').map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start">
                 <VideoCard
                   post={post}
