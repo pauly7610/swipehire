@@ -30,6 +30,7 @@ import BrowseJobs from './pages/BrowseJobs';
 import DiscoverFeed from './pages/DiscoverFeed';
 import JobsList from './pages/JobsList';
 import Gamification from './pages/Gamification';
+import DirectMessages from './pages/DirectMessages';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "DiscoverFeed": DiscoverFeed,
     "JobsList": JobsList,
     "Gamification": Gamification,
+    "DirectMessages": DirectMessages,
 }
 
 export const pagesConfig = {

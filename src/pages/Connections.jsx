@@ -196,9 +196,11 @@ export default function Connections() {
                               <p className="font-medium text-gray-900">{connUser?.full_name}</p>
                               <p className="text-sm text-gray-500">{candidate?.headline || 'SwipeHire Member'}</p>
                             </div>
-                            <Button variant="outline" size="sm">
-                              <MessageSquare className="w-4 h-4" />
-                            </Button>
+                            <Link to={createPageUrl('DirectMessages') + `?connectionId=${conn.id}`}>
+                              <Button variant="outline" size="sm">
+                                <MessageSquare className="w-4 h-4" />
+                              </Button>
+                            </Link>
                           </div>
                         </CardContent>
                       </Card>
