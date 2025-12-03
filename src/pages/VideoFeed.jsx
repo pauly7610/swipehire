@@ -35,7 +35,8 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
     }
   }, [isActive]);
 
-  const togglePlay = () => {
+  const togglePlay = (e) => {
+    e.stopPropagation();
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -46,7 +47,8 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
     }
   };
 
-  const handleDoubleTap = () => {
+  const handleDoubleTap = (e) => {
+    e.stopPropagation();
     if (!liked) {
       setLiked(true);
       setShowHeart(true);
@@ -55,9 +57,15 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
     }
   };
 
-  const handleLike = () => {
+  const handleLike = (e) => {
+    e.stopPropagation();
     setLiked(!liked);
     if (!liked) onLike?.();
+  };
+
+  const handleMuteToggle = (e) => {
+    e.stopPropagation();
+    setIsMuted(!isMuted);
   };
 
   const getTypeLabel = (type) => {
@@ -75,18 +83,19 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
   const authorHeadline = candidate?.headline || company?.name || '';
 
   return (
-    <div className="relative w-full h-full bg-black snap-start snap-always">
-      {/* Video */}
-      <video
-        ref={videoRef}
-        src={post.video_url}
-        className="w-full h-full object-cover"
-        loop
-        muted={isMuted}
-        playsInline
-        onClick={togglePlay}
-        onDoubleClick={handleDoubleTap}
-      />
+    <div className="relative w-full h-full bg-black flex items-center justify-center">
+      {/* Video Container */}
+      <div className="relative w-full max-w-md h-full max-h-[85vh] mx-auto">
+        <video
+          ref={videoRef}
+          src={post.video_url}
+          className="w-full h-full object-contain bg-black rounded-2xl"
+          loop
+          muted={isMuted}
+          playsInline
+          onClick={togglePlay}
+          onDoubleClick={handleDoubleTap}
+        />
 
       {/* Play/Pause overlay */}
       <AnimatePresence>
@@ -120,95 +129,96 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
       </AnimatePresence>
 
       {/* Type badge */}
-      <div className="absolute top-4 left-4">
-        <Badge className="bg-black/50 backdrop-blur-sm text-white border-0">
+      <div className="absolute top-4 left-4 z-10">
+        <Badge className="bg-black/50 backdrop-blur-sm text-white border-0 text-xs">
           {getTypeLabel(post.type)}
         </Badge>
       </div>
 
       {/* Mute button */}
       <button
-        onClick={() => setIsMuted(!isMuted)}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
+        onClick={handleMuteToggle}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center z-20"
       >
         {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
       </button>
 
       {/* Right side actions */}
-      <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6">
+      <div className="absolute right-2 bottom-24 flex flex-col items-center gap-4 z-20">
         {/* Profile */}
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden">
+          <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden">
             {candidate?.photo_url || company?.logo_url ? (
               <img src={candidate?.photo_url || company?.logo_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
-                <span className="text-white font-bold">{authorName.charAt(0)}</span>
+                <span className="text-white font-bold text-sm">{authorName.charAt(0)}</span>
               </div>
             )}
           </div>
-          <button className="w-6 h-6 -mt-3 rounded-full bg-pink-500 flex items-center justify-center">
-            <Plus className="w-4 h-4 text-white" />
+          <button onClick={(e) => e.stopPropagation()} className="w-5 h-5 -mt-2.5 rounded-full bg-pink-500 flex items-center justify-center">
+            <Plus className="w-3 h-3 text-white" />
           </button>
         </div>
 
         {/* Like */}
         <button onClick={handleLike} className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <Heart className={`w-7 h-7 ${liked ? 'text-pink-500 fill-pink-500' : 'text-white'}`} />
+          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <Heart className={`w-6 h-6 ${liked ? 'text-pink-500 fill-pink-500' : 'text-white'}`} />
           </div>
           <span className="text-white text-xs mt-1">{(post.likes || 0) + (liked ? 1 : 0)}</span>
         </button>
 
         {/* Comment */}
-        <button className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="w-7 h-7 text-white" />
+        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="w-6 h-6 text-white" />
           </div>
           <span className="text-white text-xs mt-1">0</span>
         </button>
 
         {/* Save */}
-        <button className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <BookmarkPlus className="w-7 h-7 text-white" />
+        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <BookmarkPlus className="w-6 h-6 text-white" />
           </div>
           <span className="text-white text-xs mt-1">Save</span>
         </button>
 
         {/* Share */}
-        <button className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="w-7 h-7 text-white" />
+        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="w-6 h-6 text-white" />
           </div>
           <span className="text-white text-xs mt-1">{post.shares || 0}</span>
         </button>
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-4 left-4 right-20 text-white">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="font-bold">@{authorName.replace(/\s/g, '').toLowerCase()}</span>
+      <div className="absolute bottom-4 left-3 right-16 text-white z-10">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-bold text-sm">@{authorName.replace(/\s/g, '').toLowerCase()}</span>
           {post.author_type === 'employer' && <Building2 className="w-4 h-4" />}
         </div>
         {authorHeadline && (
-          <p className="text-sm text-white/80 mb-2">{authorHeadline}</p>
+          <p className="text-xs text-white/80 mb-1">{authorHeadline}</p>
         )}
-        <p className="text-sm mb-2">{post.caption}</p>
+        <p className="text-sm mb-1 line-clamp-2">{post.caption}</p>
         {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {post.tags.map((tag, i) => (
-              <span key={i} className="text-sm text-pink-400">#{tag}</span>
+            {post.tags.slice(0, 3).map((tag, i) => (
+              <span key={i} className="text-xs text-pink-400">#{tag}</span>
             ))}
           </div>
         )}
         {post.job_id && (
-          <Link to={createPageUrl('SwipeJobs')}>
-            <Button size="sm" className="mt-3 bg-pink-500 hover:bg-pink-600 text-white">
-              <Briefcase className="w-4 h-4 mr-1" /> View Job
+          <Link to={createPageUrl('SwipeJobs')} onClick={(e) => e.stopPropagation()}>
+            <Button size="sm" className="mt-2 bg-pink-500 hover:bg-pink-600 text-white h-8 text-xs">
+              <Briefcase className="w-3 h-3 mr-1" /> View Job
             </Button>
           </Link>
         )}
+      </div>
       </div>
     </div>
   );
