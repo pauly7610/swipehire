@@ -90,8 +90,9 @@ export default function ApplicationTracker() {
   };
 
   const withdrawApplication = async (appId) => {
-    await base44.entities.Application.update(appId, { status: 'withdrawn' });
-    setApplications(applications.map(a => a.id === appId ? { ...a, status: 'withdrawn' } : a));
+    // Delete the swipe to withdraw application
+    await base44.entities.Swipe.delete(appId);
+    setApplications(applications.filter(a => a.id !== appId));
   };
 
   const getStatusConfig = (status) => {
@@ -171,16 +172,28 @@ export default function ApplicationTracker() {
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={setFilter}>
           <TabsList className="bg-white rounded-xl p-1 shadow-sm flex-wrap h-auto">
-            <TabsTrigger value="all" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg"
+            >
               All ({applications.length})
             </TabsTrigger>
-            <TabsTrigger value="applied" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger 
+              value="applied" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg"
+            >
               Applied
             </TabsTrigger>
-            <TabsTrigger value="interviewing" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger 
+              value="interviewing" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg"
+            >
               Interviewing
             </TabsTrigger>
-            <TabsTrigger value="offered" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger 
+              value="offered" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg"
+            >
               Offers
             </TabsTrigger>
           </TabsList>
