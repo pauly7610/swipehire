@@ -108,10 +108,21 @@ export default function SwipeJobs() {
 
     // Check for mutual match (if employer swiped right on this candidate for this job)
     if (direction === 'right' || direction === 'super') {
+      // Notify the employer (anonymous) that someone swiped on their job
+      if (currentCompany?.user_id) {
+        await base44.entities.Notification.create({
+          user_id: currentCompany.user_id,
+          type: 'system',
+          title: '👀 Someone is interested!',
+          message: `A candidate swiped right on your ${currentJob.title} position. Check your candidates to find them!`
+        });
+      }
+      
+      // Check if employer swiped right on this candidate (for any of their jobs or directly on candidate)
       const employerSwipes = await base44.entities.Swipe.filter({
         swiper_type: 'employer',
         target_id: candidate.id,
-        job_id: currentJob.id
+        direction: 'right'
       });
 
       const mutualSwipe = employerSwipes.find(s => s.direction === 'right' || s.direction === 'super');
@@ -127,15 +138,25 @@ export default function SwipeJobs() {
           match_score: currentMatchScore || 85
         });
         
-        // Create notification for candidate
-        await base44.entities.Notification.create({
-          user_id: user.id,
-          type: 'new_match',
-          title: '🎉 New Match!',
-          message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
-          match_id: match.id,
-          job_id: currentJob.id
-        });
+        // Notify both parties
+        await Promise.all([
+          base44.entities.Notification.create({
+            user_id: user.id,
+            type: 'new_match',
+            title: '🎉 It\'s a Match!',
+            message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
+            match_id: match.id,
+            job_id: currentJob.id
+          }),
+          base44.entities.Notification.create({
+            user_id: currentCompany?.user_id,
+            type: 'new_match',
+            title: '🎉 It\'s a Match!',
+            message: `You matched with a candidate for ${currentJob.title}!`,
+            match_id: match.id,
+            job_id: currentJob.id
+          })
+        ]);
         
         setMatchData({ match, job: currentJob, company: currentCompany, candidate });
         setShowMatch(true);
