@@ -15,12 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [liked, setLiked] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [following, setFollowing] = useState(isFollowing);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -156,8 +158,15 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
               </div>
             )}
           </div>
-          <button onClick={(e) => e.stopPropagation()} className="w-5 h-5 -mt-2.5 rounded-full bg-pink-500 flex items-center justify-center">
-            <Plus className="w-3 h-3 text-white" />
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setFollowing(!following);
+              onFollow?.();
+            }} 
+            className={`w-5 h-5 -mt-2.5 rounded-full flex items-center justify-center ${following ? 'bg-gray-500' : 'bg-pink-500'}`}
+          >
+            <Plus className={`w-3 h-3 text-white ${following ? 'rotate-45' : ''}`} />
           </button>
         </div>
 
@@ -170,23 +179,41 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company })
         </button>
 
         {/* Comment */}
-        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onComment?.();
+          }} 
+          className="flex flex-col items-center"
+        >
           <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
             <MessageCircle className="w-6 h-6 text-white" />
           </div>
-          <span className="text-white text-xs mt-1">0</span>
+          <span className="text-white text-xs mt-1">{post.comments_count || 0}</span>
         </button>
 
         {/* Save */}
-        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            setSaved(!saved);
+          }} 
+          className="flex flex-col items-center"
+        >
           <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-            <BookmarkPlus className="w-6 h-6 text-white" />
+            <BookmarkPlus className={`w-6 h-6 ${saved ? 'text-yellow-400 fill-yellow-400' : 'text-white'}`} />
           </div>
-          <span className="text-white text-xs mt-1">Save</span>
+          <span className="text-white text-xs mt-1">{saved ? 'Saved' : 'Save'}</span>
         </button>
 
         {/* Share */}
-        <button onClick={(e) => e.stopPropagation()} className="flex flex-col items-center">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onShare?.();
+          }} 
+          className="flex flex-col items-center"
+        >
           <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
             <Share2 className="w-6 h-6 text-white" />
           </div>
@@ -235,6 +262,10 @@ export default function VideoFeed() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [newPost, setNewPost] = useState({ caption: '', type: 'intro', tags: '' });
+  const [showComments, setShowComments] = useState(false);
+  const [activePostId, setActivePostId] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [showShare, setShowShare] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -320,6 +351,61 @@ export default function VideoFeed() {
     await base44.entities.VideoPost.update(post.id, { views: (post.views || 0) + 1 });
   };
 
+  const handleComment = (postId) => {
+    setActivePostId(postId);
+    setShowComments(true);
+  };
+
+  const handleShare = async (post) => {
+    setActivePostId(post.id);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Check out this video on SwipeHire',
+          text: post.caption,
+          url: window.location.href
+        });
+        await base44.entities.VideoPost.update(post.id, { shares: (post.shares || 0) + 1 });
+      } catch (err) {
+        setShowShare(true);
+      }
+    } else {
+      setShowShare(true);
+    }
+  };
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    if (activePostId) {
+      const post = posts.find(p => p.id === activePostId);
+      if (post) {
+        await base44.entities.VideoPost.update(activePostId, { shares: (post.shares || 0) + 1 });
+      }
+    }
+    setShowShare(false);
+  };
+
+  const submitComment = async () => {
+    if (!commentText.trim() || !activePostId) return;
+    
+    await base44.entities.ForumComment.create({
+      post_id: activePostId,
+      author_id: user.id,
+      content: commentText
+    });
+    
+    const post = posts.find(p => p.id === activePostId);
+    if (post) {
+      await base44.entities.VideoPost.update(activePostId, { 
+        comments_count: (post.comments_count || 0) + 1 
+      });
+      setPosts(posts.map(p => p.id === activePostId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
+    }
+    
+    setCommentText('');
+    setShowComments(false);
+  };
+
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -386,6 +472,9 @@ export default function VideoFeed() {
                 isActive={index === currentIndex}
                 onLike={() => handleLike(post)}
                 onView={() => handleView(post)}
+                onComment={() => handleComment(post.id)}
+                onShare={() => handleShare(post)}
+                onFollow={() => {}}
               />
             </div>
           ))
@@ -456,6 +545,46 @@ export default function VideoFeed() {
               </div>
               <input type="file" accept="video/*" className="hidden" onChange={handleUpload} disabled={uploading} />
             </label>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comments Dialog */}
+      <Dialog open={showComments} onOpenChange={setShowComments}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Comments</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="max-h-64 overflow-y-auto text-center py-8 text-gray-500">
+              <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p>No comments yet. Be the first!</p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitComment()}
+              />
+              <Button onClick={submitComment} className="bg-pink-500 hover:bg-pink-600">
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Dialog */}
+      <Dialog open={showShare} onOpenChange={setShowShare}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Share</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Button onClick={copyLink} variant="outline" className="w-full justify-start">
+              <Share2 className="w-4 h-4 mr-2" /> Copy Link
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
