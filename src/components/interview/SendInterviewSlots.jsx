@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CalendarDays, Clock, Plus, X, Send, Loader2, CheckCircle, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
