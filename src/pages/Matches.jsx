@@ -125,6 +125,7 @@ export default function Matches() {
             filteredMatches.map((match, index) => {
               const company = companies[match.company_id];
               const job = jobs[match.job_id];
+              const navigate = (url) => window.location.href = url;
 
               return (
                 <motion.div
@@ -133,60 +134,69 @@ export default function Matches() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Link to={createPageUrl('Chat') + `?matchId=${match.id}`}>
-                    <Card className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm">
-                      <div className="flex items-start gap-4">
-                        {/* Company Logo */}
-                        <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} onClick={(e) => e.stopPropagation()}>
-                          {company?.logo_url ? (
-                            <img 
-                              src={company.logo_url} 
-                              alt={company.name}
-                              className="w-14 h-14 rounded-xl object-cover hover:ring-2 hover:ring-pink-500 transition-all"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 rounded-xl swipe-gradient flex items-center justify-center hover:opacity-90 transition-opacity">
-                              <Building2 className="w-7 h-7 text-white" />
-                            </div>
-                          )}
-                        </Link>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <h3 className="font-semibold text-gray-900 truncate">{job?.title || 'Position'}</h3>
-                              <Link 
-                                to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} 
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-600 text-sm hover:text-pink-600 transition-colors"
-                              >
-                                {company?.name || 'Company'}
-                              </Link>
-                            </div>
-                            {getStatusBadge(match.status)}
+                  <Card 
+                    className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm"
+                    onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match.id}`)}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Company Logo */}
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(createPageUrl('CompanyProfile') + `?id=${company?.id}`);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {company?.logo_url ? (
+                          <img 
+                            src={company.logo_url} 
+                            alt={company.name}
+                            className="w-14 h-14 rounded-xl object-cover hover:ring-2 hover:ring-pink-500 transition-all"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl swipe-gradient flex items-center justify-center hover:opacity-90 transition-opacity">
+                            <Building2 className="w-7 h-7 text-white" />
                           </div>
+                        )}
+                      </div>
 
-                          <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                            {match.match_score && (
-                              <span className="flex items-center gap-1">
-                                <span className="font-semibold text-pink-500">{match.match_score}%</span> match
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {format(new Date(match.created_date), 'MMM d')}
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 truncate">{job?.title || 'Position'}</h3>
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(createPageUrl('CompanyProfile') + `?id=${company?.id}`);
+                              }}
+                              className="text-gray-600 text-sm hover:text-pink-600 transition-colors cursor-pointer"
+                            >
+                              {company?.name || 'Company'}
                             </span>
                           </div>
+                          {getStatusBadge(match.status)}
                         </div>
 
-                        {/* Chat indicator */}
-                        <div className="flex items-center">
-                          <MessageCircle className="w-5 h-5 text-gray-400" />
+                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                          {match.match_score && (
+                            <span className="flex items-center gap-1">
+                              <span className="font-semibold text-pink-500">{match.match_score}%</span> match
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {format(new Date(match.created_date), 'MMM d')}
+                          </span>
                         </div>
                       </div>
-                    </Card>
-                  </Link>
+
+                      {/* Chat indicator */}
+                      <div className="flex items-center">
+                        <MessageCircle className="w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </Card>
                 </motion.div>
               );
             })
