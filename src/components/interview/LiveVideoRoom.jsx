@@ -6,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Video, VideoOff, Mic, MicOff, PhoneOff, 
   Maximize2, Minimize2, FileText, Save, User,
-  ChevronLeft, ChevronRight, ExternalLink, Loader2
+  ChevronLeft, ChevronRight, ExternalLink, Loader2,
+  Sparkles, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 
 export default function LiveVideoRoom({ interview, candidate, candidateUser, job, company, isRecruiter, onEnd, match }) {
@@ -20,6 +22,8 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
   const [notes, setNotes] = useState(interview?.interviewer_notes || '');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [generatingNotes, setGeneratingNotes] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   
   const localVideoRef = useRef(null);
   const timerRef = useRef(null);
@@ -89,12 +93,14 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
   };
 
   const saveNotes = async (isAutoSave = false) => {
-    if (!isRecruiter || !interview?.id) return;
+    if (!isRecruiter) return;
     
     setSaving(true);
     try {
-      // Save to interview
-      await base44.entities.Interview.update(interview.id, { interviewer_notes: notes });
+      // Save to interview if exists
+      if (interview?.id) {
+        await base44.entities.Interview.update(interview.id, { interviewer_notes: notes });
+      }
       
       // Also save to Match for the candidate notes page
       if (match?.id) {
@@ -107,10 +113,60 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
       }
       
       setLastSaved(new Date());
+      
+      // Show success popup
+      if (!isAutoSave) {
+        setShowSaveSuccess(true);
+        setTimeout(() => setShowSaveSuccess(false), 2000);
+      }
     } catch (error) {
       console.error('Failed to save notes:', error);
     }
     setSaving(false);
+  };
+
+  const generateAINotes = async () => {
+    setGeneratingNotes(true);
+    try {
+      const candidateName = candidateUser?.full_name || 'Candidate';
+      const jobTitle = job?.title || 'Position';
+      const skills = candidate?.skills?.join(', ') || 'Not specified';
+      const experience = candidate?.experience?.map(e => `${e.title} at ${e.company}`).join(', ') || 'Not specified';
+      
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate interview notes template for a recruiter interviewing a candidate.
+        
+Candidate: ${candidateName}
+Position: ${jobTitle}
+Skills: ${skills}
+Experience: ${experience}
+Interview Duration: ${formatDuration(callDuration)}
+
+Create professional interview notes with the following sections:
+1. First Impressions
+2. Technical Skills Assessment
+3. Communication & Soft Skills
+4. Culture Fit
+5. Key Strengths
+6. Areas of Concern
+7. Follow-up Questions
+8. Overall Recommendation
+
+Keep it concise with bullet points. Leave placeholders like [Add observation] where the recruiter should fill in details.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            notes: { type: "string" }
+          }
+        }
+      });
+      
+      const generatedNotes = result.notes || result;
+      setNotes(prev => prev ? `${prev}\n\n${generatedNotes}` : generatedNotes);
+    } catch (error) {
+      console.error('Failed to generate notes:', error);
+    }
+    setGeneratingNotes(false);
   };
 
   const formatDuration = (seconds) => {
@@ -137,12 +193,28 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
 
       {/* Left Panel - Notes (Recruiter only) */}
       {isRecruiter && (
-        <div className="w-80 bg-white flex flex-col border-r border-gray-200">
+        <div className="w-80 bg-white flex flex-col border-r border-gray-200 relative">
+          {/* Save Success Popup */}
+          <AnimatePresence>
+            {showSaveSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Notes Saved!
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <FileText className="w-5 h-5 text-pink-500" />
               Interview Notes
             </h3>
+            <p className="text-xs text-gray-500 mt-1">Auto-syncs to candidate profile</p>
           </div>
           <div className="flex-1 p-4 flex flex-col">
             <Textarea
@@ -151,23 +223,39 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
               placeholder="Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills&#10;• Communication&#10;• Questions asked&#10;• Red flags / Green flags"
               className="flex-1 resize-none min-h-0 text-sm"
             />
-            <div className="flex items-center justify-between mt-3">
+            <div className="space-y-2 mt-3">
               <Button 
                 size="sm" 
                 variant="outline" 
-                onClick={() => saveNotes(false)}
-                disabled={saving}
+                onClick={generateAINotes}
+                disabled={generatingNotes}
+                className="w-full"
               >
-                {saving ? (
+                {generatingNotes ? (
                   <Loader2 className="w-3 h-3 animate-spin mr-1" />
                 ) : (
-                  <Save className="w-3 h-3 mr-1" />
+                  <Sparkles className="w-3 h-3 mr-1 text-purple-500" />
                 )}
-                Save Notes
+                {generatingNotes ? 'Generating...' : 'AI Generate Notes Template'}
               </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={() => saveNotes(false)}
+                  disabled={saving}
+                  className="flex-1 swipe-gradient text-white"
+                >
+                  {saving ? (
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  ) : (
+                    <Save className="w-3 h-3 mr-1" />
+                  )}
+                  Save Notes
+                </Button>
+              </div>
               {lastSaved && (
-                <p className="text-xs text-gray-400">
-                  Saved {lastSaved.toLocaleTimeString()}
+                <p className="text-xs text-gray-400 text-center">
+                  Last saved {lastSaved.toLocaleTimeString()}
                 </p>
               )}
             </div>
