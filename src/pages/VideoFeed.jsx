@@ -392,13 +392,6 @@ export default function VideoFeed() {
       const currentUser = await base44.auth.me();
       if (!isLoadMore) setUser(currentUser);
 
-      // Determine viewer type
-      const companyData = allCompanies?.find(c => c.user_id === currentUser.id);
-      const candidateData = allCandidates?.find(c => c.user_id === currentUser.id);
-      if (!isLoadMore) {
-        setViewerType(companyData ? 'employer' : (candidateData ? 'candidate' : null));
-      }
-
       const currentPage = isLoadMore ? page + 1 : 0;
       
       const [allPosts, allUsers, allCandidates, allCompanies, allFollows, userSwipes] = await Promise.all([
