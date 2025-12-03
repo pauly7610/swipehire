@@ -4,11 +4,13 @@ import { base44 } from '@/api/base44Client';
 export function useAIMatching() {
   const [loading, setLoading] = useState(false);
 
-  const calculateMatchScore = useCallback((candidate, job, company) => {
+  // Enhanced matching algorithm with historical data analysis
+  const calculateMatchScore = useCallback(async (candidate, job, company, options = {}) => {
     let score = 50; // Base score
     const insights = [];
+    const { swipeHistory, applicationHistory, connectionData } = options;
     
-    // 1. Skills Match (up to 25 points)
+    // 1. Skills Match (up to 25 points) - Enhanced with skill weighting
     if (job?.skills_required?.length > 0 && candidate?.skills?.length > 0) {
       const candidateSkillsLower = candidate.skills.map(s => s.toLowerCase());
       const matchingSkills = job.skills_required.filter(skill => 
@@ -16,8 +18,14 @@ export function useAIMatching() {
           cs.includes(skill.toLowerCase()) || skill.toLowerCase().includes(cs)
         )
       );
-      const skillMatchPercent = matchingSkills.length / job.skills_required.length;
-      const skillPoints = Math.round(skillMatchPercent * 25);
+      
+      // Give more weight to exact matches vs partial matches
+      let skillPoints = 0;
+      matchingSkills.forEach(skill => {
+        const exactMatch = candidateSkillsLower.includes(skill.toLowerCase());
+        skillPoints += exactMatch ? 5 : 3;
+      });
+      skillPoints = Math.min(25, skillPoints);
       score += skillPoints;
       
       if (matchingSkills.length > 0) {
@@ -118,11 +126,101 @@ export function useAIMatching() {
       }
     }
 
+    // 7. Salary Match (up to 10 points) - NEW
+    if (candidate?.salary_expectation_min && job?.salary_max) {
+      if (job.salary_max >= candidate.salary_expectation_min) {
+        score += 10;
+        insights.push({
+          type: 'salary',
+          text: 'Salary range meets expectations',
+          score: 10,
+          isPositive: true
+        });
+      } else {
+        insights.push({
+          type: 'warning',
+          text: 'Salary may be below candidate expectations',
+          isPositive: false
+        });
+      }
+    }
+
+    // 8. Historical Swipe Pattern Analysis (up to 10 points) - NEW
+    if (swipeHistory?.length > 0) {
+      const rightSwipes = swipeHistory.filter(s => s.direction === 'right' || s.direction === 'super');
+      
+      // Analyze patterns from positive swipes
+      if (rightSwipes.length >= 3) {
+        // Check if this job/candidate matches patterns from successful swipes
+        const patternScore = analyzeSwipePatterns(rightSwipes, job, candidate, company);
+        if (patternScore > 0) {
+          score += patternScore;
+          insights.push({
+            type: 'pattern',
+            text: 'Matches your previous preferences',
+            score: patternScore,
+            isPositive: true
+          });
+        }
+      }
+    }
+
+    // 9. Application Success Rate Boost (up to 5 points) - NEW
+    if (applicationHistory?.length > 0) {
+      const successfulApps = applicationHistory.filter(a => 
+        ['interviewing', 'offered', 'hired'].includes(a.status)
+      );
+      
+      if (successfulApps.length > 0) {
+        // Check if similar to successful applications
+        const similarToSuccess = successfulApps.some(app => {
+          if (!app.job) return false;
+          const skillOverlap = job?.skills_required?.some(skill => 
+            app.job.skills_required?.includes(skill)
+          );
+          const sameType = job?.job_type === app.job.job_type;
+          return skillOverlap || sameType;
+        });
+        
+        if (similarToSuccess) {
+          score += 5;
+          insights.push({
+            type: 'history',
+            text: 'Similar to your successful applications',
+            score: 5,
+            isPositive: true
+          });
+        }
+      }
+    }
+
+    // 10. Connection Network Boost (up to 5 points) - NEW
+    if (connectionData?.length > 0 && company) {
+      const hasConnectionAtCompany = connectionData.some(conn => 
+        conn.company_id === company.id
+      );
+      if (hasConnectionAtCompany) {
+        score += 5;
+        insights.push({
+          type: 'network',
+          text: 'You have connections at this company',
+          score: 5,
+          isPositive: true
+        });
+      }
+    }
+
     // Add a highlight for top candidates
     if (score >= 85) {
       insights.unshift({
         type: 'highlight',
-        text: '⭐ Top Match - Highly recommended candidate',
+        text: '⭐ Top Match - Highly recommended',
+        isPositive: true
+      });
+    } else if (score >= 75) {
+      insights.unshift({
+        type: 'highlight',
+        text: '✨ Strong Match',
         isPositive: true
       });
     }
@@ -132,6 +230,32 @@ export function useAIMatching() {
       insights: insights.sort((a, b) => (b.score || 0) - (a.score || 0))
     };
   }, []);
+
+  // Analyze patterns from swipe history
+  const analyzeSwipePatterns = (rightSwipes, job, candidate, company) => {
+    let patternScore = 0;
+    
+    // This is a simplified pattern analysis
+    // In production, this could use ML models
+    
+    // Count common attributes in positive swipes
+    const feedback = rightSwipes.filter(s => s.feedback).map(s => s.feedback);
+    
+    if (feedback.length > 0) {
+      const reasons = feedback.map(f => f.reason);
+      const topReason = reasons.sort((a, b) =>
+        reasons.filter(v => v === a).length - reasons.filter(v => v === b).length
+      ).pop();
+      
+      // If the top reason matches this job/candidate characteristics
+      if (topReason === 'skills_match' && job?.skills_required?.length > 3) patternScore += 5;
+      if (topReason === 'salary' && job?.salary_max > 80000) patternScore += 5;
+      if (topReason === 'location' && job?.job_type === 'remote') patternScore += 5;
+      if (topReason === 'culture' && company?.culture_traits?.length > 2) patternScore += 5;
+    }
+    
+    return Math.min(10, patternScore);
+  };
 
   const checkDealBreakers = useCallback((candidate, job, company) => {
     if (!candidate?.deal_breakers?.length) return { passed: true, violations: [] };
@@ -241,10 +365,32 @@ Provide specific, actionable insights.`,
     }
   }, []);
 
+  // Rank and sort matches based on score and preferences
+  const rankMatches = useCallback((matches, userPreferences = {}) => {
+    return matches.sort((a, b) => {
+      // Primary sort by score
+      let scoreDiff = (b.matchScore || 0) - (a.matchScore || 0);
+      
+      // Secondary sort by user preferences
+      if (Math.abs(scoreDiff) < 5) {
+        // If scores are close, use preferences
+        if (userPreferences.preferRemote && a.job?.job_type === 'remote') scoreDiff -= 2;
+        if (userPreferences.preferRemote && b.job?.job_type === 'remote') scoreDiff += 2;
+        
+        if (userPreferences.preferHighSalary) {
+          scoreDiff += ((b.job?.salary_max || 0) - (a.job?.salary_max || 0)) / 10000;
+        }
+      }
+      
+      return scoreDiff;
+    });
+  }, []);
+
   return {
     calculateMatchScore,
     checkDealBreakers,
     getAIInsights,
+    rankMatches,
     loading
   };
 }
