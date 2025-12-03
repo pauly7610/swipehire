@@ -39,6 +39,7 @@ export default function ATS() {
   const [matches, setMatches] = useState([]);
   const [candidates, setCandidates] = useState({});
   const [users, setUsers] = useState({});
+  const [allCandidatesList, setAllCandidatesList] = useState([]);
   const [selectedJob, setSelectedJob] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -52,6 +53,8 @@ export default function ATS() {
   const [bulkMoveTarget, setBulkMoveTarget] = useState('');
   const [showInterviewScheduler, setShowInterviewScheduler] = useState(false);
   const [schedulingMatch, setSchedulingMatch] = useState(null);
+  const [searchMode, setSearchMode] = useState('pipeline'); // 'pipeline' or 'all'
+  const [globalSearchResults, setGlobalSearchResults] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -77,6 +80,7 @@ export default function ATS() {
         const candidateMap = {};
         allCandidates.forEach(c => { candidateMap[c.id] = c; });
         setCandidates(candidateMap);
+        setAllCandidatesList(allCandidates);
 
         const userMap = {};
         allUsers.forEach(u => { userMap[u.id] = u; });
@@ -298,12 +302,65 @@ export default function ATS() {
       filtered = filtered.filter(m => m.job_id === selectedJob);
     }
     
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && searchMode === 'pipeline') {
       const terms = parseSearchQuery(searchQuery);
       filtered = filtered.filter(m => matchesSearchTerms(m, terms));
     }
     
     return filtered;
+  };
+
+  // Search all candidates in SwipeHire (not just matched ones)
+  const searchAllCandidates = () => {
+    if (!searchQuery.trim()) {
+      setGlobalSearchResults([]);
+      return;
+    }
+    
+    const terms = parseSearchQuery(searchQuery);
+    const results = allCandidatesList.filter(candidate => {
+      const user = users[candidate.user_id];
+      const searchableText = [
+        user?.full_name || '',
+        user?.email || '',
+        candidate?.headline || '',
+        candidate?.location || '',
+        candidate?.bio || '',
+        ...(candidate?.skills || []),
+        ...(candidate?.experience?.map(e => `${e.title} ${e.company}`) || [])
+      ].join(' ').toLowerCase();
+      
+      // Check NOT terms first
+      for (const term of terms.not) {
+        if (searchableText.includes(term)) return false;
+      }
+      
+      // Check AND terms
+      for (const term of terms.and) {
+        if (!searchableText.includes(term)) return false;
+      }
+      
+      // Check OR terms
+      if (terms.or.length > 0) {
+        const hasAnyOr = terms.or.some(term => searchableText.includes(term));
+        if (!hasAnyOr) return false;
+      }
+      
+      return true;
+    });
+    
+    setGlobalSearchResults(results);
+  };
+
+  useEffect(() => {
+    if (searchMode === 'all') {
+      searchAllCandidates();
+    }
+  }, [searchQuery, searchMode, allCandidatesList]);
+
+  const getCandidateMatchStatus = (candidateId) => {
+    const match = matches.find(m => m.candidate_id === candidateId);
+    return match ? getStageFromStatus(match.status) : null;
   };
 
   const getMatchesByStage = (stageId) => {
@@ -376,9 +433,29 @@ export default function ATS() {
           </div>
         </div>
 
-        {/* Search Help */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-          <strong>Boolean Search:</strong> Use AND, OR, NOT operators. Example: "React AND TypeScript NOT Junior" or "-intern" to exclude
+        {/* Search Mode Toggle */}
+        <div className="mb-4 flex items-center gap-4">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex-1">
+            <strong>Boolean Search:</strong> Use AND, OR, NOT operators. Example: "React AND TypeScript NOT Junior" or "-intern" to exclude
+          </div>
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
+            <Button
+              size="sm"
+              variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
+              onClick={() => setSearchMode('pipeline')}
+              className={searchMode === 'pipeline' ? 'swipe-gradient text-white' : ''}
+            >
+              My Pipeline
+            </Button>
+            <Button
+              size="sm"
+              variant={searchMode === 'all' ? 'default' : 'ghost'}
+              onClick={() => setSearchMode('all')}
+              className={searchMode === 'all' ? 'swipe-gradient text-white' : ''}
+            >
+              <Users className="w-4 h-4 mr-1" /> All SwipeHire
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -406,7 +483,7 @@ export default function ATS() {
         </Tabs>
 
         {/* Pipeline View with Drag & Drop */}
-        {viewMode === 'pipeline' && (
+        {viewMode === 'pipeline' && searchMode === 'pipeline' && (
           <DragDropContext onDragEnd={onDragEnd}>
             <div className="flex gap-4 overflow-x-auto pb-4">
               {PIPELINE_STAGES.map(stage => (
@@ -516,8 +593,105 @@ export default function ATS() {
           </DragDropContext>
         )}
 
+        {/* Global Search Results */}
+        {searchMode === 'all' && searchQuery.trim() && (
+          <Card className="border-0 shadow-sm mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-pink-500" />
+                All SwipeHire Candidates ({globalSearchResults.length} found)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {globalSearchResults.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No candidates found matching your search</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Skills</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Location</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Experience</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Status</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {globalSearchResults.map((candidate) => {
+                      const user = users[candidate.user_id];
+                      const pipelineStatus = getCandidateMatchStatus(candidate.id);
+                      const stage = pipelineStatus ? PIPELINE_STAGES.find(s => s.id === pipelineStatus) : null;
+                      
+                      return (
+                        <tr key={candidate.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              {candidate?.photo_url ? (
+                                <img src={candidate.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold">
+                                  {user?.full_name?.charAt(0) || '?'}
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium text-gray-900">{user?.full_name || 'Unknown'}</p>
+                                <p className="text-sm text-gray-500">{candidate?.headline}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {candidate?.skills?.slice(0, 3).map((skill, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">{skill}</Badge>
+                              ))}
+                              {candidate?.skills?.length > 3 && (
+                                <Badge variant="outline" className="text-xs">+{candidate.skills.length - 3}</Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 text-gray-600">{candidate?.location || '-'}</td>
+                          <td className="p-4 text-gray-600">
+                            {candidate?.experience_years ? `${candidate.experience_years} years` : candidate?.experience_level || '-'}
+                          </td>
+                          <td className="p-4">
+                            {stage ? (
+                              <Badge className={stage.color}>{stage.label}</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-500">Not in pipeline</Badge>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate.id}`}>
+                                <Button size="sm" variant="outline">
+                                  <Eye className="w-4 h-4 mr-1" /> View
+                                </Button>
+                              </Link>
+                              {candidate?.resume_url && (
+                                <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="outline">
+                                    <FileText className="w-4 h-4" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* List View */}
-        {viewMode === 'list' && (
+        {viewMode === 'list' && searchMode === 'pipeline' && (
           <Card className="border-0 shadow-sm">
             <CardContent className="p-0">
               <table className="w-full">
