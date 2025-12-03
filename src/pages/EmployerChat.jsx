@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Send, ArrowLeft, User, Briefcase, Calendar, Video, 
-  FileText, CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play
+  FileText, CheckCircle2, Clock, Loader2, MoreVertical, FileVideo, Play,
+  Save, StickyNote, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,6 +42,9 @@ export default function EmployerChat() {
   const [showLiveCall, setShowLiveCall] = useState(false);
   const [activeInterview, setActiveInterview] = useState(null);
   const [company, setCompany] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -60,6 +65,7 @@ export default function EmployerChat() {
       const [matchData] = await base44.entities.Match.filter({ id: matchId });
       if (matchData) {
         setMatch(matchData);
+        setNotes(matchData.notes || '');
 
         const [candidateData] = await base44.entities.Candidate.filter({ id: matchData.candidate_id });
         setCandidate(candidateData);
@@ -132,6 +138,18 @@ export default function EmployerChat() {
 
   const sendInterviewInvite = () => {
     setShowScheduleModal(true);
+  };
+
+  const saveNotes = async () => {
+    if (!match?.id) return;
+    setSavingNotes(true);
+    try {
+      await base44.entities.Match.update(match.id, { notes });
+      setMatch({ ...match, notes });
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+    }
+    setSavingNotes(false);
   };
 
   if (loading) {
@@ -267,13 +285,48 @@ export default function EmployerChat() {
           </Button>
           <Button 
             size="sm" 
-            variant="outline"
-            className="whitespace-nowrap"
+            variant={showNotes ? "default" : "outline"}
+            onClick={() => setShowNotes(!showNotes)}
+            className={`whitespace-nowrap ${showNotes ? 'swipe-gradient text-white' : ''}`}
           >
-            <FileText className="w-4 h-4 mr-2" /> Request Resume
+            <StickyNote className="w-4 h-4 mr-2" /> Notes
+            {showNotes ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
           </Button>
         </div>
       </div>
+
+      {/* Notes Section - Only visible to employer */}
+      {showNotes && (
+        <div className="px-4 py-3 bg-amber-50 border-b border-amber-200">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+                <StickyNote className="w-4 h-4" />
+                Private Notes (only you can see this)
+              </p>
+              <Button 
+                size="sm" 
+                onClick={saveNotes}
+                disabled={savingNotes}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {savingNotes ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                ) : (
+                  <Save className="w-4 h-4 mr-1" />
+                )}
+                Save
+              </Button>
+            </div>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add private notes about this candidate... (interview feedback, impressions, follow-up items)"
+              className="bg-white border-amber-200 min-h-[100px] text-sm"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Interview Cards */}
       {interviews.length > 0 && (
