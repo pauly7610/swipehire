@@ -45,6 +45,9 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Profile', icon: User, page: 'CandidateProfile' },
       ];
 
+  // Only show Admin to the specific admin email
+  const isMainAdmin = user?.email === 'deshaunmcleod@icloud.com';
+  
   const employerNav = [
             { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
             { name: 'Feed', icon: Home, page: 'VideoFeed' },
@@ -53,7 +56,7 @@ export default function Layout({ children, currentPageName }) {
             { name: 'ATS', icon: MessageCircle, page: 'ATS' },
             { name: 'Network', icon: Users, page: 'Connections' },
             { name: 'Profile', icon: User, page: 'RecruiterProfile' },
-            ...(user?.role === 'admin' ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
+            ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
           ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;

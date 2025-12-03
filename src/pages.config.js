@@ -27,6 +27,8 @@ import RecruiterProfile from './pages/RecruiterProfile';
 import ATS from './pages/ATS';
 import PublicJobView from './pages/PublicJobView';
 import BrowseJobs from './pages/BrowseJobs';
+import DiscoverFeed from './pages/DiscoverFeed';
+import JobsList from './pages/JobsList';
 import __Layout from './Layout.jsx';
 
 
@@ -60,6 +62,8 @@ export const PAGES = {
     "ATS": ATS,
     "PublicJobView": PublicJobView,
     "BrowseJobs": BrowseJobs,
+    "DiscoverFeed": DiscoverFeed,
+    "JobsList": JobsList,
 }
 
 export const pagesConfig = {
