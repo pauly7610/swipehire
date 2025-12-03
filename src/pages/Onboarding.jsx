@@ -42,6 +42,14 @@ export default function Onboarding() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        
+        // Check if role was pre-selected from the modal
+        const selectedRole = localStorage.getItem('swipehire_selected_role');
+        if (selectedRole) {
+          setUserType(selectedRole);
+          setStep(2); // Skip to profile creation
+          localStorage.removeItem('swipehire_selected_role');
+        }
       } catch (e) {
         navigate(createPageUrl('Welcome'));
       }
