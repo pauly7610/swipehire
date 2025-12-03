@@ -672,7 +672,6 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         
         return searchText.includes(query);
       })
-      )
       .sort((a, b) => b.score - a.score);
 
       // Paginate results
