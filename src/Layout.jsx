@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search } from 'lucide-react';
+import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +41,7 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Feed', icon: Home, page: 'DiscoverFeed' },
         { name: 'Jobs', icon: Briefcase, page: 'JobsList' },
         { name: 'Apps', icon: MessageCircle, page: 'ApplicationTracker' },
-        { name: 'Network', icon: Users, page: 'Connections' },
+        { name: 'Rewards', icon: Trophy, page: 'Gamification' },
         { name: 'Profile', icon: User, page: 'CandidateProfile' },
       ];
 
@@ -54,7 +54,7 @@ export default function Layout({ children, currentPageName }) {
             { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
             { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
             { name: 'ATS', icon: MessageCircle, page: 'ATS' },
-            { name: 'Network', icon: Users, page: 'Connections' },
+            { name: 'Rewards', icon: Trophy, page: 'Gamification' },
             { name: 'Profile', icon: User, page: 'RecruiterProfile' },
             ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
           ];
