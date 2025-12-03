@@ -24,6 +24,10 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const [showHeart, setShowHeart] = useState(false);
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(isFollowing);
+  
+  useEffect(() => {
+    setFollowing(isFollowing);
+  }, [isFollowing]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -275,6 +279,8 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
 };
 
 export default function VideoFeed() {
+  const [activeTab, setActiveTab] = useState('for_you');
+  const [followedUserIds, setFollowedUserIds] = useState(new Set());
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState({});
   const [candidates, setCandidates] = useState({});
@@ -302,12 +308,15 @@ export default function VideoFeed() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [allPosts, allUsers, allCandidates, allCompanies] = await Promise.all([
+      const [allPosts, allUsers, allCandidates, allCompanies, allFollows] = await Promise.all([
         base44.entities.VideoPost.list('-created_date', 50),
         base44.entities.User.list(),
         base44.entities.Candidate.list(),
-        base44.entities.Company.list()
+        base44.entities.Company.list(),
+        base44.entities.Follow.filter({ follower_id: currentUser.id })
       ]);
+
+      setFollowedUserIds(new Set(allFollows.map(f => f.followed_id)));
 
       // Enhanced Algorithm: personalized feed based on engagement, recency, and diversity
       const now = new Date();
@@ -359,14 +368,33 @@ export default function VideoFeed() {
   };
 
   const handleScroll = useCallback((e) => {
-    const container = e.target;
-    const scrollTop = container.scrollTop;
-    const itemHeight = container.clientHeight;
-    const newIndex = Math.round(scrollTop / itemHeight);
-    if (newIndex !== currentIndex) {
-      setCurrentIndex(newIndex);
-    }
-  }, [currentIndex]);
+        const container = e.target;
+        const scrollTop = container.scrollTop;
+        const itemHeight = container.clientHeight;
+        const newIndex = Math.round(scrollTop / itemHeight);
+        if (newIndex !== currentIndex) {
+          setCurrentIndex(newIndex);
+        }
+      }, [currentIndex]);
+
+    const handleFollow = async (authorId) => {
+      if (!user || !authorId) return;
+
+      if (followedUserIds.has(authorId)) {
+        const [follow] = await base44.entities.Follow.filter({ follower_id: user.id, followed_id: authorId });
+        if (follow) {
+          await base44.entities.Follow.delete(follow.id);
+          setFollowedUserIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(authorId);
+            return newSet;
+          });
+        }
+      } else {
+        await base44.entities.Follow.create({ follower_id: user.id, followed_id: authorId });
+        setFollowedUserIds(prev => new Set(prev).add(authorId));
+      }
+    };
 
   const handleLike = async (post) => {
     await base44.entities.VideoPost.update(post.id, { likes: (post.likes || 0) + 1 });
@@ -519,7 +547,8 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          posts.filter(p => !p.moderation_status || p.moderation_status !== 'rejected').map((post, index) => (
+          posts.filter(p => (!p.moderation_status || p.moderation_status !== 'rejected') && 
+                  (activeTab === 'for_you' || followedUserIds.has(p.author_id))).map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start">
                 <VideoCard
                   post={post}
@@ -545,9 +574,19 @@ export default function VideoFeed() {
       <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
         <h1 className="text-white font-bold text-xl">SwipeHire</h1>
         <div className="flex items-center gap-2">
-          <Badge className="bg-pink-500 text-white border-0">For You</Badge>
-          <Badge variant="outline" className="text-white border-white/50">Following</Badge>
-        </div>
+                      <Badge 
+                        className={`${activeTab === 'for_you' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                        onClick={() => setActiveTab('for_you')}
+                      >
+                        For You
+                      </Badge>
+                      <Badge 
+                        className={`${activeTab === 'following' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                        onClick={() => setActiveTab('following')}
+                      >
+                        Following
+                      </Badge>
+                    </div>
       </div>
 
       {/* Create button */}
