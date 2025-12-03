@@ -6,12 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Briefcase, Users, Calendar, MessageCircle, Plus, TrendingUp,
-  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video
+  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isSameDay, addHours, addMinutes, differenceInHours, differenceInMinutes } from 'date-fns';
+import AICandidateSourcing from '@/components/recruiter/AICandidateSourcing';
+import AutoScheduler from '@/components/recruiter/AutoScheduler';
+import RecruitmentAnalytics from '@/components/recruiter/RecruitmentAnalytics';
 
 export default function EmployerDashboard() {
   const [company, setCompany] = useState(null);
