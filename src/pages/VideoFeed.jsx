@@ -562,9 +562,8 @@ export default function VideoFeed() {
         ) : (
           posts.filter(p => {
                     if (p.moderation_status === 'rejected') return false;
-                    if (activeTab === 'for_you') return true;
                     if (activeTab === 'following') return followedUserIds.has(p.author_id);
-                    if (activeTab === 'discover') return p.type === 'tips' || p.type === 'day_in_life' || (p.views || 0) > 10;
+                    if (activeTab === 'discover') return true;
                     return true;
                   }).map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start">
