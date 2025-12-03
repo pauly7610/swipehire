@@ -1180,17 +1180,25 @@ export default function VideoFeed() {
           </DialogHeader>
           <div className="space-y-4">
             <Select value={newPost.type} onValueChange={v => setNewPost({ ...newPost, type: v })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Post type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="intro">👋 Introduction</SelectItem>
-                <SelectItem value="job_post">💼 Job Opening</SelectItem>
-                <SelectItem value="day_in_life">📅 Day in Life</SelectItem>
-                <SelectItem value="tips">💡 Career Tips</SelectItem>
-                <SelectItem value="company_culture">🏢 Company Culture</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Post type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {viewerType === 'employer' ? (
+                    <>
+                      <SelectItem value="job_post">💼 Job Opening</SelectItem>
+                      <SelectItem value="company_culture">🏢 Company Culture</SelectItem>
+                      <SelectItem value="day_in_life">📅 Day in Life</SelectItem>
+                      <SelectItem value="tips">💡 Career Tips</SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="intro">👋 Introduction</SelectItem>
+                      <SelectItem value="tips">💡 Job Search Updates</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
 
             <Textarea
               placeholder="Write a caption..."
