@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Briefcase, MessageCircle, Calendar, Gift, X } from 'lucide-react';
+import { Bell, Briefcase, MessageCircle, Calendar, Gift, X, ClipboardList } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,8 +18,8 @@ export default function NotificationBell() {
   useEffect(() => {
     loadNotifications();
     
-    // Poll for new notifications every 10 seconds
-    const interval = setInterval(loadNotifications, 10000);
+    // Poll for new notifications every 3 seconds for near-instant updates
+    const interval = setInterval(loadNotifications, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -58,6 +56,7 @@ export default function NotificationBell() {
       case 'new_match': return <Gift className="w-5 h-5 text-green-500" />;
       case 'interview': return <Calendar className="w-5 h-5 text-purple-500" />;
       case 'message': return <MessageCircle className="w-5 h-5 text-blue-500" />;
+      case 'status_change': return <ClipboardList className="w-5 h-5 text-orange-500" />;
       default: return <Bell className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -104,6 +103,13 @@ export default function NotificationBell() {
                 ) : (
   notifications.map((notif) => {
                     const getNotifLink = () => {
+                      // Use navigate_to if specified
+                      if (notif.navigate_to) {
+                        return createPageUrl(notif.navigate_to);
+                      }
+                      if (notif.type === 'status_change') {
+                        return createPageUrl('ApplicationTracker');
+                      }
                       if (notif.match_id) {
                         return createPageUrl('Chat') + `?matchId=${notif.match_id}`;
                       }
