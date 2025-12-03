@@ -548,8 +548,8 @@ export default function EmployerDashboard() {
                   })}
               </div>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
           </TabsContent>
         </Tabs>
       </div>
