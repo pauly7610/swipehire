@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
-  Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical
+  Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -307,6 +307,7 @@ export default function VideoFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef(null);
   const PAGE_SIZE = 20;
 
@@ -408,6 +409,33 @@ export default function VideoFeed() {
         return { ...p, score };
       })
       .filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0)
+      .filter(p => {
+        // Apply search filter if query exists
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        const author = allUsers.find(u => u.id === p.author_id);
+        const authorCandidate = allCandidates.find(c => c.user_id === p.author_id);
+        const authorCompany = allCompanies.find(c => c.user_id === p.author_id);
+        
+        const searchText = [
+          p.caption,
+          author?.full_name,
+          authorCandidate?.headline,
+          authorCompany?.name,
+          ...(p.tags || []),
+          ...(authorCandidate?.skills || [])
+        ].join(' ').toLowerCase();
+        
+        return searchText.includes(query);
+      })
+      .filter(p => {
+        // Apply tab filter
+        if (activeTab === 'for_you') return true;
+        if (activeTab === 'following') return followedIds.has(p.author_id);
+        if (activeTab === 'jobs') return p.type === 'job_post';
+        if (activeTab === 'people') return p.type === 'intro' || p.author_type === 'candidate';
+        return true;
+      })
       .sort((a, b) => b.score - a.score);
 
       // Paginate results
@@ -694,34 +722,55 @@ export default function VideoFeed() {
       </div>
 
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-        <h1 className="text-white font-bold text-xl">SwipeHire</h1>
+      <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/50 to-transparent">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-white font-bold text-xl">SwipeHire</h1>
+          <Badge 
+            className="bg-black/40 text-white border-0 cursor-pointer"
+            onClick={() => setShowAnalytics(true)}
+          >
+            📊
+          </Badge>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+          <input
+            type="text"
+            placeholder="Search jobs, people, skills..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-10 pl-10 pr-4 bg-black/40 backdrop-blur-sm text-white placeholder-white/60 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          />
+        </div>
+        
         <div className="flex items-center gap-2">
-                      <Badge 
-                        className={`${activeTab === 'for_you' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-                        onClick={() => setActiveTab('for_you')}
-                      >
-                        For You
-                      </Badge>
-                      <Badge 
-                        className={`${activeTab === 'following' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-                        onClick={() => setActiveTab('following')}
-                      >
-                        Following
-                      </Badge>
-                      <Badge 
-                        className={`${activeTab === 'discover' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
-                        onClick={() => setActiveTab('discover')}
-                      >
-                        Discover
-                      </Badge>
-                      <Badge 
-                        className="bg-black/40 text-white border-0 cursor-pointer"
-                        onClick={() => setShowAnalytics(true)}
-                      >
-                        📊
-                      </Badge>
-                    </div>
+          <Badge 
+            className={`${activeTab === 'for_you' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+            onClick={() => setActiveTab('for_you')}
+          >
+            For You
+          </Badge>
+          <Badge 
+            className={`${activeTab === 'following' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+            onClick={() => setActiveTab('following')}
+          >
+            Following
+          </Badge>
+          <Badge 
+            className={`${activeTab === 'jobs' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+            onClick={() => setActiveTab('jobs')}
+          >
+            Jobs
+          </Badge>
+          <Badge 
+            className={`${activeTab === 'people' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+            onClick={() => setActiveTab('people')}
+          >
+            People
+          </Badge>
+        </div>
       </div>
 
       {/* Create button */}
