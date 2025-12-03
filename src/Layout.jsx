@@ -51,6 +51,7 @@ export default function Layout({ children, currentPageName }) {
             { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
             { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
             { name: 'ATS', icon: MessageCircle, page: 'ATS' },
+            { name: 'Network', icon: Users, page: 'Connections' },
             { name: 'Profile', icon: User, page: 'RecruiterProfile' },
             ...(user?.role === 'admin' ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
           ];
