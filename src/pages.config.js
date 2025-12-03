@@ -24,6 +24,7 @@ import CompanyProfile from './pages/CompanyProfile';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
 import AdminPanel from './pages/AdminPanel';
 import RecruiterProfile from './pages/RecruiterProfile';
+import ATS from './pages/ATS';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "ViewCandidateProfile": ViewCandidateProfile,
     "AdminPanel": AdminPanel,
     "RecruiterProfile": RecruiterProfile,
+    "ATS": ATS,
 }
 
 export const pagesConfig = {

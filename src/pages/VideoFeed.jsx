@@ -407,7 +407,7 @@ export default function VideoFeed() {
         
         return { ...p, score };
       })
-      .filter(p => p.moderation_status !== 'rejected' && p.video_url)
+      .filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0)
       .sort((a, b) => b.score - a.score);
 
       // Paginate results
@@ -600,25 +600,23 @@ export default function VideoFeed() {
         author_id: user.id,
         author_type: companyData ? 'employer' : 'candidate',
         video_url: file_url,
-        caption: newPost.caption,
-        type: newPost.type,
+        caption: newPost.caption || '',
+        type: newPost.type || 'intro',
         tags: newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        
         likes: 0,
         views: 0,
         shares: 0,
-        comments_count: 0
+        comments_count: 0,
+        moderation_status: 'pending'
       });
 
-      // Add post to feed and update user map
-      setPosts([{ ...post, score: 100 }, ...posts]);
-      setUsers(prev => ({ ...prev, [user.id]: user }));
-      if (candidateData) setCandidates(prev => ({ ...prev, [user.id]: candidateData }));
-      if (companyData) setCompanies(prev => ({ ...prev, [user.id]: companyData }));
-      
+      // Refresh the feed to show the new post
       setShowConfirmPost(false);
       setPendingFile(null);
       setNewPost({ caption: '', type: 'intro', tags: '' });
+      
+      // Reload data to get fresh posts including the new one
+      await loadData();
       setCurrentIndex(0);
     } catch (error) {
       console.error('Failed to upload:', error);
@@ -655,7 +653,7 @@ export default function VideoFeed() {
           </div>
         ) : (
           <>
-          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url).map((post, index) => (
+          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0).map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
                 <VideoCard
                   post={post}
