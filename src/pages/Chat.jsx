@@ -118,6 +118,18 @@ export default function Chat() {
       });
       setMessages([...messages, message]);
       setNewMessage('');
+      
+      // Create notification for employer
+      if (match?.company_user_id) {
+        await base44.entities.Notification.create({
+          user_id: match.company_user_id,
+          type: 'message',
+          title: 'New Message from Candidate',
+          message: `You have a new message about ${job?.title || 'a position'}`,
+          match_id: matchId,
+          job_id: job?.id
+        });
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     }
