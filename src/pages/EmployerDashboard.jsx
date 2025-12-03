@@ -235,6 +235,36 @@ export default function EmployerDashboard() {
               <BarChart3 className="w-4 h-4 mr-2" /> Analytics
             </TabsTrigger>
           </TabsList>
+
+          {/* AI Sourcing Tab */}
+          <TabsContent value="sourcing" className="mt-6">
+            <AICandidateSourcing jobs={jobs} company={company} />
+          </TabsContent>
+
+          {/* Scheduling Tab */}
+          <TabsContent value="scheduling" className="mt-6">
+            <AutoScheduler 
+              matches={matches} 
+              candidates={candidates} 
+              users={users} 
+              jobs={jobs} 
+              company={company}
+              interviews={interviews}
+            />
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="mt-6">
+            <RecruitmentAnalytics 
+              jobs={jobs} 
+              matches={matches} 
+              interviews={interviews} 
+              swipes={swipes}
+            />
+          </TabsContent>
+
+          {/* Overview Tab - wrap existing content */}
+          <TabsContent value="overview" className="mt-0">
         </Tabs>
 
         {/* Stats Grid */}
