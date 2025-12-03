@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, UserPlus, UserCheck, UserX, Search, 
-  Loader2, MessageSquare, Mail, Clock
+  Loader2, MessageSquare, Mail, Clock, MapPin, Briefcase, Building2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -17,6 +19,7 @@ export default function Connections() {
   const [connections, setConnections] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [candidates, setCandidates] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -29,17 +32,19 @@ export default function Connections() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [userConnections, users, allCandidates] = await Promise.all([
+      const [userConnections, users, allCandidates, allCompanies] = await Promise.all([
         base44.entities.Connection.filter({
           $or: [{ requester_id: currentUser.id }, { receiver_id: currentUser.id }]
         }),
         base44.entities.User.list(),
-        base44.entities.Candidate.list()
+        base44.entities.Candidate.list(),
+        base44.entities.Company.list()
       ]);
 
       setConnections(userConnections);
       setAllUsers(users);
       setCandidates(allCandidates);
+      setCompanies(allCompanies);
     } catch (error) {
       console.error('Failed to load data:', error);
     }
@@ -53,6 +58,18 @@ export default function Connections() {
 
   const getCandidateForUser = (userId) => {
     return candidates.find(c => c.user_id === userId);
+  };
+
+  const getCompanyForUser = (userId) => {
+    return companies.find(c => c.user_id === userId);
+  };
+
+  const getUserType = (userId) => {
+    const candidate = getCandidateForUser(userId);
+    const company = getCompanyForUser(userId);
+    if (company) return 'employer';
+    if (candidate) return 'candidate';
+    return 'member';
   };
 
   const handleAccept = async (connection) => {
@@ -92,12 +109,30 @@ export default function Connections() {
   const pendingReceived = connections.filter(c => c.receiver_id === user?.id && c.status === 'pending');
   const pendingSent = connections.filter(c => c.requester_id === user?.id && c.status === 'pending');
 
-  const suggestedUsers = allUsers.filter(u => 
-    u.id !== user?.id && 
-    !isConnected(u.id) && 
-    !hasPendingRequest(u.id) &&
-    (searchQuery === '' || u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()))
-  ).slice(0, 10);
+  const suggestedUsers = allUsers.filter(u => {
+    if (u.id === user?.id) return false;
+    if (isConnected(u.id)) return false;
+    if (hasPendingRequest(u.id)) return false;
+    
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const candidate = getCandidateForUser(u.id);
+    const company = getCompanyForUser(u.id);
+    
+    const searchableText = [
+      u.full_name || '',
+      u.email || '',
+      candidate?.headline || '',
+      candidate?.location || '',
+      candidate?.bio || '',
+      ...(candidate?.skills || []),
+      company?.name || '',
+      company?.industry || ''
+    ].join(' ').toLowerCase();
+    
+    return searchableText.includes(query);
+  }).slice(0, 20);
 
   if (loading) {
     return (
@@ -221,31 +256,79 @@ export default function Connections() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                placeholder="Search people..."
+                placeholder="Search by name, skills, company, location..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
 
+            <p className="text-sm text-gray-500">
+              {suggestedUsers.length} people found {searchQuery && `for "${searchQuery}"`}
+            </p>
+
             <div className="grid md:grid-cols-2 gap-4">
               {suggestedUsers.map((suggestedUser, i) => {
                 const candidate = getCandidateForUser(suggestedUser.id);
+                const company = getCompanyForUser(suggestedUser.id);
+                const userType = getUserType(suggestedUser.id);
+                const photo = candidate?.photo_url || company?.logo_url;
+                
                 return (
                   <motion.div key={suggestedUser.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                     <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center font-semibold text-pink-500">
-                            {suggestedUser.full_name?.charAt(0) || 'U'}
+                        <div className="flex items-start gap-3">
+                          {photo ? (
+                            <img src={photo} alt="" className="w-12 h-12 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center font-semibold text-pink-500">
+                              {suggestedUser.full_name?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-900 truncate">{suggestedUser.full_name}</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {userType === 'employer' ? (
+                                  <><Building2 className="w-3 h-3 mr-1" /> Employer</>
+                                ) : userType === 'candidate' ? (
+                                  <><Briefcase className="w-3 h-3 mr-1" /> Candidate</>
+                                ) : 'Member'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-500 truncate">
+                              {company?.name || candidate?.headline || 'SwipeHire Member'}
+                            </p>
+                            {(candidate?.location || company?.location) && (
+                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                <MapPin className="w-3 h-3" />
+                                {candidate?.location || company?.location}
+                              </p>
+                            )}
+                            {candidate?.skills?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {candidate.skills.slice(0, 3).map((skill, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{suggestedUser.full_name}</p>
-                            <p className="text-sm text-gray-500">{candidate?.headline || 'SwipeHire Member'}</p>
-                          </div>
-                          <Button size="sm" variant="outline" onClick={() => handleConnect(suggestedUser.id)}>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                          <Button size="sm" className="flex-1 swipe-gradient text-white" onClick={() => handleConnect(suggestedUser.id)}>
                             <UserPlus className="w-4 h-4 mr-1" /> Connect
                           </Button>
+                          {candidate && (
+                            <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate.id}`}>
+                              <Button size="sm" variant="outline">View</Button>
+                            </Link>
+                          )}
+                          {company && (
+                            <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
+                              <Button size="sm" variant="outline">View</Button>
+                            </Link>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -253,6 +336,15 @@ export default function Connections() {
                 );
               })}
             </div>
+
+            {suggestedUsers.length === 0 && searchQuery && (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <Search className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">No people found matching "{searchQuery}"</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
