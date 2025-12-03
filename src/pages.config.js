@@ -22,6 +22,7 @@ import VideoFeed from './pages/VideoFeed';
 import ApplicationTracker from './pages/ApplicationTracker';
 import CompanyProfile from './pages/CompanyProfile';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
+import AdminPanel from './pages/AdminPanel';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +51,7 @@ export const PAGES = {
     "ApplicationTracker": ApplicationTracker,
     "CompanyProfile": CompanyProfile,
     "ViewCandidateProfile": ViewCandidateProfile,
+    "AdminPanel": AdminPanel,
 }
 
 export const pagesConfig = {
