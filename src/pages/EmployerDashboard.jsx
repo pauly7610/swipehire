@@ -263,11 +263,9 @@ export default function EmployerDashboard() {
             />
           </TabsContent>
 
-          {/* Overview Tab - wrap existing content */}
-          <TabsContent value="overview" className="mt-0">
-        </Tabs>
-
-        {/* Stats Grid */}
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="mt-6">
+            {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => (
             <motion.div
