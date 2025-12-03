@@ -82,8 +82,7 @@ export default function NotificationBell() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 md:right-0 top-12 w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden max-w-[calc(100vw-2rem)]"
-              style={{ right: 0, maxWidth: 'min(384px, calc(100vw - 2rem))' }}
+              className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-16 md:top-12 w-auto md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
             >
               <div className="p-4 border-b flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Notifications</h3>
@@ -101,33 +100,57 @@ export default function NotificationBell() {
                     <p>No notifications yet</p>
                   </div>
                 ) : (
-                  notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      onClick={() => markAsRead(notif)}
-                      className={`p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors ${
-                        !notif.is_read ? 'bg-pink-50/50' : ''
-                      }`}
-                    >
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                          {getIcon(notif.type)}
+  notifications.map((notif) => {
+                    const getNotifLink = () => {
+                      if (notif.match_id) {
+                        return createPageUrl('Chat') + `?matchId=${notif.match_id}`;
+                      }
+                      if (notif.type === 'new_match') {
+                        return createPageUrl('Matches');
+                      }
+                      if (notif.type === 'interview') {
+                        return createPageUrl('Matches');
+                      }
+                      return null;
+                    };
+                    const link = getNotifLink();
+                    
+                    return (
+                      <Link
+                        key={notif.id}
+                        to={link || '#'}
+                        onClick={(e) => {
+                          markAsRead(notif);
+                          if (link) {
+                            setIsOpen(false);
+                          } else {
+                            e.preventDefault();
+                          }
+                        }}
+                        className={`block p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors ${
+                          !notif.is_read ? 'bg-pink-50/50' : ''
+                        }`}
+                      >
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                            {getIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm ${!notif.is_read ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                              {notif.title}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate">{notif.message}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {format(new Date(notif.created_date), 'MMM d, h:mm a')}
+                            </p>
+                          </div>
+                          {!notif.is_read && (
+                            <div className="w-2 h-2 rounded-full bg-pink-500 flex-shrink-0 mt-2" />
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${!notif.is_read ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
-                            {notif.title}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate">{notif.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {format(new Date(notif.created_date), 'MMM d, h:mm a')}
-                          </p>
-                        </div>
-                        {!notif.is_read && (
-                          <div className="w-2 h-2 rounded-full bg-pink-500 flex-shrink-0 mt-2" />
-                        )}
-                      </div>
-                    </div>
-                  ))
+                      </Link>
+                    );
+                  })
                 )}
               </div>
 
