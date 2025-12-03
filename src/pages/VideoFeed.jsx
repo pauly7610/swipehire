@@ -6,7 +6,7 @@ import {
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
   Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search,
-  UserPlus, UserCheck, Clock
+  UserPlus, UserCheck, Clock, Filter
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
+import FeedFilters from '@/components/video/FeedFilters';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
@@ -406,6 +407,13 @@ export default function VideoFeed() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    contentTypes: [],
+    userTypes: [],
+    location: '',
+    skills: []
+  });
   const [viewerType, setViewerType] = useState(null); // 'candidate' or 'employer'
   const [allPostsData, setAllPostsData] = useState([]);
   const [connections, setConnections] = useState([]);
@@ -921,6 +929,55 @@ const scoredPosts = allScoredPosts.map((p, index) => {
               } else if (activeTab === 'people') {
                 filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
               }
+
+              // Apply search query
+              if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase();
+                filteredPosts = filteredPosts.filter(p => {
+                  const author = users[p.author_id];
+                  const authorCandidate = candidates[p.author_id];
+                  const authorCompany = companies[p.author_id];
+                  const searchText = [
+                    p.caption,
+                    author?.full_name,
+                    authorCandidate?.headline,
+                    authorCandidate?.location,
+                    authorCompany?.name,
+                    authorCompany?.location,
+                    ...(p.tags || []),
+                    ...(authorCandidate?.skills || [])
+                  ].join(' ').toLowerCase();
+                  return searchText.includes(query);
+                });
+              }
+
+              // Apply advanced filters
+              if (advancedFilters.contentTypes.length > 0) {
+                filteredPosts = filteredPosts.filter(p => advancedFilters.contentTypes.includes(p.type));
+              }
+              if (advancedFilters.userTypes.length > 0) {
+                filteredPosts = filteredPosts.filter(p => advancedFilters.userTypes.includes(p.author_type));
+              }
+              if (advancedFilters.location) {
+                const locQuery = advancedFilters.location.toLowerCase();
+                filteredPosts = filteredPosts.filter(p => {
+                  const authorCandidate = candidates[p.author_id];
+                  const authorCompany = companies[p.author_id];
+                  const location = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
+                  return location.includes(locQuery) || locQuery === 'remote';
+                });
+              }
+              if (advancedFilters.skills.length > 0) {
+                filteredPosts = filteredPosts.filter(p => {
+                  const authorCandidate = candidates[p.author_id];
+                  const postTags = (p.tags || []).map(t => t.toLowerCase());
+                  const authorSkills = (authorCandidate?.skills || []).map(s => s.toLowerCase());
+                  const allSkills = [...postTags, ...authorSkills];
+                  return advancedFilters.skills.some(skill => 
+                    allSkills.some(s => s.includes(skill.toLowerCase()) || skill.toLowerCase().includes(s))
+                  );
+                });
+              }
               
               return filteredPosts;
             })().length === 0 ? (
@@ -935,19 +992,68 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         ) : (
                         <>
                         {(() => {
-                      // Filter posts based on active tab
-                      let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+                                      // Filter posts based on active tab
+                                      let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
 
-                      if (activeTab === 'following') {
-                        filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
-                      } else if (activeTab === 'jobs') {
-                        filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
-                      } else if (activeTab === 'people') {
-                        filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
-                      }
+                                      if (activeTab === 'following') {
+                                        filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
+                                      } else if (activeTab === 'jobs') {
+                                        filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
+                                      } else if (activeTab === 'people') {
+                                        filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
+                                      }
 
-                      return filteredPosts;
-                    })().map((post, index) => {
+                                      // Apply search query
+                                      if (searchQuery.trim()) {
+                                        const query = searchQuery.toLowerCase();
+                                        filteredPosts = filteredPosts.filter(p => {
+                                          const author = users[p.author_id];
+                                          const authorCandidate = candidates[p.author_id];
+                                          const authorCompany = companies[p.author_id];
+                                          const searchText = [
+                                            p.caption,
+                                            author?.full_name,
+                                            authorCandidate?.headline,
+                                            authorCandidate?.location,
+                                            authorCompany?.name,
+                                            authorCompany?.location,
+                                            ...(p.tags || []),
+                                            ...(authorCandidate?.skills || [])
+                                          ].join(' ').toLowerCase();
+                                          return searchText.includes(query);
+                                        });
+                                      }
+
+                                      // Apply advanced filters
+                                      if (advancedFilters.contentTypes.length > 0) {
+                                        filteredPosts = filteredPosts.filter(p => advancedFilters.contentTypes.includes(p.type));
+                                      }
+                                      if (advancedFilters.userTypes.length > 0) {
+                                        filteredPosts = filteredPosts.filter(p => advancedFilters.userTypes.includes(p.author_type));
+                                      }
+                                      if (advancedFilters.location) {
+                                        const locQuery = advancedFilters.location.toLowerCase();
+                                        filteredPosts = filteredPosts.filter(p => {
+                                          const authorCandidate = candidates[p.author_id];
+                                          const authorCompany = companies[p.author_id];
+                                          const location = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
+                                          return location.includes(locQuery) || locQuery === 'remote';
+                                        });
+                                      }
+                                      if (advancedFilters.skills.length > 0) {
+                                        filteredPosts = filteredPosts.filter(p => {
+                                          const authorCandidate = candidates[p.author_id];
+                                          const postTags = (p.tags || []).map(t => t.toLowerCase());
+                                          const authorSkills = (authorCandidate?.skills || []).map(s => s.toLowerCase());
+                                          const allSkills = [...postTags, ...authorSkills];
+                                          return advancedFilters.skills.some(skill => 
+                                            allSkills.some(s => s.includes(skill.toLowerCase()) || skill.toLowerCase().includes(s))
+                                          );
+                                        });
+                                      }
+
+                                      return filteredPosts;
+                                    })().map((post, index) => {
               // Determine if viewer can swipe on this content
                 // Candidates CAN swipe on other candidates' intro videos to connect
                 const canSwipe = true;
@@ -1210,17 +1316,43 @@ const scoredPosts = allScoredPosts.map((p, index) => {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden mb-3"
             >
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
-                <input
-                  type="text"
-                  placeholder="Search jobs, people, skills..."
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); loadData(); }}
-                  autoFocus
-                  className="w-full h-10 pl-10 pr-4 bg-black/40 backdrop-blur-sm text-white placeholder-white/60 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                />
+              <div className="flex gap-2 mb-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+                  <input
+                    type="text"
+                    placeholder="Search jobs, people, skills..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); }}
+                    autoFocus
+                    className="w-full h-10 pl-10 pr-4 bg-black/40 backdrop-blur-sm text-white placeholder-white/60 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`h-10 px-4 rounded-full flex items-center gap-2 transition-all ${
+                    showFilters || (advancedFilters.contentTypes.length + advancedFilters.userTypes.length + advancedFilters.skills.length + (advancedFilters.location ? 1 : 0)) > 0
+                      ? 'bg-pink-500 text-white'
+                      : 'bg-black/40 text-white/80 hover:bg-black/60'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  {(advancedFilters.contentTypes.length + advancedFilters.userTypes.length + advancedFilters.skills.length + (advancedFilters.location ? 1 : 0)) > 0 && (
+                    <span className="text-xs">{advancedFilters.contentTypes.length + advancedFilters.userTypes.length + advancedFilters.skills.length + (advancedFilters.location ? 1 : 0)}</span>
+                  )}
+                </button>
               </div>
+              
+              {/* Advanced Filters */}
+              <AnimatePresence>
+                {showFilters && (
+                  <FeedFilters
+                    filters={advancedFilters}
+                    onFiltersChange={setAdvancedFilters}
+                    onClose={() => setShowFilters(false)}
+                  />
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
