@@ -407,7 +407,7 @@ export default function VideoFeed() {
         
         return { ...p, score };
       })
-      .filter(p => p.moderation_status !== 'rejected')
+      .filter(p => p.moderation_status !== 'rejected' && p.video_url)
       .sort((a, b) => b.score - a.score);
 
       // Paginate results
@@ -602,15 +602,27 @@ export default function VideoFeed() {
         video_url: file_url,
         caption: newPost.caption,
         type: newPost.type,
-        tags: newPost.tags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        moderation_status: 'approved',
+        likes: 0,
+        views: 0,
+        shares: 0,
+        comments_count: 0
       });
 
-      setPosts([post, ...posts]);
+      // Add post to feed and update user map
+      setPosts([{ ...post, score: 100 }, ...posts]);
+      setUsers(prev => ({ ...prev, [user.id]: user }));
+      if (candidateData) setCandidates(prev => ({ ...prev, [user.id]: candidateData }));
+      if (companyData) setCompanies(prev => ({ ...prev, [user.id]: companyData }));
+      
       setShowConfirmPost(false);
       setPendingFile(null);
       setNewPost({ caption: '', type: 'intro', tags: '' });
+      setCurrentIndex(0);
     } catch (error) {
       console.error('Failed to upload:', error);
+      alert('Failed to upload video. Please try again.');
     }
     setUploading(false);
   };
@@ -643,7 +655,7 @@ export default function VideoFeed() {
           </div>
         ) : (
           <>
-          {posts.filter(p => p.moderation_status !== 'rejected').map((post, index) => (
+          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url).map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
                 <VideoCard
                   post={post}
