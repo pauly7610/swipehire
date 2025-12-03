@@ -730,10 +730,12 @@ export default function CompanyBranding() {
               <Button variant="outline" onClick={() => setShowTestimonialModal(true)}>
                 <Plus className="w-4 h-4 mr-1" /> Add Testimonial
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              </CardContent>
+              </Card>
+              </div>
+              </TabsContent>
+              </Tabs>
+              </div>
 
       {/* Add Team Member Modal */}
       <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
