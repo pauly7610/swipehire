@@ -45,58 +45,68 @@ export default function SwipeCandidates() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    if (selectedJobId) {
-      loadCandidatesForJob();
-    }
-  }, [selectedJobId]);
-
   const loadData = async () => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
+      // Load all data in parallel
+      const [companyResults, allUsers, allCandidates] = await Promise.all([
+        base44.entities.Company.filter({ user_id: currentUser.id }),
+        base44.entities.User.list(),
+        base44.entities.Candidate.list()
+      ]);
+
+      const [companyData] = companyResults;
       setCompany(companyData);
 
-      if (companyData) {
-        const companyJobs = await base44.entities.Job.filter({ company_id: companyData.id, is_active: true });
-        setJobs(companyJobs);
-
-        if (jobIdParam) {
-          setSelectedJobId(jobIdParam);
-        } else if (companyJobs.length > 0) {
-          setSelectedJobId(companyJobs[0].id);
-        }
-      }
-
-      // Load all users for display
-      const allUsers = await base44.entities.User.list();
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
       setUsers(userMap);
+
+      if (companyData) {
+        const [companyJobs, existingSwipes] = await Promise.all([
+          base44.entities.Job.filter({ company_id: companyData.id, is_active: true }),
+          base44.entities.Swipe.filter({ swiper_id: currentUser.id, swiper_type: 'employer' })
+        ]);
+        setJobs(companyJobs);
+
+        const initialJobId = jobIdParam || (companyJobs.length > 0 ? companyJobs[0].id : '');
+        setSelectedJobId(initialJobId);
+
+        // Filter candidates based on swipes for the selected job
+        if (initialJobId) {
+          const swipedCandidateIds = new Set(
+            existingSwipes.filter(s => s.job_id === initialJobId).map(s => s.target_id)
+          );
+          const availableCandidates = allCandidates.filter(c => !swipedCandidateIds.has(c.id));
+          setCandidates(availableCandidates);
+        }
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     }
     setLoading(false);
   };
 
-  const loadCandidatesForJob = async () => {
-    if (!selectedJobId || !company) return;
+  // Only reload candidates when job changes (not on initial load)
+  const loadCandidatesForJob = async (jobId) => {
+    if (!jobId || !user) return;
 
-    // Get already swiped candidates for this job
-    const existingSwipes = await base44.entities.Swipe.filter({
-      swiper_id: user?.id,
-      swiper_type: 'employer',
-      job_id: selectedJobId
-    });
+    const [existingSwipes, allCandidates] = await Promise.all([
+      base44.entities.Swipe.filter({ swiper_id: user.id, swiper_type: 'employer', job_id: jobId }),
+      base44.entities.Candidate.list()
+    ]);
+    
     const swipedCandidateIds = new Set(existingSwipes.map(s => s.target_id));
-
-    // Get all candidates
-    const allCandidates = await base44.entities.Candidate.list();
     const availableCandidates = allCandidates.filter(c => !swipedCandidateIds.has(c.id));
     setCandidates(availableCandidates);
     setCurrentIndex(0);
+  };
+
+  const handleJobChange = (jobId) => {
+    setSelectedJobId(jobId);
+    loadCandidatesForJob(jobId);
   };
 
   const currentCandidate = candidates[currentIndex];
@@ -248,7 +258,7 @@ export default function SwipeCandidates() {
 
         {/* Job Selector */}
         <div className="mb-6">
-          <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+          <Select value={selectedJobId} onValueChange={handleJobChange}>
             <SelectTrigger className="w-full h-12 bg-white">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-pink-500" />
