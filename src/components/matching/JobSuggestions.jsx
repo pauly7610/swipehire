@@ -33,11 +33,13 @@ export default function JobSuggestions({ candidate }) {
       setCompanies(companyMap);
 
       // Calculate match scores for all jobs
-      const scoredJobs = allJobs.map(job => {
+      const scoredJobs = await Promise.all(allJobs.map(async (job) => {
         const company = companyMap[job.company_id];
-        const { score, insights } = calculateMatchScore(candidate, job, company);
+        const result = await calculateMatchScore(candidate, job, company);
+        const score = result?.score || 50;
+        const insights = result?.insights || [];
         return { job, company, score, insights };
-      });
+      }));
 
       // Sort by score and take top 5
       scoredJobs.sort((a, b) => b.score - a.score);
