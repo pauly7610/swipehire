@@ -123,8 +123,48 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
         }
       `}</style>
 
-      {/* Main Video Area */}
-      <div className={`flex-1 flex flex-col transition-all ${showSidebar ? 'mr-80' : ''}`}>
+      {/* Left Panel - Notes (Recruiter only) */}
+      {isRecruiter && (
+        <div className="w-80 bg-white flex flex-col border-r border-gray-200">
+          <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-pink-500" />
+              Interview Notes
+            </h3>
+          </div>
+          <div className="flex-1 p-4 flex flex-col">
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills&#10;• Communication&#10;• Questions asked&#10;• Red flags / Green flags"
+              className="flex-1 resize-none min-h-0 text-sm"
+            />
+            <div className="flex items-center justify-between mt-3">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => saveNotes(false)}
+                disabled={saving}
+              >
+                {saving ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <Save className="w-3 h-3 mr-1" />
+                )}
+                Save Notes
+              </Button>
+              {lastSaved && (
+                <p className="text-xs text-gray-400">
+                  Saved {lastSaved.toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Center - Video Area */}
+      <div className="flex-1 flex flex-col">
         {/* Remote Video */}
         <div className="flex-1 relative">
           <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
@@ -144,14 +184,6 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span className="text-white font-mono">{formatDuration(callDuration)}</span>
           </div>
-
-          {/* Toggle Sidebar Button */}
-          <button
-            onClick={() => setShowSidebar(!showSidebar)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70"
-          >
-            {showSidebar ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-          </button>
 
           {/* Local Video PiP */}
           <motion.div
@@ -211,133 +243,125 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
         </div>
       </div>
 
-      {/* Sidebar - Resume & Notes */}
-      <AnimatePresence>
-        {showSidebar && (
-          <motion.div
-            initial={{ x: 320 }}
-            animate={{ x: 0 }}
-            exit={{ x: 320 }}
-            className="fixed right-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col"
-          >
-            {/* Candidate Info */}
-            <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
-              <div className="flex items-center gap-3">
-                {candidate?.photo_url ? (
-                  <img src={candidate.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-pink-500" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 truncate">{candidateUser?.full_name}</h3>
-                  <p className="text-sm text-gray-500 truncate">{candidate?.headline}</p>
-                </div>
+      {/* Right Panel - Resume */}
+      <div className="w-80 bg-white flex flex-col border-l border-gray-200">
+        {/* Candidate Info */}
+        <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
+          <div className="flex items-center gap-3">
+            {candidate?.photo_url ? (
+              <img src={candidate.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+                <User className="w-6 h-6 text-pink-500" />
               </div>
-              <div className="mt-3">
-                <Badge className="bg-white text-pink-600 border border-pink-200">
-                  {job?.title}
-                </Badge>
-              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900 truncate">{candidateUser?.full_name}</h3>
+              <p className="text-sm text-gray-500 truncate">{candidate?.headline}</p>
             </div>
+          </div>
+          <div className="mt-3">
+            <Badge className="bg-white text-pink-600 border border-pink-200">
+              {job?.title}
+            </Badge>
+          </div>
+        </div>
 
-            {/* Resume Section */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 border-b">
-                <h4 className="font-medium text-gray-900 flex items-center gap-2 mb-3">
-                  <FileText className="w-4 h-4 text-pink-500" />
-                  Resume
-                </h4>
-                {candidate?.resume_url ? (
+        {/* Resume Section */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <h4 className="font-medium text-gray-900 flex items-center gap-2 mb-3">
+            <FileText className="w-4 h-4 text-pink-500" />
+            Resume & Profile
+          </h4>
+          
+          {candidate?.resume_url ? (
+            <div className="space-y-4">
+              <a
+                href={candidate.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open Full Resume
+              </a>
+              
+              {/* Quick Skills View */}
+              {candidate?.skills?.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Skills</p>
+                  <div className="flex flex-wrap gap-1">
+                    {candidate.skills.slice(0, 10).map((skill, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {candidate.skills.length > 10 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{candidate.skills.length - 10} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience Summary */}
+              {candidate?.experience?.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Experience</p>
                   <div className="space-y-3">
-                    <a
-                      href={candidate.resume_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View Full Resume
-                    </a>
-                    
-                    {/* Quick Skills View */}
-                    {candidate?.skills?.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-2">Key Skills</p>
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.skills.slice(0, 8).map((skill, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
+                    {candidate.experience.slice(0, 3).map((exp, i) => (
+                      <div key={i} className="text-sm bg-gray-50 rounded-lg p-2">
+                        <p className="font-medium text-gray-900">{exp.title}</p>
+                        <p className="text-gray-500 text-xs">{exp.company}</p>
+                        {exp.start_date && (
+                          <p className="text-gray-400 text-xs mt-1">
+                            {exp.start_date} - {exp.end_date || 'Present'}
+                          </p>
+                        )}
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                    {/* Experience Summary */}
-                    {candidate?.experience?.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-2">Recent Experience</p>
-                        <div className="space-y-2">
-                          {candidate.experience.slice(0, 2).map((exp, i) => (
-                            <div key={i} className="text-sm">
-                              <p className="font-medium text-gray-900">{exp.title}</p>
-                              <p className="text-gray-500">{exp.company}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-gray-500">
-                    <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No resume uploaded</p>
-                  </div>
-                )}
-              </div>
+              {/* Bio */}
+              {candidate?.bio && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2 font-medium">About</p>
+                  <p className="text-sm text-gray-600">{candidate.bio}</p>
+                </div>
+              )}
 
-              {/* Notes Section - Only for Recruiter */}
-              {isRecruiter && (
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-pink-500" />
-                      Interview Notes
-                    </h4>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => saveNotes(false)}
-                      disabled={saving}
-                      className="h-8"
-                    >
-                      {saving ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Save className="w-3 h-3 mr-1" />
-                      )}
-                      Save
-                    </Button>
-                  </div>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Take notes during the interview... They'll be saved automatically."
-                    className="min-h-[200px] resize-none"
-                  />
-                  {lastSaved && (
-                    <p className="text-xs text-gray-400 mt-2">
-                      Last saved: {lastSaved.toLocaleTimeString()}
-                    </p>
-                  )}
+              {/* Location & Contact */}
+              {candidate?.location && (
+                <div className="text-sm text-gray-500 flex items-center gap-1">
+                  📍 {candidate.location}
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No resume uploaded</p>
+              
+              {/* Still show skills if available */}
+              {candidate?.skills?.length > 0 && (
+                <div className="mt-4 text-left">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Skills</p>
+                  <div className="flex flex-wrap gap-1">
+                    {candidate.skills.map((skill, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

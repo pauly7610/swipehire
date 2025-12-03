@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -49,6 +50,8 @@ export default function ATS() {
   const [selectedMatches, setSelectedMatches] = useState(new Set());
   const [showBulkMoveDialog, setShowBulkMoveDialog] = useState(false);
   const [bulkMoveTarget, setBulkMoveTarget] = useState('');
+  const [showInterviewScheduler, setShowInterviewScheduler] = useState(false);
+  const [schedulingMatch, setSchedulingMatch] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -106,6 +109,16 @@ export default function ATS() {
     const { matchId, toStage } = pendingMove;
     const newStatus = getStatusFromStage(toStage);
     
+    // If moving to interviewing stage, open the scheduler instead
+    if (toStage === 'interviewing') {
+      const match = matches.find(m => m.id === matchId);
+      setSchedulingMatch(match);
+      setShowConfirmMove(false);
+      setPendingMove(null);
+      setShowInterviewScheduler(true);
+      return;
+    }
+    
     await base44.entities.Match.update(matchId, { status: newStatus });
     
     // Send notification to candidate
@@ -129,6 +142,17 @@ export default function ATS() {
     setMatches(matches.map(m => m.id === matchId ? { ...m, status: newStatus } : m));
     setShowConfirmMove(false);
     setPendingMove(null);
+  };
+
+  const handleInterviewSlotsSent = async () => {
+    if (!schedulingMatch) return;
+    
+    // Update match status to interviewing
+    await base44.entities.Match.update(schedulingMatch.id, { status: 'interviewing' });
+    
+    setMatches(matches.map(m => m.id === schedulingMatch.id ? { ...m, status: 'interviewing' } : m));
+    setShowInterviewScheduler(false);
+    setSchedulingMatch(null);
   };
 
   const handleBulkMove = async () => {
@@ -679,6 +703,22 @@ export default function ATS() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Interview Scheduler */}
+      {schedulingMatch && (
+        <SendInterviewSlots
+          open={showInterviewScheduler}
+          onOpenChange={(open) => {
+            setShowInterviewScheduler(open);
+            if (!open) setSchedulingMatch(null);
+          }}
+          match={schedulingMatch}
+          candidate={candidates[schedulingMatch.candidate_id]}
+          job={jobs.find(j => j.id === schedulingMatch.job_id)}
+          company={company}
+          onSent={handleInterviewSlotsSent}
+        />
+      )}
 
       {/* Candidate Details Modal */}
       <Dialog open={showCandidateModal} onOpenChange={setShowCandidateModal}>
