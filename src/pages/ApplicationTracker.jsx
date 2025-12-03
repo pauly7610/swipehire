@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { 
   Briefcase, Building2, MapPin, Clock, CheckCircle2, XCircle, 
-  Eye, Users, Calendar, Loader2, FileText, TrendingUp
+  Eye, Users, Calendar, Loader2, FileText, TrendingUp, Video
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { format, formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { format, formatDistanceToNow, isSameDay } from 'date-fns';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function ApplicationTracker() {
@@ -21,6 +22,9 @@ export default function ApplicationTracker() {
   const [filter, setFilter] = useState('all');
   const [user, setUser] = useState(null);
   const [candidate, setCandidate] = useState(null);
+  const [interviews, setInterviews] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadApplications();
@@ -82,12 +86,27 @@ export default function ApplicationTracker() {
         });
 
         setApplications(combinedApps);
+
+        // Load interviews for this candidate
+        const candidateInterviews = await base44.entities.Interview.filter({ candidate_id: candidateData.id });
+        setInterviews(candidateInterviews);
       }
     } catch (error) {
       console.error('Failed to load applications:', error);
     }
     setLoading(false);
   };
+
+  const getInterviewsForDate = (date) => {
+    return interviews.filter(i => {
+      if (!i.scheduled_at) return false;
+      return isSameDay(new Date(i.scheduled_at), date);
+    });
+  };
+
+  const interviewDates = interviews
+    .filter(i => i.scheduled_at && (i.status === 'scheduled' || i.status === 'confirmed'))
+    .map(i => new Date(i.scheduled_at));
 
   const withdrawApplication = async (appId) => {
     // Delete the swipe to withdraw application
@@ -141,6 +160,92 @@ export default function ApplicationTracker() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Application Tracker</h1>
           <p className="text-gray-500">Track your job applications in one place</p>
         </div>
+
+        {/* Interview Calendar Section */}
+        {interviews.filter(i => i.status === 'scheduled' || i.status === 'confirmed').length > 0 && (
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Calendar */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-500" />
+                  My Interviews
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  className="rounded-md"
+                  modifiers={{
+                    hasInterview: interviewDates
+                  }}
+                  modifiersStyles={{
+                    hasInterview: {
+                      backgroundColor: '#FF005C',
+                      color: 'white',
+                      borderRadius: '50%'
+                    }
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Interviews for Selected Date */}
+            <Card className="border-0 shadow-sm md:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">
+                  {format(selectedDate, 'EEEE, MMMM d')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {getInterviewsForDate(selectedDate).length === 0 ? (
+                  <div className="text-center py-6">
+                    <Calendar className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                    <p className="text-gray-500 text-sm">No interviews on this day</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {getInterviewsForDate(selectedDate).map((interview) => {
+                      const job = jobs[interview.job_id];
+                      const company = companies[job?.company_id];
+                      
+                      return (
+                        <div 
+                          key={interview.id} 
+                          className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:shadow-md transition-all"
+                          onClick={() => navigate(createPageUrl('Chat') + `?matchId=${interview.match_id}`)}
+                        >
+                          {company?.logo_url ? (
+                            <img src={company.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                              <Building2 className="w-6 h-6 text-purple-500" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{company?.name || 'Company'}</p>
+                            <p className="text-sm text-gray-500">{job?.title}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-purple-600">
+                              {format(new Date(interview.scheduled_at), 'h:mm a')}
+                            </p>
+                            <Badge className="bg-purple-100 text-purple-700">
+                              <Video className="w-3 h-3 mr-1" />
+                              {interview.interview_type}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
