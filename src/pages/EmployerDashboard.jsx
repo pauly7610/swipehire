@@ -198,7 +198,7 @@ export default function EmployerDashboard() {
 
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             {company?.logo_url ? (
               <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-2xl object-cover" />
@@ -218,6 +218,24 @@ export default function EmployerDashboard() {
             </Button>
           </Link>
         </div>
+
+        {/* Dashboard Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="bg-white border">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Eye className="w-4 h-4 mr-2" /> Overview
+            </TabsTrigger>
+            <TabsTrigger value="sourcing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Sparkles className="w-4 h-4 mr-2" /> AI Sourcing
+            </TabsTrigger>
+            <TabsTrigger value="scheduling" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Zap className="w-4 h-4 mr-2" /> Scheduling
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
