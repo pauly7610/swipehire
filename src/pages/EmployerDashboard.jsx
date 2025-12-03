@@ -26,6 +26,8 @@ export default function EmployerDashboard() {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('overview');
+  const [swipes, setSwipes] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
