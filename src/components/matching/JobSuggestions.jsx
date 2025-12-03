@@ -129,7 +129,7 @@ export default function JobSuggestions({ candidate }) {
                 <div className={`px-3 py-1 rounded-full text-white text-sm font-bold ${getScoreColor(score)}`}>
                   {score}%
                 </div>
-                {insights[0] && (
+                {insights?.length > 0 && insights[0] && (
                   <span className="text-xs text-gray-400 text-right max-w-[100px] truncate">
                     {insights[0].text}
                   </span>
