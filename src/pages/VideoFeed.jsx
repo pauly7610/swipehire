@@ -302,58 +302,126 @@ export default function VideoFeed() {
   const [showConfirmPost, setShowConfirmPost] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [likedPostIds, setLikedPostIds] = useState(new Set());
+  const [viewedPostIds, setViewedPostIds] = useState(new Set());
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const containerRef = useRef(null);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (isLoadMore = false) => {
+    if (isLoadMore) setLoadingMore(true);
+    
     try {
       const currentUser = await base44.auth.me();
-      setUser(currentUser);
+      if (!isLoadMore) setUser(currentUser);
 
+      const currentPage = isLoadMore ? page + 1 : 0;
+      
       const [allPosts, allUsers, allCandidates, allCompanies, allFollows] = await Promise.all([
-        base44.entities.VideoPost.list('-created_date', 50),
+        base44.entities.VideoPost.list('-created_date', 100),
         base44.entities.User.list(),
         base44.entities.Candidate.list(),
         base44.entities.Company.list(),
         base44.entities.Follow.filter({ follower_id: currentUser.id })
       ]);
 
-      setFollowedUserIds(new Set(allFollows.map(f => f.followed_id)));
+      const followedIds = new Set(allFollows.map(f => f.followed_id));
+      if (!isLoadMore) setFollowedUserIds(followedIds);
 
-      // Enhanced Algorithm: personalized feed based on engagement, recency, and diversity
+      // Enhanced "For You" Algorithm with personalization
       const now = new Date();
       const candidateData = allCandidates.find(c => c.user_id === currentUser.id);
       const userSkills = candidateData?.skills || [];
+      const userPreferences = candidateData?.culture_preferences || [];
+      const userLocation = candidateData?.location?.toLowerCase() || '';
+      
+      // Get author types user has engaged with
+      const likedAuthors = new Set();
+      const likedTypes = new Set();
       
       const scoredPosts = allPosts.map(p => {
-        // Base engagement score
-        const engagementScore = (p.likes || 0) * 3 + (p.views || 0) * 0.5 + (p.shares || 0) * 5;
+        let score = 0;
         
-        // Recency boost (posts from last 24h get higher priority)
+        // 1. Engagement Score (viral content)
+        const engagementScore = (p.likes || 0) * 3 + (p.views || 0) * 0.5 + (p.shares || 0) * 5 + (p.comments_count || 0) * 4;
+        score += Math.min(engagementScore, 100); // Cap at 100
+        
+        // 2. Recency boost (fresher content ranks higher)
         const postAge = (now - new Date(p.created_date)) / (1000 * 60 * 60);
-        const recencyBoost = postAge < 24 ? 50 : postAge < 72 ? 30 : postAge < 168 ? 15 : 0;
+        if (postAge < 6) score += 60;
+        else if (postAge < 24) score += 45;
+        else if (postAge < 72) score += 30;
+        else if (postAge < 168) score += 15;
         
-        // Content type diversity bonus
-        const typeBonus = { job_post: 20, tips: 15, day_in_life: 10, company_culture: 12, intro: 8 }[p.type] || 5;
+        // 3. Following boost (content from followed users)
+        if (followedIds.has(p.author_id)) score += 40;
         
-        // Relevance score based on matching tags with user skills
-        const relevanceScore = p.tags?.filter(tag => 
-          userSkills.some(skill => skill.toLowerCase().includes(tag.toLowerCase()) || tag.toLowerCase().includes(skill.toLowerCase()))
-        ).length * 25 || 0;
+        // 4. Skills/Tags relevance
+        const tagMatches = p.tags?.filter(tag => 
+          userSkills.some(skill => 
+            skill.toLowerCase().includes(tag.toLowerCase()) || 
+            tag.toLowerCase().includes(skill.toLowerCase())
+          )
+        ).length || 0;
+        score += tagMatches * 30;
         
-        // Random factor for discovery
-        const discoveryBoost = Math.random() * 20;
+        // 5. Content type preference (based on user type)
+        const companyData = allCompanies.find(c => c.user_id === currentUser.id);
+        if (companyData) {
+          // Employer prefers candidate intros
+          if (p.type === 'intro' && p.author_type === 'candidate') score += 35;
+        } else {
+          // Candidate prefers job posts and company culture
+          if (p.type === 'job_post') score += 35;
+          if (p.type === 'company_culture') score += 30;
+          if (p.type === 'tips') score += 25;
+        }
         
-        return {
-          ...p,
-          score: engagementScore + recencyBoost + typeBonus + relevanceScore + discoveryBoost
-        };
-      }).sort((a, b) => b.score - a.score);
+        // 6. Location relevance
+        const authorCandidate = allCandidates.find(c => c.user_id === p.author_id);
+        const authorCompany = allCompanies.find(c => c.user_id === p.author_id);
+        const authorLocation = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
+        if (userLocation && authorLocation && authorLocation.includes(userLocation.split(',')[0])) {
+          score += 25;
+        }
+        
+        // 7. Diversity factor (mix content types)
+        const typeBonus = { job_post: 15, tips: 12, day_in_life: 10, company_culture: 12, intro: 8 }[p.type] || 5;
+        score += typeBonus;
+        
+        // 8. Quality signals
+        if (p.caption?.length > 50) score += 10; // Detailed captions
+        if (p.tags?.length >= 3) score += 8; // Well-tagged content
+        
+        // 9. Discovery factor (introduce new content)
+        score += Math.random() * 15;
+        
+        // 10. Penalty for already viewed (if tracked)
+        if (viewedPostIds.has(p.id)) score -= 50;
+        
+        return { ...p, score };
+      })
+      .filter(p => p.moderation_status !== 'rejected')
+      .sort((a, b) => b.score - a.score);
 
-      setPosts(scoredPosts);
+      // Paginate results
+      const startIndex = currentPage * PAGE_SIZE;
+      const paginatedPosts = scoredPosts.slice(startIndex, startIndex + PAGE_SIZE);
+      
+      if (isLoadMore) {
+        setPosts(prev => [...prev, ...paginatedPosts]);
+        setPage(currentPage);
+      } else {
+        setPosts(scoredPosts.slice(0, PAGE_SIZE));
+      }
+      
+      setHasMore(startIndex + PAGE_SIZE < scoredPosts.length);
 
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
@@ -370,17 +438,27 @@ export default function VideoFeed() {
       console.error('Failed to load feed:', error);
     }
     setLoading(false);
+    setLoadingMore(false);
   };
 
   const handleScroll = useCallback((e) => {
-        const container = e.target;
-        const scrollTop = container.scrollTop;
-        const itemHeight = container.clientHeight;
-        const newIndex = Math.round(scrollTop / itemHeight);
-        if (newIndex !== currentIndex) {
-          setCurrentIndex(newIndex);
-        }
-      }, [currentIndex]);
+    const container = e.target;
+    const scrollTop = container.scrollTop;
+    const itemHeight = container.clientHeight;
+    const newIndex = Math.round(scrollTop / itemHeight);
+    
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
+    }
+    
+    // Infinite scroll: load more when near the end
+    const scrollHeight = container.scrollHeight;
+    const scrollPosition = scrollTop + container.clientHeight;
+    
+    if (scrollPosition >= scrollHeight - itemHeight * 2 && hasMore && !loadingMore) {
+      loadData(true);
+    }
+  }, [currentIndex, hasMore, loadingMore]);
 
     const handleFollow = async (authorId) => {
       if (!user || !authorId) return;
@@ -403,10 +481,14 @@ export default function VideoFeed() {
 
   const handleLike = async (post) => {
     await base44.entities.VideoPost.update(post.id, { likes: (post.likes || 0) + 1 });
+    // Track liked posts for algorithm
+    setLikedPostIds(prev => new Set(prev).add(post.id));
   };
 
   const handleView = async (post) => {
     await base44.entities.VideoPost.update(post.id, { views: (post.views || 0) + 1 });
+    // Track viewed posts to avoid showing again
+    setViewedPostIds(prev => new Set(prev).add(post.id));
   };
 
   const handleComment = (postId) => {
@@ -566,7 +648,7 @@ export default function VideoFeed() {
                     if (activeTab === 'discover') return true;
                     return true;
                   }).map((post, index) => (
-              <div key={post.id} className="h-full w-full snap-start">
+              <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
                 <VideoCard
                   post={post}
                   user={users[post.author_id]}
@@ -584,7 +666,23 @@ export default function VideoFeed() {
                   onReport={() => { setActivePostId(post.id); setShowReport(true); }}
                 />
               </div>
-            ))
+            ))}
+          
+          {/* Loading More Indicator */}
+          {loadingMore && (
+            <div className="h-full w-full snap-start flex items-center justify-center">
+              <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+            </div>
+          )}
+          
+          {/* End of Feed */}
+          {!hasMore && posts.length > 0 && (
+            <div className="h-full w-full snap-start flex flex-col items-center justify-center text-white p-8">
+              <Sparkles className="w-12 h-12 text-pink-500 mb-4" />
+              <h3 className="text-xl font-bold mb-2">You're All Caught Up!</h3>
+              <p className="text-gray-400 text-center">Check back later for more videos</p>
+            </div>
+          )}
         )}
       </div>
 
