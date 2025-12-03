@@ -420,7 +420,6 @@ export default function VideoFeed() {
 
       // Enhanced "For You" Algorithm with personalization
       const now = new Date();
-      const candidateData = allCandidates.find(c => c.user_id === currentUser.id);
       const userSkills = candidateData?.skills || [];
       const userPreferences = candidateData?.culture_preferences || [];
       const userLocation = candidateData?.location?.toLowerCase() || '';
