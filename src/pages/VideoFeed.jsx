@@ -642,7 +642,8 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          posts.filter(p => {
+          <>
+          {posts.filter(p => {
                     if (p.moderation_status === 'rejected') return false;
                     if (activeTab === 'following') return followedUserIds.has(p.author_id);
                     if (activeTab === 'discover') return true;
@@ -668,21 +669,22 @@ export default function VideoFeed() {
               </div>
             ))}
           
-          {/* Loading More Indicator */}
-          {loadingMore && (
-            <div className="h-full w-full snap-start flex items-center justify-center">
-              <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
-            </div>
-          )}
-          
-          {/* End of Feed */}
-          {!hasMore && posts.length > 0 && (
-            <div className="h-full w-full snap-start flex flex-col items-center justify-center text-white p-8">
-              <Sparkles className="w-12 h-12 text-pink-500 mb-4" />
-              <h3 className="text-xl font-bold mb-2">You're All Caught Up!</h3>
-              <p className="text-gray-400 text-center">Check back later for more videos</p>
-            </div>
-          )}
+            {/* Loading More Indicator */}
+            {loadingMore && (
+              <div className="h-full w-full snap-start flex items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+              </div>
+            )}
+            
+            {/* End of Feed */}
+            {!hasMore && posts.length > 0 && (
+              <div className="h-full w-full snap-start flex flex-col items-center justify-center text-white p-8">
+                <Sparkles className="w-12 h-12 text-pink-500 mb-4" />
+                <h3 className="text-xl font-bold mb-2">You're All Caught Up!</h3>
+                <p className="text-gray-400 text-center">Check back later for more videos</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
