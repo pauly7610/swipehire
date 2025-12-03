@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { 
   Briefcase, MapPin, DollarSign, Plus, X, Eye, ArrowRight, 
-  CheckCircle, Building2, Wand2
+  CheckCircle, Building2, Wand2, HelpCircle, Trash2
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import AIJobWizard from '@/components/jobs/AIJobWizard';
 
@@ -25,6 +26,8 @@ export default function PostJob() {
   const [newSkill, setNewSkill] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
   const [newResponsibility, setNewResponsibility] = useState('');
+  const [newQuestion, setNewQuestion] = useState({ question: '', type: 'text', options: [], required: false });
+  const [newOption, setNewOption] = useState('');
 
   const [jobData, setJobData] = useState({
     title: '',
@@ -37,7 +40,8 @@ export default function PostJob() {
     skills_required: [],
     benefits: [],
     responsibilities: [],
-    requirements: []
+    requirements: [],
+    screening_questions: []
   });
 
   useEffect(() => {
@@ -65,6 +69,30 @@ export default function PostJob() {
       ...jobData,
       [field]: jobData[field].filter(i => i !== item)
     });
+  };
+
+  const addQuestion = () => {
+    if (newQuestion.question.trim()) {
+      setJobData({
+        ...jobData,
+        screening_questions: [...jobData.screening_questions, { ...newQuestion, id: Date.now() }]
+      });
+      setNewQuestion({ question: '', type: 'text', options: [], required: false });
+    }
+  };
+
+  const removeQuestion = (index) => {
+    setJobData({
+      ...jobData,
+      screening_questions: jobData.screening_questions.filter((_, i) => i !== index)
+    });
+  };
+
+  const addOptionToQuestion = () => {
+    if (newOption.trim()) {
+      setNewQuestion({ ...newQuestion, options: [...newQuestion.options, newOption.trim()] });
+      setNewOption('');
+    }
   };
 
   const handlePublish = async () => {
@@ -281,6 +309,117 @@ export default function PostJob() {
           </motion.div>
         );
 
+      case 4:
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-6"
+          >
+            <div>
+              <Label className="text-gray-700 text-base flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" /> Screening Questions
+              </Label>
+              <p className="text-sm text-gray-500 mb-4">Add custom questions for candidates to answer</p>
+              
+              <div className="space-y-4 bg-gray-50 rounded-xl p-4">
+                <Input
+                  value={newQuestion.question}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                  placeholder="Enter your question"
+                />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    value={newQuestion.type}
+                    onValueChange={(v) => setNewQuestion({ ...newQuestion, type: v, options: [] })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Question type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Text Answer</SelectItem>
+                      <SelectItem value="yes_no">Yes/No</SelectItem>
+                      <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={newQuestion.required}
+                      onCheckedChange={(v) => setNewQuestion({ ...newQuestion, required: v })}
+                    />
+                    <Label className="text-sm">Required</Label>
+                  </div>
+                </div>
+
+                {newQuestion.type === 'multiple_choice' && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={newOption}
+                        onChange={(e) => setNewOption(e.target.value)}
+                        placeholder="Add an option"
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOptionToQuestion())}
+                      />
+                      <Button onClick={addOptionToQuestion} size="sm" variant="outline">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {newQuestion.options.map((opt, i) => (
+                        <Badge key={i} variant="secondary">
+                          {opt}
+                          <button onClick={() => setNewQuestion({ 
+                            ...newQuestion, 
+                            options: newQuestion.options.filter((_, idx) => idx !== i) 
+                          })} className="ml-1">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={addQuestion} className="w-full swipe-gradient" disabled={!newQuestion.question.trim()}>
+                  <Plus className="w-4 h-4 mr-2" /> Add Question
+                </Button>
+              </div>
+
+              {/* Question List */}
+              {jobData.screening_questions.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <Label className="text-gray-700">Added Questions ({jobData.screening_questions.length})</Label>
+                  {jobData.screening_questions.map((q, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-white border rounded-lg p-3">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{q.question}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {q.type === 'text' ? 'Text' : q.type === 'yes_no' ? 'Yes/No' : 'Multiple Choice'}
+                          </Badge>
+                          {q.required && <Badge className="text-xs bg-red-100 text-red-600">Required</Badge>}
+                        </div>
+                        {q.options?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {q.options.map((opt, oi) => (
+                              <span key={oi} className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{opt}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={() => removeQuestion(i)} className="text-gray-400 hover:text-red-500">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        );
+
       default:
         return null;
     }
@@ -326,11 +465,11 @@ export default function PostJob() {
 
         {/* Progress */}
         <div className="flex gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex-1">
               <div className={`h-2 rounded-full ${step >= s ? 'swipe-gradient' : 'bg-gray-200'}`} />
               <p className="text-xs text-gray-500 mt-2">
-                {s === 1 ? 'Basic Info' : s === 2 ? 'Description' : 'Skills & Benefits'}
+                {s === 1 ? 'Basic Info' : s === 2 ? 'Description' : s === 3 ? 'Skills & Benefits' : 'Questions'}
               </p>
             </div>
           ))}
@@ -407,7 +546,7 @@ export default function PostJob() {
             Back
           </Button>
 
-          {step < 3 ? (
+          {step < 4 ? (
             <Button
               onClick={() => setStep(step + 1)}
               className="swipe-gradient text-white"
