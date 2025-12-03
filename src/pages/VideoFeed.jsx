@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
-  Sparkles, BookmarkPlus, Send
+  Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -137,13 +138,35 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         </Badge>
       </div>
 
-      {/* Mute button */}
-      <button
-        onClick={handleMuteToggle}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center z-20"
-      >
-        {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-      </button>
+      {/* Top right controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+        <button
+          onClick={handleMuteToggle}
+          className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
+        >
+          {isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+        </button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+              <MoreVertical className="w-5 h-5 text-white" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {isOwner && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete?.(); }} className="text-red-600">
+                <Trash2 className="w-4 h-4 mr-2" /> Delete Video
+              </DropdownMenuItem>
+            )}
+            {!isOwner && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReport?.(); }} className="text-orange-600">
+                <Flag className="w-4 h-4 mr-2" /> Report Video
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Right side actions */}
       <div className="absolute right-2 bottom-24 flex flex-col items-center gap-4 z-20">
@@ -266,6 +289,8 @@ export default function VideoFeed() {
   const [activePostId, setActivePostId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [showShare, setShowShare] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState('');
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -385,6 +410,38 @@ export default function VideoFeed() {
     setShowShare(false);
   };
 
+  const handleDelete = async (postId) => {
+    if (window.confirm('Are you sure you want to delete this video?')) {
+      await base44.entities.VideoPost.delete(postId);
+      setPosts(posts.filter(p => p.id !== postId));
+      if (currentIndex >= posts.length - 1) {
+        setCurrentIndex(Math.max(0, currentIndex - 1));
+      }
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason.trim() || !activePostId) return;
+    
+    await base44.entities.VideoPost.update(activePostId, { 
+      is_flagged: true, 
+      flag_reason: reportReason 
+    });
+    
+    // Auto-moderate: check for serious violations
+    const seriousViolations = ['spam', 'harassment', 'hate speech', 'inappropriate', 'scam', 'fraud'];
+    const isSerious = seriousViolations.some(v => reportReason.toLowerCase().includes(v));
+    
+    if (isSerious) {
+      await base44.entities.VideoPost.update(activePostId, { moderation_status: 'rejected' });
+      setPosts(posts.filter(p => p.id !== activePostId));
+    }
+    
+    setReportReason('');
+    setShowReport(false);
+    setActivePostId(null);
+  };
+
   const submitComment = async () => {
     if (!commentText.trim() || !activePostId) return;
     
@@ -462,22 +519,25 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          posts.map((post, index) => (
-            <div key={post.id} className="h-full w-full snap-start">
-              <VideoCard
-                post={post}
-                user={users[post.author_id]}
-                candidate={candidates[post.author_id]}
-                company={companies[post.author_id]}
-                isActive={index === currentIndex}
-                onLike={() => handleLike(post)}
-                onView={() => handleView(post)}
-                onComment={() => handleComment(post.id)}
-                onShare={() => handleShare(post)}
-                onFollow={() => {}}
-              />
-            </div>
-          ))
+          posts.filter(p => p.moderation_status !== 'rejected').map((post, index) => (
+              <div key={post.id} className="h-full w-full snap-start">
+                <VideoCard
+                  post={post}
+                  user={users[post.author_id]}
+                  candidate={candidates[post.author_id]}
+                  company={companies[post.author_id]}
+                  isActive={index === currentIndex}
+                  onLike={() => handleLike(post)}
+                  onView={() => handleView(post)}
+                  onComment={() => handleComment(post.id)}
+                  onShare={() => handleShare(post)}
+                  onFollow={() => {}}
+                  onDelete={() => handleDelete(post.id)}
+                  isOwner={post.author_id === user?.id}
+                  onReport={() => { setActivePostId(post.id); setShowReport(true); }}
+                />
+              </div>
+            ))
         )}
       </div>
 
@@ -584,6 +644,33 @@ export default function VideoFeed() {
           <div className="space-y-3">
             <Button onClick={copyLink} variant="outline" className="w-full justify-start">
               <Share2 className="w-4 h-4 mr-2" /> Copy Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog */}
+      <Dialog open={showReport} onOpenChange={setShowReport}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Report Video</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={reportReason} onValueChange={setReportReason}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="spam">Spam</SelectItem>
+                <SelectItem value="inappropriate">Inappropriate Content</SelectItem>
+                <SelectItem value="harassment">Harassment</SelectItem>
+                <SelectItem value="hate speech">Hate Speech</SelectItem>
+                <SelectItem value="scam">Scam or Fraud</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleReport} className="w-full bg-red-500 hover:bg-red-600" disabled={!reportReason}>
+              <Flag className="w-4 h-4 mr-2" /> Submit Report
             </Button>
           </div>
         </DialogContent>
