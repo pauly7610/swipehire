@@ -15,6 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import VideoAnalytics from '@/components/video/VideoAnalytics';
+import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport }) => {
   const videoRef = useRef(null);
@@ -297,6 +299,9 @@ export default function VideoFeed() {
   const [showShare, setShowShare] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [showConfirmPost, setShowConfirmPost] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -491,13 +496,20 @@ export default function VideoFeed() {
     setShowComments(false);
   };
 
-  const handleUpload = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setPendingFile(file);
+    setShowUpload(false);
+    setShowConfirmPost(true);
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!pendingFile) return;
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: pendingFile });
       
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: user.id });
       const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
@@ -512,7 +524,8 @@ export default function VideoFeed() {
       });
 
       setPosts([post, ...posts]);
-      setShowUpload(false);
+      setShowConfirmPost(false);
+      setPendingFile(null);
       setNewPost({ caption: '', type: 'intro', tags: '' });
     } catch (error) {
       console.error('Failed to upload:', error);
@@ -547,8 +560,13 @@ export default function VideoFeed() {
             </Button>
           </div>
         ) : (
-          posts.filter(p => (!p.moderation_status || p.moderation_status !== 'rejected') && 
-                  (activeTab === 'for_you' || followedUserIds.has(p.author_id))).map((post, index) => (
+          posts.filter(p => {
+                    if (p.moderation_status === 'rejected') return false;
+                    if (activeTab === 'for_you') return true;
+                    if (activeTab === 'following') return followedUserIds.has(p.author_id);
+                    if (activeTab === 'discover') return p.type === 'tips' || p.type === 'day_in_life' || (p.views || 0) > 10;
+                    return true;
+                  }).map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start">
                 <VideoCard
                   post={post}
@@ -586,6 +604,18 @@ export default function VideoFeed() {
                         onClick={() => setActiveTab('following')}
                       >
                         Following
+                      </Badge>
+                      <Badge 
+                        className={`${activeTab === 'discover' ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} border-0 cursor-pointer`}
+                        onClick={() => setActiveTab('discover')}
+                      >
+                        Discover
+                      </Badge>
+                      <Badge 
+                        className="bg-black/40 text-white border-0 cursor-pointer"
+                        onClick={() => setShowAnalytics(true)}
+                      >
+                        📊
                       </Badge>
                     </div>
       </div>
@@ -643,7 +673,7 @@ export default function VideoFeed() {
                   </>
                 )}
               </div>
-              <input type="file" accept="video/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+              <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
             </label>
           </div>
         </DialogContent>
@@ -686,6 +716,25 @@ export default function VideoFeed() {
               <Share2 className="w-4 h-4 mr-2" /> Copy Link
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Post Dialog */}
+      <ConfirmPostDialog
+        open={showConfirmPost}
+        onOpenChange={setShowConfirmPost}
+        postData={newPost}
+        onConfirm={handleConfirmUpload}
+        uploading={uploading}
+      />
+
+      {/* Analytics Dialog */}
+      <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Your Video Analytics</DialogTitle>
+          </DialogHeader>
+          <VideoAnalytics posts={posts} user={user} />
         </DialogContent>
       </Dialog>
 

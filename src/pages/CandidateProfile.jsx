@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   User, MapPin, Briefcase, GraduationCap, Upload, Plus, X, Edit2, 
-  Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle
+  Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle,
+  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,6 +29,8 @@ export default function CandidateProfile() {
   const [newSkill, setNewSkill] = useState('');
   const [showExperienceModal, setShowExperienceModal] = useState(false);
   const [newExperience, setNewExperience] = useState({ title: '', company: '', start_date: '', end_date: '', description: '' });
+  const [videoStats, setVideoStats] = useState({ views: 0, likes: 0, posts: 0 });
+  const [followers, setFollowers] = useState(0);
 
   useEffect(() => {
     loadProfile();
@@ -53,6 +56,16 @@ export default function CandidateProfile() {
       
       setCandidate(candidateData);
       setEditData(candidateData);
+
+      // Load video stats
+      const userVideos = await base44.entities.VideoPost.filter({ author_id: currentUser.id });
+      const totalViews = userVideos.reduce((sum, v) => sum + (v.views || 0), 0);
+      const totalLikes = userVideos.reduce((sum, v) => sum + (v.likes || 0), 0);
+      setVideoStats({ views: totalViews, likes: totalLikes, posts: userVideos.length });
+
+      // Load followers count
+      const followersList = await base44.entities.Follow.filter({ followed_id: currentUser.id });
+      setFollowers(followersList.length);
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
@@ -175,6 +188,26 @@ export default function CandidateProfile() {
               </Button>
             </div>
 
+            {/* Stats Row */}
+            <div className="flex gap-6 mt-4 mb-2">
+              <div className="text-center">
+                <p className="text-xl font-bold text-gray-900">{videoStats.posts}</p>
+                <p className="text-xs text-gray-500">Videos</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold text-gray-900">{followers}</p>
+                <p className="text-xs text-gray-500">Followers</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold text-gray-900">{videoStats.views}</p>
+                <p className="text-xs text-gray-500">Views</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold text-gray-900">{videoStats.likes}</p>
+                <p className="text-xs text-gray-500">Likes</p>
+              </div>
+            </div>
+
             {/* Info */}
             <div className="mt-4">
               <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
@@ -202,6 +235,60 @@ export default function CandidateProfile() {
                   <span>{candidate?.location || 'Add location'}</span>
                 )}
               </div>
+
+              {/* Social Links */}
+              {editing ? (
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-blue-600" />
+                    <Input
+                      value={editData.linkedin_url || ''}
+                      onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })}
+                      placeholder="LinkedIn URL"
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Github className="w-4 h-4 text-gray-800" />
+                    <Input
+                      value={editData.github_url || ''}
+                      onChange={(e) => setEditData({ ...editData, github_url: e.target.value })}
+                      placeholder="GitHub URL"
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-green-600" />
+                    <Input
+                      value={editData.website_url || ''}
+                      onChange={(e) => setEditData({ ...editData, website_url: e.target.value })}
+                      placeholder="Personal Website"
+                      className="h-8"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3 mt-3">
+                  {candidate?.linkedin_url && (
+                    <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
+                       className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                      <Linkedin className="w-4 h-4 text-blue-600" />
+                    </a>
+                  )}
+                  {candidate?.github_url && (
+                    <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
+                       className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                      <Github className="w-4 h-4 text-gray-800" />
+                    </a>
+                  )}
+                  {candidate?.website_url && (
+                    <a href={candidate.website_url} target="_blank" rel="noopener noreferrer"
+                       className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center hover:bg-green-200 transition-colors">
+                      <Globe className="w-4 h-4 text-green-600" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
