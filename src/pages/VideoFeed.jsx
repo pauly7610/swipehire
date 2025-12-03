@@ -643,12 +643,7 @@ export default function VideoFeed() {
           </div>
         ) : (
           <>
-          {posts.filter(p => {
-                    if (p.moderation_status === 'rejected') return false;
-                    if (activeTab === 'following') return followedUserIds.has(p.author_id);
-                    if (activeTab === 'discover') return true;
-                    return true;
-                  }).map((post, index) => (
+          {posts.filter(p => p.moderation_status !== 'rejected').map((post, index) => (
               <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
                 <VideoCard
                   post={post}
