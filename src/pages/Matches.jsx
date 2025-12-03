@@ -108,21 +108,21 @@ export default function Matches() {
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm">
-            <TabsTrigger value="all" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="matched" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
-              New
-            </TabsTrigger>
-            <TabsTrigger value="interviewing" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
-              Interviews
-            </TabsTrigger>
-            <TabsTrigger value="offered" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
-              Offers
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+                        <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm">
+                          <TabsTrigger value="all" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                            All
+                          </TabsTrigger>
+                          <TabsTrigger value="matched" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                            New
+                          </TabsTrigger>
+                          <TabsTrigger value="interviewing" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                            Interviews
+                          </TabsTrigger>
+                          <TabsTrigger value="offered" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                            Offers
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
 
         {/* Matches List */}
         <div className="space-y-4">

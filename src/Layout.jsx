@@ -61,19 +61,24 @@ export default function Layout({ children, currentPageName }) {
     <div className="min-h-screen bg-gray-50">
       <style>{`
         :root {
-          --swipe-gradient: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-          --swipe-pink: #FF005C;
-          --swipe-orange: #FF7B00;
-        }
-        .swipe-gradient {
-          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-        }
-        .swipe-gradient-text {
-          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
+                        --swipe-gradient: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+                        --swipe-pink: #FF005C;
+                        --swipe-orange: #FF7B00;
+                      }
+                      .swipe-gradient {
+                        background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+                      }
+                      .swipe-gradient-text {
+                        background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                      }
+                      button:active:not(:disabled), 
+                      .btn-active:active:not(:disabled) {
+                        background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%) !important;
+                        color: white !important;
+                      }
       `}</style>
       
       {/* Main Content */}
