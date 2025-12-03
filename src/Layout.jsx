@@ -46,7 +46,7 @@ export default function Layout({ children, currentPageName }) {
       ];
 
   // Only show Admin to the specific admin email
-  const isMainAdmin = user?.email === 'deshaunmcleod@icloud.com';
+  const isMainAdmin = user?.email === 'xmitchell99@gmail.com';
   
   const employerNav = [
             { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
