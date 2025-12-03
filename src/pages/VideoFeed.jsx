@@ -401,12 +401,13 @@ export default function VideoFeed() {
 
       const currentPage = isLoadMore ? page + 1 : 0;
       
-      const [allPosts, allUsers, allCandidates, allCompanies, allFollows] = await Promise.all([
+      const [allPosts, allUsers, allCandidates, allCompanies, allFollows, userSwipes] = await Promise.all([
         base44.entities.VideoPost.list('-created_date', 100),
         base44.entities.User.list(),
         base44.entities.Candidate.list(),
         base44.entities.Company.list(),
-        base44.entities.Follow.filter({ follower_id: currentUser.id })
+        base44.entities.Follow.filter({ follower_id: currentUser.id }),
+        base44.entities.Swipe.filter({ swiper_id: currentUser.id })
       ]);
 
       const followedIds = new Set(allFollows.map(f => f.followed_id));
@@ -418,77 +419,206 @@ export default function VideoFeed() {
       const currentViewerType = companyDataCheck ? 'employer' : (candidateDataCheck ? 'candidate' : null);
       if (!isLoadMore) setViewerType(currentViewerType);
 
-      // Enhanced "For You" Algorithm with personalization
+      // ============================================
+      // ENHANCED "FOR YOU" ALGORITHM
+      // ============================================
       const now = new Date();
-      const userSkills = candidateData?.skills || [];
-      const userPreferences = candidateData?.culture_preferences || [];
-      const userLocation = candidateData?.location?.toLowerCase() || '';
+      const userProfile = candidateDataCheck || {};
+      const userSkills = userProfile.skills || [];
+      const userPreferences = userProfile.culture_preferences || [];
+      const userLocation = (userProfile.location || '').toLowerCase();
+      const userIndustry = userProfile.preferred_job_types || [];
+      const userExperienceLevel = userProfile.experience_level || '';
       
-      // Get author types user has engaged with
-      const likedAuthors = new Set();
-      const likedTypes = new Set();
+      // === LEARN FROM USER INTERACTIONS ===
+      // Analyze past swipes to understand preferences
+      const rightSwipes = userSwipes.filter(s => s.direction === 'right' || s.direction === 'super');
+      const leftSwipes = userSwipes.filter(s => s.direction === 'left');
       
-      const scoredPosts = allPosts.map(p => {
+      // Build preference maps from interaction history
+      const likedAuthorIds = new Set();
+      const likedContentTypes = {};
+      const likedTags = {};
+      const likedIndustries = {};
+      
+      rightSwipes.forEach(swipe => {
+        if (swipe.target_type === 'job') {
+          // Find the job to extract preferences
+          const relatedPosts = allPosts.filter(p => p.job_id === swipe.target_id);
+          relatedPosts.forEach(p => {
+            likedAuthorIds.add(p.author_id);
+            likedContentTypes[p.type] = (likedContentTypes[p.type] || 0) + 1;
+            (p.tags || []).forEach(tag => {
+              likedTags[tag.toLowerCase()] = (likedTags[tag.toLowerCase()] || 0) + 1;
+            });
+          });
+        }
+      });
+      
+      // Track which authors user has engaged with (liked, followed)
+      const engagedAuthors = new Set([...followedIds, ...likedAuthorIds]);
+      
+      // === DIVERSITY TRACKING ===
+      // Track content types shown to ensure variety
+      const recentTypeCount = {};
+      const recentCreatorCount = {};
+      
+      const scoredPosts = allPosts.map((p, index) => {
         let score = 0;
+        const reasons = []; // Track why content is ranked
         
-        // 1. Engagement Score (viral content)
-        const engagementScore = (p.likes || 0) * 3 + (p.views || 0) * 0.5 + (p.shares || 0) * 5 + (p.comments_count || 0) * 4;
-        score += Math.min(engagementScore, 100); // Cap at 100
+        // === 1. VIRAL/ENGAGEMENT SCORE (0-80 points) ===
+        const engagementRate = p.views > 0 
+          ? ((p.likes || 0) + (p.shares || 0) * 2 + (p.comments_count || 0)) / p.views 
+          : 0;
+        const viralScore = Math.min(80, 
+          (p.likes || 0) * 2 + 
+          (p.views || 0) * 0.3 + 
+          (p.shares || 0) * 5 + 
+          (p.comments_count || 0) * 3 +
+          engagementRate * 50
+        );
+        score += viralScore;
         
-        // 2. Recency boost (fresher content ranks higher)
+        // === 2. RECENCY BOOST (0-70 points) ===
         const postAge = (now - new Date(p.created_date)) / (1000 * 60 * 60);
-        if (postAge < 6) score += 60;
-        else if (postAge < 24) score += 45;
-        else if (postAge < 72) score += 30;
-        else if (postAge < 168) score += 15;
+        let recencyScore = 0;
+        if (postAge < 3) recencyScore = 70;
+        else if (postAge < 12) recencyScore = 55;
+        else if (postAge < 24) recencyScore = 45;
+        else if (postAge < 48) recencyScore = 35;
+        else if (postAge < 72) recencyScore = 25;
+        else if (postAge < 168) recencyScore = 15;
+        score += recencyScore;
         
-        // 3. Following boost (content from followed users)
-        if (followedIds.has(p.author_id)) score += 40;
+        // === 3. INTERACTION-BASED PERSONALIZATION (0-100 points) ===
+        // Boost content from authors user has engaged with
+        if (engagedAuthors.has(p.author_id)) {
+          score += 50;
+          reasons.push('engaged_author');
+        }
         
-        // 4. Skills/Tags relevance
-        const tagMatches = p.tags?.filter(tag => 
+        // Boost content types user has liked before
+        if (likedContentTypes[p.type]) {
+          const typePreference = Math.min(30, likedContentTypes[p.type] * 10);
+          score += typePreference;
+          reasons.push('preferred_type');
+        }
+        
+        // Boost content with tags user has shown interest in
+        let tagMatchScore = 0;
+        (p.tags || []).forEach(tag => {
+          if (likedTags[tag.toLowerCase()]) {
+            tagMatchScore += Math.min(10, likedTags[tag.toLowerCase()] * 3);
+          }
+        });
+        score += Math.min(20, tagMatchScore);
+        
+        // === 4. CAREER RELEVANCE (0-80 points) ===
+        const authorCandidate = allCandidates.find(c => c.user_id === p.author_id);
+        const authorCompany = allCompanies.find(c => c.user_id === p.author_id);
+        
+        // Skills match
+        const skillMatches = (p.tags || []).filter(tag => 
           userSkills.some(skill => 
             skill.toLowerCase().includes(tag.toLowerCase()) || 
             tag.toLowerCase().includes(skill.toLowerCase())
           )
-        ).length || 0;
-        score += tagMatches * 30;
+        ).length;
+        score += Math.min(40, skillMatches * 15);
         
-        // 5. Content type preference (based on user type)
-        const companyData = allCompanies.find(c => c.user_id === currentUser.id);
-        if (companyData) {
-          // Employer prefers candidate intros
-          if (p.type === 'intro' && p.author_type === 'candidate') score += 35;
+        // Industry/job type relevance
+        if (authorCompany?.industry && userIndustry.length > 0) {
+          const industryMatch = userIndustry.some(ind => 
+            authorCompany.industry.toLowerCase().includes(ind.toLowerCase())
+          );
+          if (industryMatch) score += 25;
+        }
+        
+        // Experience level matching
+        if (p.type === 'job_post' && userExperienceLevel) {
+          const captionLower = (p.caption || '').toLowerCase();
+          if (captionLower.includes(userExperienceLevel)) score += 15;
+        }
+        
+        // === 5. CONTENT TYPE PREFERENCE BY USER TYPE (0-40 points) ===
+        if (companyDataCheck) {
+          // Employers want candidate intros
+          if (p.type === 'intro' && p.author_type === 'candidate') score += 40;
+          if (p.type === 'tips') score += 15;
         } else {
-          // Candidate prefers job posts and company culture
-          if (p.type === 'job_post') score += 35;
-          if (p.type === 'company_culture') score += 30;
-          if (p.type === 'tips') score += 25;
+          // Candidates want jobs and culture content
+          if (p.type === 'job_post') score += 40;
+          if (p.type === 'company_culture') score += 35;
+          if (p.type === 'tips') score += 30;
+          if (p.type === 'day_in_life') score += 20;
         }
         
-        // 6. Location relevance
-        const authorCandidate = allCandidates.find(c => c.user_id === p.author_id);
-        const authorCompany = allCompanies.find(c => c.user_id === p.author_id);
+        // === 6. LOCATION RELEVANCE (0-30 points) ===
         const authorLocation = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
-        if (userLocation && authorLocation && authorLocation.includes(userLocation.split(',')[0])) {
-          score += 25;
+        if (userLocation && authorLocation) {
+          const userCity = userLocation.split(',')[0].trim();
+          if (authorLocation.includes(userCity)) score += 30;
+          else if (authorLocation.includes(userLocation.split(',').pop()?.trim() || '')) score += 15;
         }
         
-        // 7. Diversity factor (mix content types)
-        const typeBonus = { job_post: 15, tips: 12, day_in_life: 10, company_culture: 12, intro: 8 }[p.type] || 5;
-        score += typeBonus;
+        // === 7. CULTURE FIT (0-25 points) ===
+        if (authorCompany?.culture_traits && userPreferences.length > 0) {
+          const cultureMatches = authorCompany.culture_traits.filter(trait =>
+            userPreferences.some(pref => 
+              pref.toLowerCase().includes(trait.toLowerCase()) ||
+              trait.toLowerCase().includes(pref.toLowerCase())
+            )
+          ).length;
+          score += Math.min(25, cultureMatches * 8);
+        }
         
-        // 8. Quality signals
-        if (p.caption?.length > 50) score += 10; // Detailed captions
-        if (p.tags?.length >= 3) score += 8; // Well-tagged content
+        // === 8. QUALITY SIGNALS (0-20 points) ===
+        if (p.caption?.length > 100) score += 8;
+        else if (p.caption?.length > 50) score += 5;
+        if ((p.tags || []).length >= 3) score += 7;
+        if (p.thumbnail_url) score += 5;
         
-        // 9. Discovery factor (introduce new content)
-        score += Math.random() * 15;
+        // === 9. DIVERSITY FACTOR (adjust to ensure variety) ===
+        // Track and penalize over-represented content types
+        recentTypeCount[p.type] = (recentTypeCount[p.type] || 0) + 1;
+        recentCreatorCount[p.author_id] = (recentCreatorCount[p.author_id] || 0) + 1;
         
-        // 10. Penalty for already viewed (if tracked)
-        if (viewedPostIds.has(p.id)) score -= 50;
+        // Penalize if too many of same type already shown
+        if (recentTypeCount[p.type] > 3) {
+          score -= (recentTypeCount[p.type] - 3) * 10;
+        }
         
-        return { ...p, score };
+        // Penalize if same creator appears too often
+        if (recentCreatorCount[p.author_id] > 2) {
+          score -= (recentCreatorCount[p.author_id] - 2) * 15;
+        }
+        
+        // Bonus for underrepresented content types (discovery)
+        const typeFrequency = allPosts.filter(post => post.type === p.type).length / allPosts.length;
+        if (typeFrequency < 0.15) score += 20; // Rare content gets boost
+        
+        // === 10. DISCOVERY FACTOR (0-25 points) ===
+        // Introduce some randomness for serendipitous discovery
+        const discoveryBoost = Math.random() * 25;
+        score += discoveryBoost;
+        
+        // Boost content from creators user hasn't seen
+        if (!engagedAuthors.has(p.author_id) && !viewedPostIds.has(p.id)) {
+          score += 15; // Discovery bonus for new creators
+        }
+        
+        // === 11. NEGATIVE SIGNALS ===
+        // Penalty for already viewed
+        if (viewedPostIds.has(p.id)) score -= 80;
+        
+        // Penalty for similar content to what user swiped left on
+        if (leftSwipes.length > 0) {
+          const leftSwipedTypes = leftSwipes.map(s => s.target_type);
+          // Could expand this to check tags, industries, etc.
+        }
+        
+        return { ...p, score: Math.max(0, score), reasons };
       })
       .filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0)
       .filter(p => {
