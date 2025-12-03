@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   User, MapPin, Briefcase, GraduationCap, Upload, Plus, X, Edit2, 
   Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle,
-  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin
+  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin, Play
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +31,8 @@ export default function CandidateProfile() {
   const [newExperience, setNewExperience] = useState({ title: '', company: '', start_date: '', end_date: '', description: '' });
   const [videoStats, setVideoStats] = useState({ views: 0, likes: 0, posts: 0 });
   const [followers, setFollowers] = useState(0);
+  const [userVideos, setUserVideos] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   useEffect(() => {
     loadProfile();
@@ -58,10 +60,11 @@ export default function CandidateProfile() {
       setEditData(candidateData);
 
       // Load video stats
-      const userVideos = await base44.entities.VideoPost.filter({ author_id: currentUser.id });
-      const totalViews = userVideos.reduce((sum, v) => sum + (v.views || 0), 0);
-      const totalLikes = userVideos.reduce((sum, v) => sum + (v.likes || 0), 0);
-      setVideoStats({ views: totalViews, likes: totalLikes, posts: userVideos.length });
+      const videos = await base44.entities.VideoPost.filter({ author_id: currentUser.id });
+      setUserVideos(videos);
+      const totalViews = videos.reduce((sum, v) => sum + (v.views || 0), 0);
+      const totalLikes = videos.reduce((sum, v) => sum + (v.likes || 0), 0);
+      setVideoStats({ views: totalViews, likes: totalLikes, posts: videos.length });
 
       // Load followers count
       const followersList = await base44.entities.Follow.filter({ followed_id: currentUser.id });
@@ -296,17 +299,17 @@ export default function CandidateProfile() {
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-6">
           <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm">
-            <TabsTrigger value="about" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger value="about" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               About
             </TabsTrigger>
-            <TabsTrigger value="experience" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger value="videos" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Videos
+            </TabsTrigger>
+            <TabsTrigger value="experience" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Experience
             </TabsTrigger>
-            <TabsTrigger value="portfolio" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+            <TabsTrigger value="portfolio" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Portfolio
-            </TabsTrigger>
-            <TabsTrigger value="resume" className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
-              Resume
             </TabsTrigger>
           </TabsList>
 
@@ -500,6 +503,40 @@ export default function CandidateProfile() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="videos" className="space-y-4">
+            {userVideos.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Video className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">No videos posted yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {userVideos.map((video) => (
+                  <div 
+                    key={video.id}
+                    className="relative aspect-[9/16] rounded-xl overflow-hidden cursor-pointer group"
+                    onClick={() => setSelectedVideo(video)}
+                  >
+                    <video 
+                      src={video.video_url} 
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                      <Play className="w-10 h-10 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-xs">
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {video.views || 0}</span>
+                      <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {video.likes || 0}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="experience" className="space-y-4">
             {editing && (
               <Button 
@@ -545,25 +582,26 @@ export default function CandidateProfile() {
               editData={editData}
               setEditData={setEditData}
             />
-          </TabsContent>
-
-          <TabsContent value="resume">
-            <ResumeParser 
-              candidate={candidate}
-              onDataExtracted={(data) => {
-                const mergedData = {
-                  ...editData,
-                  ...data,
-                  skills: [...new Set([...(editData.skills || []), ...(data.skills || [])])],
-                  experience: [...(data.experience || []), ...(editData.experience || [])]
-                };
-                setEditData(mergedData);
-                if (candidate?.id) {
-                  base44.entities.Candidate.update(candidate.id, mergedData);
-                  setCandidate(mergedData);
-                }
-              }}
-            />
+            
+            {/* Resume Parser */}
+            <div className="mt-6">
+              <ResumeParser 
+                candidate={candidate}
+                onDataExtracted={(data) => {
+                  const mergedData = {
+                    ...editData,
+                    ...data,
+                    skills: [...new Set([...(editData.skills || []), ...(data.skills || [])])],
+                    experience: [...(data.experience || []), ...(editData.experience || [])]
+                  };
+                  setEditData(mergedData);
+                  if (candidate?.id) {
+                    base44.entities.Candidate.update(candidate.id, mergedData);
+                    setCandidate(mergedData);
+                  }
+                }}
+              />
+            </div>
           </TabsContent>
         </Tabs>
 
@@ -598,6 +636,29 @@ export default function CandidateProfile() {
           </motion.div>
         )}
       </div>
+
+      {/* Video Modal */}
+      <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden bg-black">
+          {selectedVideo && (
+            <div className="relative">
+              <video 
+                src={selectedVideo.video_url} 
+                controls 
+                autoPlay
+                className="w-full max-h-[80vh]"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+                <p className="text-sm">{selectedVideo.caption}</p>
+                <div className="flex gap-4 mt-2 text-xs text-white/80">
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {selectedVideo.views || 0}</span>
+                  <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {selectedVideo.likes || 0}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Experience Modal */}
       <Dialog open={showExperienceModal} onOpenChange={setShowExperienceModal}>
