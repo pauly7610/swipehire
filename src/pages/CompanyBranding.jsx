@@ -241,7 +241,7 @@ export default function CompanyBranding() {
 
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Company Branding</h1>
             <p className="text-gray-500">Customize how candidates see your company</p>
@@ -252,17 +252,87 @@ export default function CompanyBranding() {
                 <Eye className="w-4 h-4 mr-2" /> Preview
               </Button>
             </Link>
-            <Button 
-              onClick={handleSave} 
-              disabled={saving}
-              className="swipe-gradient text-white"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-              Save
-            </Button>
+            {activeTab === 'profile' && (
+              <Button 
+                onClick={handleSave} 
+                disabled={saving}
+                className="swipe-gradient text-white"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+                Save
+              </Button>
+            )}
           </div>
         </div>
 
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="bg-white border">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Edit3 className="w-4 h-4 mr-2" /> Profile Editor
+            </TabsTrigger>
+            <TabsTrigger value="content" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Video className="w-4 h-4 mr-2" /> Content
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Content Tab */}
+          <TabsContent value="content" className="mt-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <QuickVideoPost 
+                  company={company} 
+                  jobs={jobs} 
+                  onVideoPosted={refreshVideos} 
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Card className="border-0 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Your Branding Videos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {videos.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Video className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                        <p className="text-gray-500 mb-2">No videos posted yet</p>
+                        <p className="text-sm text-gray-400">Create company culture content to attract candidates</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3">
+                        {videos.map(video => (
+                          <div key={video.id} className="relative aspect-[9/16] rounded-xl overflow-hidden group">
+                            <video src={video.video_url} className="w-full h-full object-cover" muted />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute bottom-2 left-2 right-2 text-white">
+                              <Badge className="bg-white/20 text-white text-xs mb-1 capitalize">
+                                {video.type?.replace('_', ' ')}
+                              </Badge>
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {video.views || 0}</span>
+                                <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {video.likes || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="mt-6">
+            <BrandingAnalytics company={company} videos={videos} />
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="mt-6">
         <div className="space-y-6">
           {/* Cover Image */}
           <Card className="overflow-hidden">
