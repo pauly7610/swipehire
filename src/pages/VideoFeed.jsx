@@ -1185,18 +1185,19 @@ export default function VideoFeed() {
                 </SelectTrigger>
                 <SelectContent>
                   {viewerType === 'employer' ? (
-                    <>
-                      <SelectItem value="job_post">💼 Job Opening</SelectItem>
-                      <SelectItem value="company_culture">🏢 Company Culture</SelectItem>
-                      <SelectItem value="day_in_life">📅 Day in Life</SelectItem>
-                      <SelectItem value="tips">💡 Career Tips</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="intro">👋 Introduction</SelectItem>
-                      <SelectItem value="tips">💡 Job Search Updates</SelectItem>
-                    </>
-                  )}
+                            <>
+                              <SelectItem value="job_post">💼 Job Opening</SelectItem>
+                              <SelectItem value="company_culture">🏢 Company Culture</SelectItem>
+                              <SelectItem value="day_in_life">📅 Day in Life</SelectItem>
+                              <SelectItem value="tips">💡 Career Tips</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="intro">👋 Introduction</SelectItem>
+                              <SelectItem value="tips">💡 Job Search Updates</SelectItem>
+                              <SelectItem value="career_tips">📚 Career Tips</SelectItem>
+                            </>
+                          )}
                 </SelectContent>
               </Select>
 
