@@ -18,8 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import ScheduleInterview from '@/components/interview/ScheduleInterview';
-import LiveVideoCall from '@/components/interview/LiveVideoCall';
+import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
+import LiveVideoRoom from '@/components/interview/LiveVideoRoom';
 import InterviewInviteCard from '@/components/interview/InterviewInviteCard';
 
 export default function EmployerChat() {
@@ -38,6 +38,8 @@ export default function EmployerChat() {
   const [interviews, setInterviews] = useState([]);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showLiveCall, setShowLiveCall] = useState(false);
+  const [activeInterview, setActiveInterview] = useState(null);
+  const [company, setCompany] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -70,6 +72,9 @@ export default function EmployerChat() {
         const [jobData] = await base44.entities.Job.filter({ id: matchData.job_id });
         setJob(jobData);
 
+        const [companyData] = await base44.entities.Company.filter({ id: matchData.company_id });
+        setCompany(companyData);
+
         const chatMessages = await base44.entities.Message.filter({ match_id: matchId });
         setMessages(chatMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
 
@@ -83,28 +88,14 @@ export default function EmployerChat() {
     setLoading(false);
   };
 
-  const handleScheduleInterview = async (interviewData) => {
-    // Create interview
-    const interview = await base44.entities.Interview.create({
-      match_id: matchId,
-      candidate_id: candidate?.id,
-      company_id: match?.company_id,
-      job_id: match?.job_id,
-      ...interviewData
-    });
-
-    // Send message about interview
-    const messageContent = interviewData.interview_type === 'live'
-      ? `📹 Live Video Interview scheduled for ${format(new Date(interviewData.scheduled_at), 'MMMM d, yyyy at h:mm a')}`
-      : `📝 Recorded Interview Request - Please record your responses to ${interviewData.questions.length} questions`;
-
-    await sendMessage(messageContent, 'interview_invite');
-    
-    // Update match status
-    await base44.entities.Match.update(matchId, { status: 'interviewing' });
-    
+  const handleSlotsSent = () => {
     setShowScheduleModal(false);
     loadChat();
+  };
+
+  const handleJoinCall = (interview) => {
+    setActiveInterview(interview);
+    setShowLiveCall(true);
   };
 
   const sendMessage = async (content = newMessage, messageType = 'text') => {
@@ -153,9 +144,18 @@ export default function EmployerChat() {
 
   if (showLiveCall) {
     return (
-      <LiveVideoCall
-        participant={{ name: candidateUser?.full_name }}
-        onEnd={() => setShowLiveCall(false)}
+      <LiveVideoRoom
+        interview={activeInterview}
+        candidate={candidate}
+        candidateUser={candidateUser}
+        job={job}
+        company={company}
+        isRecruiter={true}
+        onEnd={() => {
+          setShowLiveCall(false);
+          setActiveInterview(null);
+          loadChat();
+        }}
       />
     );
   }
@@ -168,13 +168,16 @@ export default function EmployerChat() {
         }
       `}</style>
 
-      {/* Schedule Interview Modal */}
-      {showScheduleModal && (
-        <ScheduleInterview
-          onSchedule={handleScheduleInterview}
-          onClose={() => setShowScheduleModal(false)}
-        />
-      )}
+      {/* Send Interview Slots Modal */}
+      <SendInterviewSlots
+        open={showScheduleModal}
+        onOpenChange={setShowScheduleModal}
+        match={match}
+        candidate={candidate}
+        job={job}
+        company={company}
+        onSent={handleSlotsSent}
+      />
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
@@ -280,8 +283,10 @@ export default function EmployerChat() {
               <InterviewInviteCard
                 key={interview.id}
                 interview={interview}
+                job={job}
+                company={company}
                 isCandidate={false}
-                onJoinCall={() => setShowLiveCall(true)}
+                onJoinCall={() => handleJoinCall(interview)}
               />
             ))}
           </div>
