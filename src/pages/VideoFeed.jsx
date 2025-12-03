@@ -18,7 +18,7 @@ import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -27,6 +27,22 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(isFollowing);
   const [dragX, setDragX] = useState(0);
+
+  // Determine swipe labels based on content type and viewer
+  const getSwipeLabels = () => {
+    // Candidate intro video - employer swipes to interview
+    if (post.type === 'intro' && post.author_type === 'candidate') {
+      return { right: 'INTERVIEW', left: 'PASS' };
+    }
+    // Job post - candidate swipes to apply
+    if (post.type === 'job_post') {
+      return { right: 'APPLY', left: 'PASS' };
+    }
+    // Other content types - learn more
+    return { right: 'LEARN MORE', left: 'PASS' };
+  };
+
+  const swipeLabels = getSwipeLabels();
   
   useEffect(() => {
     setFollowing(isFollowing);
@@ -93,6 +109,10 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const authorHeadline = candidate?.headline || company?.name || '';
 
   const handleDragEnd = (e, info) => {
+    if (!canSwipe) {
+      setDragX(0);
+      return;
+    }
     if (info.offset.x > 100) {
       onSwipe?.('right');
     } else if (info.offset.x < -100) {
@@ -106,15 +126,15 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
       {/* Video Container - Swipeable */}
       <motion.div 
         className="relative w-full max-w-md h-full max-h-[85vh] mx-auto"
-        drag="x"
+        drag={canSwipe ? "x" : false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.3}
-        onDrag={(e, info) => setDragX(info.offset.x)}
+        onDrag={(e, info) => canSwipe && setDragX(info.offset.x)}
         onDragEnd={handleDragEnd}
       >
         {/* Swipe Indicators */}
         <AnimatePresence>
-          {dragX < -50 && (
+          {canSwipe && dragX < -50 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -122,10 +142,10 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
               className="absolute top-1/2 left-8 -translate-y-1/2 z-30 px-4 py-2 border-4 border-red-500 rounded-xl bg-red-500/20 backdrop-blur-sm"
               style={{ rotate: -15 }}
             >
-              <span className="text-red-500 font-bold text-2xl">PASS</span>
+              <span className="text-red-500 font-bold text-2xl">{swipeLabels.left}</span>
             </motion.div>
           )}
-          {dragX > 50 && (
+          {canSwipe && dragX > 50 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -133,7 +153,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
               className="absolute top-1/2 right-8 -translate-y-1/2 z-30 px-4 py-2 border-4 border-green-500 rounded-xl bg-green-500/20 backdrop-blur-sm"
               style={{ rotate: 15 }}
             >
-              <span className="text-green-500 font-bold text-2xl">APPLY</span>
+              <span className="text-green-500 font-bold text-2xl">{swipeLabels.right}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -319,7 +339,9 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         )}
         
         {/* Swipe hint */}
-        <p className="text-xs text-white/50 mt-2">← Swipe to pass • Swipe to apply →</p>
+        {canSwipe && (
+          <p className="text-xs text-white/50 mt-2">← {swipeLabels.left} • {swipeLabels.right} →</p>
+        )}
       </div>
       </motion.div>
     </div>
@@ -355,6 +377,7 @@ export default function VideoFeed() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [viewerType, setViewerType] = useState(null); // 'candidate' or 'employer'
   const containerRef = useRef(null);
   const PAGE_SIZE = 20;
 
@@ -369,6 +392,13 @@ export default function VideoFeed() {
       const currentUser = await base44.auth.me();
       if (!isLoadMore) setUser(currentUser);
 
+      // Determine viewer type
+      const companyData = allCompanies?.find(c => c.user_id === currentUser.id);
+      const candidateData = allCandidates?.find(c => c.user_id === currentUser.id);
+      if (!isLoadMore) {
+        setViewerType(companyData ? 'employer' : (candidateData ? 'candidate' : null));
+      }
+
       const currentPage = isLoadMore ? page + 1 : 0;
       
       const [allPosts, allUsers, allCandidates, allCompanies, allFollows] = await Promise.all([
@@ -381,6 +411,12 @@ export default function VideoFeed() {
 
       const followedIds = new Set(allFollows.map(f => f.followed_id));
       if (!isLoadMore) setFollowedUserIds(followedIds);
+
+      // Determine viewer type
+      const companyDataCheck = allCompanies.find(c => c.user_id === currentUser.id);
+      const candidateDataCheck = allCandidates.find(c => c.user_id === currentUser.id);
+      const currentViewerType = companyDataCheck ? 'employer' : (candidateDataCheck ? 'candidate' : null);
+      if (!isLoadMore) setViewerType(currentViewerType);
 
       // Enhanced "For You" Algorithm with personalization
       const now = new Date();
@@ -728,7 +764,13 @@ export default function VideoFeed() {
           </div>
         ) : (
           <>
-          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0).map((post, index) => (
+          {posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0).map((post, index) => {
+              // Determine if viewer can swipe on this content
+              // Candidates can't swipe on other candidates' intro videos
+              const isAuthorCandidate = post.author_type === 'candidate' && post.type === 'intro';
+              const canSwipe = !(viewerType === 'candidate' && isAuthorCandidate);
+              
+              return (
               <div key={post.id} className="h-full w-full snap-start flex-shrink-0">
                 <VideoCard
                   post={post}
@@ -745,21 +787,39 @@ export default function VideoFeed() {
                   onDelete={() => handleDelete(post.id)}
                   isOwner={post.author_id === user?.id}
                   onReport={() => { setActivePostId(post.id); setShowReport(true); }}
+                  viewerType={viewerType}
+                  canSwipe={canSwipe}
                   onSwipe={async (direction) => {
-                    // Handle swipe action on video
-                    if (direction === 'right' && post.job_id) {
-                      // Apply to job linked to this video
-                      await base44.entities.Swipe.create({
-                        swiper_id: user.id,
-                        swiper_type: 'candidate',
-                        target_id: post.job_id,
-                        target_type: 'job',
-                        direction: 'right',
-                        job_id: post.job_id
-                      });
-                    } else if (direction === 'right') {
-                      // Follow the author
-                      handleFollow(post.author_id);
+                    if (!canSwipe) return;
+                    
+                    // Handle swipe based on content type
+                    if (direction === 'right') {
+                      if (post.type === 'job_post' && post.job_id) {
+                        // Apply to job
+                        await base44.entities.Swipe.create({
+                          swiper_id: user.id,
+                          swiper_type: 'candidate',
+                          target_id: post.job_id,
+                          target_type: 'job',
+                          direction: 'right',
+                          job_id: post.job_id
+                        });
+                      } else if (post.type === 'intro' && post.author_type === 'candidate' && viewerType === 'employer') {
+                        // Employer interested in candidate - create swipe for interview
+                        const authorCandidate = Object.values(candidates).find(c => c.user_id === post.author_id);
+                        if (authorCandidate) {
+                          await base44.entities.Swipe.create({
+                            swiper_id: user.id,
+                            swiper_type: 'employer',
+                            target_id: authorCandidate.id,
+                            target_type: 'candidate',
+                            direction: 'right'
+                          });
+                        }
+                      } else {
+                        // Learn more - just follow
+                        handleFollow(post.author_id);
+                      }
                     }
                     // Move to next video
                     if (index < posts.length - 1) {
@@ -769,7 +829,7 @@ export default function VideoFeed() {
                   }}
                 />
               </div>
-            ))}
+            );})}
           
             {/* Loading More Indicator */}
             {loadingMore && (
