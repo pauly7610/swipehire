@@ -737,7 +737,7 @@ export default function CompanyBranding() {
               </Tabs>
               </div>
 
-      {/* Add Team Member Modal */}
+              {/* Add Team Member Modal */}
       <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
         <DialogContent>
           <DialogHeader>
