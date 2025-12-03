@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RecordedInterview from '@/components/interview/RecordedInterview';
-import LiveVideoCall from '@/components/interview/LiveVideoCall';
+import LiveVideoRoom from '@/components/interview/LiveVideoRoom';
 import InterviewInviteCard from '@/components/interview/InterviewInviteCard';
 
 export default function Chat() {
@@ -33,6 +33,7 @@ export default function Chat() {
   const [showRecordedInterview, setShowRecordedInterview] = useState(false);
   const [showLiveCall, setShowLiveCall] = useState(false);
   const [activeInterview, setActiveInterview] = useState(null);
+  const [candidate, setCandidate] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -59,6 +60,9 @@ export default function Chat() {
 
         const [jobData] = await base44.entities.Job.filter({ id: matchData[0].job_id });
         setJob(jobData);
+
+        const [candidateData] = await base44.entities.Candidate.filter({ id: matchData[0].candidate_id });
+        setCandidate(candidateData);
 
         const chatMessages = await base44.entities.Message.filter({ match_id: matchId });
         setMessages(chatMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
@@ -159,11 +163,17 @@ export default function Chat() {
 
   if (showLiveCall) {
     return (
-      <LiveVideoCall
-        participant={{ name: company?.name }}
+      <LiveVideoRoom
+        interview={activeInterview}
+        candidate={candidate}
+        candidateUser={user}
+        job={job}
+        company={company}
+        isRecruiter={false}
         onEnd={() => {
           setShowLiveCall(false);
           setActiveInterview(null);
+          loadChat();
         }}
       />
     );
@@ -226,9 +236,12 @@ export default function Chat() {
             <InterviewInviteCard
               key={interview.id}
               interview={interview}
+              job={job}
+              company={company}
               isCandidate={true}
               onStartRecording={() => handleStartRecording(interview)}
               onJoinCall={() => handleJoinLiveCall(interview)}
+              onRefresh={loadChat}
             />
           ))}
         </div>
