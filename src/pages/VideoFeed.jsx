@@ -940,21 +940,122 @@ export default function VideoFeed() {
                             target_type: 'candidate',
                             direction: 'right'
                           });
+
+                          // Notify the candidate someone swiped on them (anonymous)
+                          await base44.entities.Notification.create({
+                            user_id: post.author_id,
+                            type: 'system',
+                            title: '👀 Someone is interested!',
+                            message: 'A recruiter swiped right on your intro video. Keep posting to get more visibility!'
+                          });
+
+                          // Check for mutual match - did candidate also swipe right on any of this employer's jobs?
+                          const candidateSwipes = await base44.entities.Swipe.filter({
+                            swiper_id: post.author_id,
+                            swiper_type: 'candidate',
+                            direction: 'right'
+                          });
+
+                          // Get employer's jobs
+                          const employerCompany = Object.values(companies).find(c => c.user_id === user.id);
+                          if (employerCompany) {
+                            const employerJobs = await base44.entities.Job.filter({ company_id: employerCompany.id });
+                            const mutualSwipe = candidateSwipes.find(s => 
+                              employerJobs.some(j => j.id === s.target_id)
+                            );
+
+                            if (mutualSwipe) {
+                              // Create match!
+                              const matchedJob = employerJobs.find(j => j.id === mutualSwipe.target_id);
+                              const match = await base44.entities.Match.create({
+                                candidate_id: authorCandidate.id,
+                                company_id: employerCompany.id,
+                                job_id: matchedJob.id,
+                                candidate_user_id: post.author_id,
+                                company_user_id: user.id,
+                                match_score: 85
+                              });
+
+                              // Notify both parties
+                              await Promise.all([
+                                base44.entities.Notification.create({
+                                  user_id: post.author_id,
+                                  type: 'new_match',
+                                  title: '🎉 It\'s a Match!',
+                                  message: `You matched with ${employerCompany.name} for ${matchedJob.title}!`,
+                                  match_id: match.id,
+                                  job_id: matchedJob.id
+                                }),
+                                base44.entities.Notification.create({
+                                  user_id: user.id,
+                                  type: 'new_match',
+                                  title: '🎉 It\'s a Match!',
+                                  message: `You matched with a candidate for ${matchedJob.title}!`,
+                                  match_id: match.id,
+                                  job_id: matchedJob.id
+                                })
+                              ]);
+
+                              // Show match modal (you could add this state)
+                            }
+                          }
                         }
                       } else if (post.type === 'intro' && post.author_type === 'candidate' && viewerType === 'candidate') {
-                        // Candidate connecting with another candidate - send connection request
-                        const existingConnection = await base44.entities.Connection.filter({
-                          requester_id: user.id,
-                          receiver_id: post.author_id
+                        // Candidate connecting with another candidate
+                        await base44.entities.Swipe.create({
+                          swiper_id: user.id,
+                          swiper_type: 'candidate',
+                          target_id: post.author_id,
+                          target_type: 'candidate',
+                          direction: 'right'
                         });
-                        if (existingConnection.length === 0) {
+
+                        // Notify the other candidate (anonymous)
+                        await base44.entities.Notification.create({
+                          user_id: post.author_id,
+                          type: 'system',
+                          title: '👀 Someone wants to connect!',
+                          message: 'Someone swiped right on your intro video. Check your feed to find them!'
+                        });
+
+                        // Check for mutual match
+                        const mutualSwipe = await base44.entities.Swipe.filter({
+                          swiper_id: post.author_id,
+                          swiper_type: 'candidate',
+                          target_id: user.id,
+                          target_type: 'candidate',
+                          direction: 'right'
+                        });
+
+                        if (mutualSwipe.length > 0) {
+                          // Create connection!
                           await base44.entities.Connection.create({
                             requester_id: user.id,
                             receiver_id: post.author_id,
-                            status: 'pending'
+                            status: 'accepted'
                           });
-                          // Also follow them
+
+                          // Also follow each other
                           handleFollow(post.author_id);
+
+                          // Notify both
+                          const authorUser = users[post.author_id];
+                          await Promise.all([
+                            base44.entities.Notification.create({
+                              user_id: post.author_id,
+                              type: 'new_match',
+                              title: '🤝 New Connection!',
+                              message: `You and ${user.full_name} are now connected!`,
+                              navigate_to: 'Connections'
+                            }),
+                            base44.entities.Notification.create({
+                              user_id: user.id,
+                              type: 'new_match',
+                              title: '🤝 New Connection!',
+                              message: `You and ${authorUser?.full_name || 'someone'} are now connected!`,
+                              navigate_to: 'Connections'
+                            })
+                          ]);
                         }
                       } else {
                         // Learn more - just follow
