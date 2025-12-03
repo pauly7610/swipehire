@@ -6,9 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, Clock, Plus, X, Send, Loader2, CheckCircle } from 'lucide-react';
+import { CalendarDays, Clock, Plus, X, Send, Loader2, CheckCircle, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -18,6 +19,11 @@ const TIME_SLOTS = [
   '15:00', '15:30', '16:00', '16:30', '17:00'
 ];
 
+// Get user's timezone
+const getUserTimezone = () => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
+
 export default function SendInterviewSlots({ open, onOpenChange, match, candidate, job, company, onSent }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
@@ -26,14 +32,23 @@ export default function SendInterviewSlots({ open, onOpenChange, match, candidat
   const [notes, setNotes] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  
+  const userTimezone = getUserTimezone();
 
   const addSlot = () => {
     if (!selectedDate || !selectedTime) return;
     
+    // Create a proper UTC datetime
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const localDateTime = new Date(`${dateStr}T${selectedTime}:00`);
+    const utcDateTime = localDateTime.toISOString();
+    
     const newSlot = {
-      date: format(selectedDate, 'yyyy-MM-dd'),
+      date: dateStr,
       time: selectedTime,
       duration: parseInt(duration),
+      utc_datetime: utcDateTime, // Store UTC for timezone conversion
+      timezone: userTimezone,
       displayDate: format(selectedDate, 'EEE, MMM d'),
       displayTime: selectedTime
     };
@@ -182,6 +197,12 @@ export default function SendInterviewSlots({ open, onOpenChange, match, candidat
               >
                 <Plus className="w-4 h-4 mr-1" /> Add Slot
               </Button>
+            </div>
+            
+            {/* Timezone indicator */}
+            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+              <Globe className="w-3 h-3" />
+              <span>Times shown in your timezone: {userTimezone}</span>
             </div>
           </div>
 

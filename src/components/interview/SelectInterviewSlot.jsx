@@ -2,24 +2,60 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, Clock, CheckCircle, Loader2, Building2 } from 'lucide-react';
+import { CalendarDays, Clock, CheckCircle, Loader2, Building2, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
+// Get user's timezone
+const getUserTimezone = () => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
+
+// Convert UTC to user's local time
+const convertToLocalTime = (slot) => {
+  if (slot.utc_datetime) {
+    const utcDate = new Date(slot.utc_datetime);
+    return {
+      date: format(utcDate, 'yyyy-MM-dd'),
+      time: format(utcDate, 'HH:mm'),
+      displayDate: format(utcDate, 'EEEE, MMMM d'),
+      displayTime: format(utcDate, 'h:mm a'),
+      duration: slot.duration
+    };
+  }
+  // Fallback for slots without UTC datetime
+  const slotDate = parseISO(slot.date);
+  return {
+    ...slot,
+    displayDate: format(slotDate, 'EEEE, MMMM d'),
+    displayTime: slot.time
+  };
+};
+
 export default function SelectInterviewSlot({ open, onOpenChange, interview, job, company, onConfirmed }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  
+  const userTimezone = getUserTimezone();
+  
+  // Convert all slots to user's local time
+  const localSlots = interview?.available_slots?.map(slot => ({
+    ...slot,
+    local: convertToLocalTime(slot)
+  })) || [];
 
   const handleConfirm = async () => {
     if (!selectedSlot) return;
     
     setConfirming(true);
     try {
-      // Build the scheduled_at datetime
-      const scheduledAt = new Date(`${selectedSlot.date}T${selectedSlot.time}:00`);
+      // Use the UTC datetime if available, otherwise build from local
+      const scheduledAt = selectedSlot.utc_datetime 
+        ? new Date(selectedSlot.utc_datetime)
+        : new Date(`${selectedSlot.date}T${selectedSlot.time}:00`);
       
       // Update interview with selected slot
       await base44.entities.Interview.update(interview.id, {
@@ -112,11 +148,16 @@ export default function SelectInterviewSlot({ open, onOpenChange, interview, job
 
           {/* Available Slots */}
           <div>
-            <p className="text-sm text-gray-600 mb-3">Pick a time that works for you:</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-gray-600">Pick a time that works for you:</p>
+              <div className="flex items-center gap-1 text-xs text-gray-400">
+                <Globe className="w-3 h-3" />
+                {userTimezone}
+              </div>
+            </div>
             <div className="space-y-2">
-              {interview?.available_slots?.map((slot, i) => {
+              {localSlots.map((slot, i) => {
                 const isSelected = selectedSlot?.date === slot.date && selectedSlot?.time === slot.time;
-                const slotDate = parseISO(slot.date);
                 
                 return (
                   <motion.button
@@ -138,11 +179,11 @@ export default function SelectInterviewSlot({ open, onOpenChange, interview, job
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-gray-900">
-                          {format(slotDate, 'EEEE, MMMM d')}
+                          {slot.local.displayDate}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Clock className="w-3 h-3" />
-                          {slot.time} • {slot.duration} min
+                          {slot.local.displayTime} • {slot.duration} min
                         </div>
                       </div>
                     </div>
