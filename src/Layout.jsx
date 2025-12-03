@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy } from 'lucide-react';
+import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
+  const [isRecruiter, setIsRecruiter] = useState(false); // true if user has company profile
+  const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,10 +21,22 @@ export default function Layout({ children, currentPageName }) {
         // Check if user has a candidate or company profile
         const candidates = await base44.entities.Candidate.filter({ user_id: currentUser.id });
         const companies = await base44.entities.Company.filter({ user_id: currentUser.id });
-        if (companies.length > 0 || currentUser.role === 'admin') {
-          setUserType('employer');
-        } else if (candidates.length > 0) {
+        
+        const hasCompany = companies.length > 0 || currentUser.role === 'admin';
+        const hasCandidate = candidates.length > 0;
+        
+        setIsRecruiter(hasCompany);
+        
+        // Load saved view mode or default
+        const savedViewMode = localStorage.getItem('swipehire_view_mode');
+        if (hasCompany) {
+          // Recruiters can toggle, default to employer view
+          setUserType(savedViewMode || 'employer');
+          setViewMode(savedViewMode || 'employer');
+        } else if (hasCandidate) {
+          // Candidates can only see candidate view
           setUserType('candidate');
+          setViewMode('candidate');
         }
       } catch (e) {
         // Not logged in
@@ -30,6 +44,15 @@ export default function Layout({ children, currentPageName }) {
     };
     loadUser();
   }, []);
+
+  const toggleViewMode = () => {
+    const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
+    setViewMode(newMode);
+    setUserType(newMode);
+    localStorage.setItem('swipehire_view_mode', newMode);
+    // Navigate to appropriate home page
+    navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'DiscoverFeed'));
+  };
 
   const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
 
@@ -151,6 +174,20 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
+          {/* View Mode Toggle - Only for recruiters */}
+          {isRecruiter && (
+            <button
+              onClick={toggleViewMode}
+              className="flex items-center gap-3 px-4 py-3 w-full mb-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-xl transition-all"
+            >
+              <ArrowLeftRight className="w-5 h-5 text-purple-500" />
+              <div className="flex-1 text-left">
+                <span className="font-medium text-gray-700">Switch to {viewMode === 'employer' ? 'Candidate' : 'Recruiter'}</span>
+                <p className="text-xs text-gray-500">Currently: {viewMode === 'employer' ? 'Recruiter' : 'Candidate'} View</p>
+              </div>
+            </button>
+          )}
+          
           {user && (
             <div className="flex items-center gap-3 px-4 py-3">
               <div className="w-10 h-10 rounded-full swipe-gradient flex items-center justify-center text-white font-semibold">
