@@ -42,17 +42,19 @@ export default function EmployerDashboard() {
       if (companyData) {
         setCompany(companyData);
 
-        const [companyJobs, companyMatches, companyInterviews, allCandidates, allUsers] = await Promise.all([
+        const [companyJobs, companyMatches, companyInterviews, allCandidates, allUsers, companySwipes] = await Promise.all([
           base44.entities.Job.filter({ company_id: companyData.id }),
           base44.entities.Match.filter({ company_id: companyData.id }),
           base44.entities.Interview.filter({ company_id: companyData.id }),
           base44.entities.Candidate.list(),
-          base44.entities.User.list()
+          base44.entities.User.list(),
+          base44.entities.Swipe.filter({ swiper_id: user.id, swiper_type: 'employer' })
         ]);
 
         setJobs(companyJobs);
         setMatches(companyMatches);
         setInterviews(companyInterviews);
+        setSwipes(companySwipes);
 
         const candidateMap = {};
         allCandidates.forEach(c => { candidateMap[c.id] = c; });
