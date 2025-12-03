@@ -89,7 +89,7 @@ export default function SwipeJobs() {
     }, [currentJob, candidate, currentCompany, checkDealBreakers, calculateMatchScore]);
 
   const handleSwipe = async (direction, feedback = null) => {
-    if (!currentJob || !candidate) return;
+    if (!currentJob || !user) return;
 
     const swipeData = {
       swiper_id: user.id,
@@ -119,47 +119,49 @@ export default function SwipeJobs() {
       }
       
       // Check if employer swiped right on this candidate (for any of their jobs or directly on candidate)
-      const employerSwipes = await base44.entities.Swipe.filter({
-        swiper_type: 'employer',
-        target_id: candidate.id,
-        direction: 'right'
-      });
-
-      const mutualSwipe = employerSwipes.find(s => s.direction === 'right' || s.direction === 'super');
-      
-      if (mutualSwipe) {
-        // Create match
-        const match = await base44.entities.Match.create({
-          candidate_id: candidate.id,
-          company_id: currentJob.company_id,
-          job_id: currentJob.id,
-          candidate_user_id: user.id,
-          company_user_id: currentCompany?.user_id,
-          match_score: currentMatchScore || 85
+      if (candidate) {
+        const employerSwipes = await base44.entities.Swipe.filter({
+          swiper_type: 'employer',
+          target_id: candidate.id,
+          direction: 'right'
         });
+
+        const mutualSwipe = employerSwipes.find(s => s.direction === 'right' || s.direction === 'super');
         
-        // Notify both parties
-        await Promise.all([
-          base44.entities.Notification.create({
-            user_id: user.id,
-            type: 'new_match',
-            title: '🎉 It\'s a Match!',
-            message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
-            match_id: match.id,
-            job_id: currentJob.id
-          }),
-          base44.entities.Notification.create({
-            user_id: currentCompany?.user_id,
-            type: 'new_match',
-            title: '🎉 It\'s a Match!',
-            message: `You matched with a candidate for ${currentJob.title}!`,
-            match_id: match.id,
-            job_id: currentJob.id
-          })
-        ]);
-        
-        setMatchData({ match, job: currentJob, company: currentCompany, candidate });
-        setShowMatch(true);
+        if (mutualSwipe) {
+          // Create match
+          const match = await base44.entities.Match.create({
+            candidate_id: candidate.id,
+            company_id: currentJob.company_id,
+            job_id: currentJob.id,
+            candidate_user_id: user.id,
+            company_user_id: currentCompany?.user_id,
+            match_score: currentMatchScore || 85
+          });
+          
+          // Notify both parties
+          await Promise.all([
+            base44.entities.Notification.create({
+              user_id: user.id,
+              type: 'new_match',
+              title: '🎉 It\'s a Match!',
+              message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
+              match_id: match.id,
+              job_id: currentJob.id
+            }),
+            base44.entities.Notification.create({
+              user_id: currentCompany?.user_id,
+              type: 'new_match',
+              title: '🎉 It\'s a Match!',
+              message: `You matched with a candidate for ${currentJob.title}!`,
+              match_id: match.id,
+              job_id: currentJob.id
+            })
+          ]);
+          
+          setMatchData({ match, job: currentJob, company: currentCompany, candidate });
+          setShowMatch(true);
+        }
       }
     }
 
