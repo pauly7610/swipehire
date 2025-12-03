@@ -8,14 +8,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Building2, Upload, Globe, MapPin, Users, Loader2, 
   Plus, X, Palette, Eye, CheckCircle, Sparkles, Image, Video,
-  Quote, UserPlus, Star, Linkedin, ExternalLink, Trash2
+  Quote, UserPlus, Star, Linkedin, ExternalLink, Trash2, BarChart3, Edit3
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import BrandingAnalytics from '@/components/branding/BrandingAnalytics';
+import QuickVideoPost from '@/components/branding/QuickVideoPost';
 
 const CULTURE_TRAITS = [
   'Innovative', 'Collaborative', 'Fast-paced', 'Work-life balance', 
