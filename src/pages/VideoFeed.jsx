@@ -560,7 +560,8 @@ export default function VideoFeed() {
                   onView={() => handleView(post)}
                   onComment={() => handleComment(post.id)}
                   onShare={() => handleShare(post)}
-                  onFollow={() => {}}
+                  onFollow={() => handleFollow(post.author_id)}
+                      isFollowing={followedUserIds.has(post.author_id)}
                   onDelete={() => handleDelete(post.id)}
                   isOwner={post.author_id === user?.id}
                   onReport={() => { setActivePostId(post.id); setShowReport(true); }}
