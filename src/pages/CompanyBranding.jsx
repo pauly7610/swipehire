@@ -98,11 +98,25 @@ export default function CompanyBranding() {
           testimonials: companyData.testimonials || [],
           office_perks: companyData.office_perks || []
         });
+
+        // Load videos and jobs
+        const [userVideos, companyJobs] = await Promise.all([
+          base44.entities.VideoPost.filter({ author_id: user.id }),
+          base44.entities.Job.filter({ company_id: companyData.id })
+        ]);
+        setVideos(userVideos);
+        setJobs(companyJobs);
       }
     } catch (error) {
       console.error('Failed to load company:', error);
     }
     setLoading(false);
+  };
+
+  const refreshVideos = async () => {
+    const user = await base44.auth.me();
+    const userVideos = await base44.entities.VideoPost.filter({ author_id: user.id });
+    setVideos(userVideos);
   };
 
   const handleLogoUpload = async (e) => {
