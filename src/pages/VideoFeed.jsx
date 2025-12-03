@@ -18,7 +18,7 @@ import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -26,6 +26,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const [showHeart, setShowHeart] = useState(false);
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(isFollowing);
+  const [dragX, setDragX] = useState(0);
   
   useEffect(() => {
     setFollowing(isFollowing);
@@ -91,10 +92,52 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const authorName = user?.full_name || 'User';
   const authorHeadline = candidate?.headline || company?.name || '';
 
+  const handleDragEnd = (e, info) => {
+    if (info.offset.x > 100) {
+      onSwipe?.('right');
+    } else if (info.offset.x < -100) {
+      onSwipe?.('left');
+    }
+    setDragX(0);
+  };
+
   return (
-    <div className="relative w-full h-full bg-black flex items-center justify-center">
-      {/* Video Container */}
-      <div className="relative w-full max-w-md h-full max-h-[85vh] mx-auto">
+    <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+      {/* Video Container - Swipeable */}
+      <motion.div 
+        className="relative w-full max-w-md h-full max-h-[85vh] mx-auto"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.3}
+        onDrag={(e, info) => setDragX(info.offset.x)}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Swipe Indicators */}
+        <AnimatePresence>
+          {dragX < -50 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="absolute top-1/2 left-8 -translate-y-1/2 z-30 px-4 py-2 border-4 border-red-500 rounded-xl bg-red-500/20 backdrop-blur-sm"
+              style={{ rotate: -15 }}
+            >
+              <span className="text-red-500 font-bold text-2xl">PASS</span>
+            </motion.div>
+          )}
+          {dragX > 50 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="absolute top-1/2 right-8 -translate-y-1/2 z-30 px-4 py-2 border-4 border-green-500 rounded-xl bg-green-500/20 backdrop-blur-sm"
+              style={{ rotate: 15 }}
+            >
+              <span className="text-green-500 font-bold text-2xl">APPLY</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <video
           ref={videoRef}
           src={post.video_url}
@@ -274,8 +317,11 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
             </Button>
           </Link>
         )}
+        
+        {/* Swipe hint */}
+        <p className="text-xs text-white/50 mt-2">← Swipe to pass • Swipe to apply →</p>
       </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -308,6 +354,7 @@ export default function VideoFeed() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const containerRef = useRef(null);
   const PAGE_SIZE = 20;
 
@@ -694,10 +741,32 @@ export default function VideoFeed() {
                   onComment={() => handleComment(post.id)}
                   onShare={() => handleShare(post)}
                   onFollow={() => handleFollow(post.author_id)}
-                      isFollowing={followedUserIds.has(post.author_id)}
+                  isFollowing={followedUserIds.has(post.author_id)}
                   onDelete={() => handleDelete(post.id)}
                   isOwner={post.author_id === user?.id}
                   onReport={() => { setActivePostId(post.id); setShowReport(true); }}
+                  onSwipe={async (direction) => {
+                    // Handle swipe action on video
+                    if (direction === 'right' && post.job_id) {
+                      // Apply to job linked to this video
+                      await base44.entities.Swipe.create({
+                        swiper_id: user.id,
+                        swiper_type: 'candidate',
+                        target_id: post.job_id,
+                        target_type: 'job',
+                        direction: 'right',
+                        job_id: post.job_id
+                      });
+                    } else if (direction === 'right') {
+                      // Follow the author
+                      handleFollow(post.author_id);
+                    }
+                    // Move to next video
+                    if (index < posts.length - 1) {
+                      setCurrentIndex(index + 1);
+                      containerRef.current?.scrollTo({ top: (index + 1) * containerRef.current.clientHeight, behavior: 'smooth' });
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -725,25 +794,45 @@ export default function VideoFeed() {
       <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/50 to-transparent">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-white font-bold text-xl">SwipeHire</h1>
-          <Badge 
-            className="bg-black/40 text-white border-0 cursor-pointer"
-            onClick={() => setShowAnalytics(true)}
-          >
-            📊
-          </Badge>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowSearch(!showSearch)}
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+            >
+              <Search className="w-5 h-5 text-white" />
+            </button>
+            <Badge 
+              className="bg-black/40 text-white border-0 cursor-pointer"
+              onClick={() => setShowAnalytics(true)}
+            >
+              📊
+            </Badge>
+          </div>
         </div>
         
-        {/* Search Bar */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
-          <input
-            type="text"
-            placeholder="Search jobs, people, skills..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 bg-black/40 backdrop-blur-sm text-white placeholder-white/60 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-pink-500"
-          />
-        </div>
+        {/* Search Bar - Expandable */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mb-3"
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+                <input
+                  type="text"
+                  placeholder="Search jobs, people, skills..."
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); loadData(); }}
+                  autoFocus
+                  className="w-full h-10 pl-10 pr-4 bg-black/40 backdrop-blur-sm text-white placeholder-white/60 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         <div className="flex items-center gap-2">
           <Badge 
