@@ -552,6 +552,8 @@ export default function EmployerDashboard() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
