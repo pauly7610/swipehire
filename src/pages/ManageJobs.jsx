@@ -208,11 +208,14 @@ export default function ManageJobs() {
 
                         {/* Stats */}
                         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100">
-                          <div className="flex items-center gap-2">
+                          <Link 
+                            to={createPageUrl('EmployerMatches') + `?jobId=${job.id}`}
+                            className="flex items-center gap-2 hover:bg-pink-50 px-2 py-1 rounded-lg transition-colors"
+                          >
                             <Users className="w-5 h-5 text-pink-500" />
                             <span className="font-semibold text-gray-900">{getMatchCount(job.id)}</span>
                             <span className="text-gray-500 text-sm">matches</span>
-                          </div>
+                          </Link>
                           <Link 
                             to={createPageUrl('SwipeCandidates') + `?jobId=${job.id}`}
                             className="text-pink-500 hover:text-pink-600 text-sm font-medium"

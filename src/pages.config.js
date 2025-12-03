@@ -23,6 +23,7 @@ import ApplicationTracker from './pages/ApplicationTracker';
 import CompanyProfile from './pages/CompanyProfile';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
 import AdminPanel from './pages/AdminPanel';
+import RecruiterProfile from './pages/RecruiterProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "CompanyProfile": CompanyProfile,
     "ViewCandidateProfile": ViewCandidateProfile,
     "AdminPanel": AdminPanel,
+    "RecruiterProfile": RecruiterProfile,
 }
 
 export const pagesConfig = {
