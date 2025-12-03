@@ -5,60 +5,80 @@ import { base44 } from '@/api/base44Client';
 import { Home, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
+import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
   const [isRecruiter, setIsRecruiter] = useState(false); // true if user has company profile
   const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        // Check if user has a candidate or company profile
-        const candidates = await base44.entities.Candidate.filter({ user_id: currentUser.id });
-        const companies = await base44.entities.Company.filter({ user_id: currentUser.id });
-        
-        const hasCompany = companies.length > 0 || currentUser.role === 'admin';
-        const hasCandidate = candidates.length > 0;
-        
-        setIsRecruiter(hasCompany);
-        
-        // Load saved view mode or default
-        const savedViewMode = localStorage.getItem('swipehire_view_mode');
-        if (hasCompany) {
-          // Recruiters can toggle, default to employer view
-          setUserType(savedViewMode || 'employer');
-          setViewMode(savedViewMode || 'employer');
-        } else if (hasCandidate) {
-          // Candidates can only see candidate view
-          setUserType('candidate');
-          setViewMode('candidate');
-        }
-      } catch (e) {
-        // Not logged in
-      }
-    };
+            try {
+              const currentUser = await base44.auth.me();
+              setUser(currentUser);
+              // Check if user has a candidate or company profile
+              const candidates = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+              const companies = await base44.entities.Company.filter({ user_id: currentUser.id });
+
+              const hasCompany = companies.length > 0 || currentUser.role === 'admin';
+              const hasCandidate = candidates.length > 0;
+
+              setIsRecruiter(hasCompany);
+
+              // If user has no profile yet, show role selection
+              if (!hasCompany && !hasCandidate) {
+                setShowRoleSelection(true);
+                return;
+              }
+
+              // Load saved view mode or default
+              const savedViewMode = localStorage.getItem('swipehire_view_mode');
+              if (hasCompany) {
+                // Recruiters can toggle, default to employer view
+                setUserType(savedViewMode || 'employer');
+                setViewMode(savedViewMode || 'employer');
+              } else if (hasCandidate) {
+                // Candidates can only see candidate view
+                setUserType('candidate');
+                setViewMode('candidate');
+              }
+            } catch (e) {
+              // Not logged in
+            }
+          };
     loadUser();
   }, []);
 
   const toggleViewMode = () => {
-    const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
-    setViewMode(newMode);
-    setUserType(newMode);
-    localStorage.setItem('swipehire_view_mode', newMode);
-    // Navigate to appropriate home page
-    navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'DiscoverFeed'));
-  };
+        const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
+        setViewMode(newMode);
+        setUserType(newMode);
+        localStorage.setItem('swipehire_view_mode', newMode);
+        // Navigate to appropriate home page
+        navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'DiscoverFeed'));
+      };
+
+      const handleRoleSelect = (role) => {
+        setShowRoleSelection(false);
+        // Store the selected role and navigate to onboarding
+        localStorage.setItem('swipehire_selected_role', role);
+        navigate(createPageUrl('Onboarding'));
+      };
 
   const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
 
   if (hideLayout) {
-    return <>{children}</>;
-  }
+        return (
+          <>
+            {children}
+            <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />
+          </>
+        );
+      }
 
   const candidateNav = [
         { name: 'Feed', icon: Home, page: 'VideoFeed' },
@@ -208,6 +228,9 @@ export default function Layout({ children, currentPageName }) {
           </button>
         </div>
       </aside>
-    </div>
-  );
-}
+
+              {/* Role Selection Modal for new users */}
+              <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />
+            </div>
+          );
+        }
