@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus } from 'lucide-react';
+import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2 } from 'lucide-react';
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -22,9 +22,11 @@ export default function Onboarding() {
     bio: '',
     skills: [],
     location: '',
-    photo_url: ''
+    photo_url: '',
+    resume_url: ''
   });
   const [newSkill, setNewSkill] = useState('');
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   // Company fields
   const [companyData, setCompanyData] = useState({
@@ -71,6 +73,20 @@ export default function Onboarding() {
     } catch (error) {
       console.error('Upload failed:', error);
     }
+  };
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadingResume(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setCandidateData({ ...candidateData, resume_url: file_url });
+    } catch (error) {
+      console.error('Resume upload failed:', error);
+    }
+    setUploadingResume(false);
   };
 
   const addSkill = () => {
@@ -243,6 +259,53 @@ export default function Onboarding() {
                         </button>
                       </span>
                     ))}
+                  </div>
+                </div>
+
+                {/* Resume Upload */}
+                <div>
+                  <Label className="text-gray-700">Resume (PDF, DOC, DOCX)</Label>
+                  <div className="mt-2">
+                    {candidateData.resume_url ? (
+                      <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <FileText className="w-8 h-8 text-green-600" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-green-700">Resume uploaded</p>
+                          <a 
+                            href={candidateData.resume_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-green-600 hover:underline"
+                          >
+                            View resume
+                          </a>
+                        </div>
+                        <button 
+                          onClick={() => setCandidateData({ ...candidateData, resume_url: '' })}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-400 transition-colors">
+                        {uploadingResume ? (
+                          <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-gray-400" />
+                            <span className="text-gray-500">Click to upload your resume</span>
+                          </>
+                        )}
+                        <input 
+                          type="file" 
+                          accept=".pdf,.doc,.docx" 
+                          className="hidden" 
+                          onChange={handleResumeUpload}
+                          disabled={uploadingResume}
+                        />
+                      </label>
+                    )}
                   </div>
                 </div>
               </div>
