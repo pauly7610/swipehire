@@ -178,9 +178,12 @@ export default function SwipeJobs() {
   };
 
   const handleDragEnd = (event, info) => {
-    if (info.offset.x > 100) {
+    const threshold = 80;
+    const velocity = info.velocity.x;
+    
+    if (info.offset.x > threshold || velocity > 500) {
       triggerSwipe('right');
-    } else if (info.offset.x < -100) {
+    } else if (info.offset.x < -threshold || velocity < -500) {
       triggerSwipe('left');
     } else {
       x.set(0);
@@ -259,11 +262,15 @@ export default function SwipeJobs() {
 
               {/* Active card */}
               <motion.div
-                className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform"
                 style={{ x, rotate, opacity }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.1}
+                dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
                 onDragEnd={handleDragEnd}
+                whileDrag={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
               >
                 <JobCard
                                         job={currentJob}
