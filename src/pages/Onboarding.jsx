@@ -373,12 +373,13 @@ export default function Onboarding() {
 
                 <div>
                   <Label className="text-gray-700">Industry</Label>
-                  <Input
-                    placeholder="e.g., Technology, Healthcare, Finance"
-                    value={companyData.industry}
-                    onChange={(e) => setCompanyData({ ...companyData, industry: e.target.value })}
-                    className="mt-2 h-12 rounded-xl"
-                  />
+                  <div className="mt-2">
+                    <IndustrySelect
+                      value={companyData.industry}
+                      onChange={(v) => setCompanyData({ ...companyData, industry: v })}
+                      placeholder="Select your industry"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -395,12 +396,13 @@ export default function Onboarding() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-gray-700">Location</Label>
-                    <Input
-                      placeholder="City, State"
-                      value={companyData.location}
-                      onChange={(e) => setCompanyData({ ...companyData, location: e.target.value })}
-                      className="mt-2 h-12 rounded-xl"
-                    />
+                    <div className="mt-2">
+                      <LocationSelect
+                        value={companyData.location}
+                        onChange={(v) => setCompanyData({ ...companyData, location: v })}
+                        placeholder="Select location"
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label className="text-gray-700">Website</Label>
