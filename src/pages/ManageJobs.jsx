@@ -188,11 +188,15 @@ export default function ManageJobs() {
                                   )}
                                   {copiedJobId === job.id ? 'Copied!' : 'Share Job'}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Eye className="w-4 h-4 mr-2" /> View
+                                <DropdownMenuItem asChild>
+                                  <Link to={createPageUrl('PublicJobView') + `?id=${job.id}`}>
+                                    <Eye className="w-4 h-4 mr-2" /> View
+                                  </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                <DropdownMenuItem asChild>
+                                  <Link to={createPageUrl('EditJob') + `?id=${job.id}`}>
+                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                  </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
                                   onClick={() => deleteJob(job.id)}
