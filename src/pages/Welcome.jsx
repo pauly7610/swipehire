@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Users, Zap, ChevronRight } from 'lucide-react';
+import SplashScreen from '@/components/splash/SplashScreen';
 
 export default function Welcome() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,11 +44,13 @@ export default function Welcome() {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
-  if (loading) {
+  if (loading || showSplash) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
-      </div>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
     );
   }
 
