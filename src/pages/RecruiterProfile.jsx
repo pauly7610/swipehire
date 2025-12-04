@@ -7,8 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { 
   Building2, MapPin, Globe, Users, Briefcase, Loader2, 
-  Eye, Heart, Play, Video, Linkedin, ExternalLink
+  Eye, Heart, Play, Video, Linkedin, ExternalLink, Star
 } from 'lucide-react';
+import RecruiterFeedbackSection from '@/components/recruiter/RecruiterFeedbackSection';
+import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -21,6 +23,8 @@ export default function RecruiterProfile() {
   const [followers, setFollowers] = useState(0);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [videoStats, setVideoStats] = useState({ views: 0, likes: 0 });
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
     loadProfile();
@@ -50,6 +54,14 @@ export default function RecruiterProfile() {
       // Load followers
       const followersList = await base44.entities.Follow.filter({ followed_id: currentUser.id });
       setFollowers(followersList.length);
+
+      // Load recruiter feedback
+      const feedback = await base44.entities.RecruiterFeedback.filter({ recruiter_id: currentUser.id });
+      setReviewCount(feedback.length);
+      if (feedback.length > 0) {
+        const avg = feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length;
+        setAverageRating(avg);
+      }
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
@@ -131,6 +143,10 @@ export default function RecruiterProfile() {
                 <p className="text-xl font-bold text-gray-900">{jobs.filter(j => j.is_active).length}</p>
                 <p className="text-xs text-gray-500">Active Jobs</p>
               </div>
+              <div className="text-center">
+                <RecruiterRating rating={averageRating} size="sm" showNumber={false} />
+                <p className="text-xs text-gray-500 mt-0.5">{reviewCount} Reviews</p>
+              </div>
             </div>
 
             {/* Company Info */}
@@ -183,6 +199,9 @@ export default function RecruiterProfile() {
             </TabsTrigger>
             <TabsTrigger value="jobs" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Jobs
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Reviews
             </TabsTrigger>
           </TabsList>
 
@@ -331,6 +350,14 @@ export default function RecruiterProfile() {
                 </Card>
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <RecruiterFeedbackSection 
+              recruiterId={user?.id} 
+              companyId={company?.id}
+              canLeaveFeedback={false}
+            />
           </TabsContent>
         </Tabs>
       </div>
