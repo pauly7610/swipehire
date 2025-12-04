@@ -16,7 +16,7 @@ import {
   MessageCircle, Video, FileText, Star, Clock, CheckCircle2,
   XCircle, ArrowUpCircle, Loader2, Mail, Phone, MapPin,
   MoreVertical, Eye, UserPlus, Trash2, GripVertical, AlertTriangle,
-  Download, ExternalLink
+  Download, ExternalLink, Trophy
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
 import ResumeAnalysis from '@/components/ats/ResumeAnalysis';
+import ResumeCompare from '@/components/ats/ResumeCompare';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -56,6 +57,7 @@ export default function ATS() {
   const [schedulingMatch, setSchedulingMatch] = useState(null);
   const [searchMode, setSearchMode] = useState('pipeline'); // 'pipeline' or 'all'
   const [globalSearchResults, setGlobalSearchResults] = useState([]);
+  const [showCompare, setShowCompare] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -435,6 +437,9 @@ export default function ATS() {
                 Move {selectedMatches.size} Selected
               </Button>
             )}
+            <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50">
+              <Trophy className="w-4 h-4 mr-2" /> Compare Candidates
+            </Button>
           </div>
         </div>
 
@@ -1096,6 +1101,19 @@ export default function ATS() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Resume Compare Tool */}
+      <ResumeCompare
+        open={showCompare}
+        onOpenChange={setShowCompare}
+        candidates={candidates}
+        users={users}
+        jobs={jobs}
+        selectedCandidateIds={Array.from(selectedMatches).map(matchId => {
+          const match = matches.find(m => m.id === matchId);
+          return match?.candidate_id;
+        }).filter(Boolean)}
+      />
     </div>
   );
 }

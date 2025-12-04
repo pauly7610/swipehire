@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2 } from 'lucide-react';
+import JobTitleSelect from '@/components/shared/JobTitleSelect';
+import LocationSelect from '@/components/shared/LocationSelect';
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -202,13 +204,14 @@ export default function Onboarding() {
                 </div>
 
                 <div>
-                  <Label className="text-gray-700">Professional Headline</Label>
-                  <Input
-                    placeholder="e.g., Data Analyst | SQL Expert"
-                    value={candidateData.headline}
-                    onChange={(e) => setCandidateData({ ...candidateData, headline: e.target.value })}
-                    className="mt-2 h-12 rounded-xl"
-                  />
+                  <Label className="text-gray-700">Job Title / Role</Label>
+                  <div className="mt-2">
+                    <JobTitleSelect
+                      value={candidateData.headline}
+                      onChange={(v) => setCandidateData({ ...candidateData, headline: v })}
+                      placeholder="Select your job title"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -225,12 +228,13 @@ export default function Onboarding() {
 
                 <div>
                   <Label className="text-gray-700">Location</Label>
-                  <Input
-                    placeholder="e.g., New York, NY"
-                    value={candidateData.location}
-                    onChange={(e) => setCandidateData({ ...candidateData, location: e.target.value })}
-                    className="mt-2 h-12 rounded-xl"
-                  />
+                  <div className="mt-2">
+                    <LocationSelect
+                      value={candidateData.location}
+                      onChange={(v) => setCandidateData({ ...candidateData, location: v })}
+                      placeholder="Select your location"
+                    />
+                  </div>
                 </div>
 
                 <div>

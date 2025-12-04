@@ -16,6 +16,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import AIJobWizard from '@/components/jobs/AIJobWizard';
+import JobTitleSelect from '@/components/shared/JobTitleSelect';
+import LocationSelect from '@/components/shared/LocationSelect';
 
 export default function PostJob() {
   const navigate = useNavigate();
@@ -132,23 +134,25 @@ export default function PostJob() {
           >
             <div>
               <Label className="text-gray-700 text-base">Job Title *</Label>
-              <Input
-                value={jobData.title}
-                onChange={(e) => setJobData({ ...jobData, title: e.target.value })}
-                placeholder="e.g., Senior Software Engineer"
-                className="mt-2 h-12 text-lg"
-              />
+              <div className="mt-2">
+                <JobTitleSelect
+                  value={jobData.title}
+                  onChange={(v) => setJobData({ ...jobData, title: v })}
+                  placeholder="Select job title"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-gray-700 text-base">Location</Label>
-                <Input
-                  value={jobData.location}
-                  onChange={(e) => setJobData({ ...jobData, location: e.target.value })}
-                  placeholder="e.g., New York, NY"
-                  className="mt-2 h-12"
-                />
+                <div className="mt-2">
+                  <LocationSelect
+                    value={jobData.location}
+                    onChange={(v) => setJobData({ ...jobData, location: v })}
+                    placeholder="Select location"
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-gray-700 text-base">Job Type</Label>
