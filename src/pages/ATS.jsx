@@ -272,7 +272,10 @@ export default function ATS() {
       user?.email || '',
       candidate?.headline || '',
       candidate?.location || '',
+      candidate?.bio || '',
       ...(candidate?.skills || []),
+      ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
+      candidate?.resume_url ? 'resume' : '',
       job?.title || ''
     ].join(' ').toLowerCase();
     
@@ -327,7 +330,8 @@ export default function ATS() {
         candidate?.location || '',
         candidate?.bio || '',
         ...(candidate?.skills || []),
-        ...(candidate?.experience?.map(e => `${e.title} ${e.company}`) || [])
+        ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
+        candidate?.resume_url ? 'resume has_resume' : ''
       ].join(' ').toLowerCase();
       
       // Check NOT terms first
@@ -436,7 +440,8 @@ export default function ATS() {
         {/* Search Mode Toggle */}
         <div className="mb-4 flex items-center gap-4">
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex-1">
-            <strong>Boolean Search:</strong> Use AND, OR, NOT operators. Example: "React AND TypeScript NOT Junior" or "-intern" to exclude
+            <strong>Boolean Search:</strong> Use AND, OR, NOT operators. Example: "React AND TypeScript NOT Junior" or "-intern" to exclude. 
+            <span className="text-blue-600 ml-1">• Search includes skills, experience, bio, and candidates with resumes</span>
           </div>
           <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
             <Button
@@ -616,6 +621,7 @@ export default function ATS() {
                       <th className="text-left p-4 font-medium text-gray-600">Skills</th>
                       <th className="text-left p-4 font-medium text-gray-600">Location</th>
                       <th className="text-left p-4 font-medium text-gray-600">Experience</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Resume</th>
                       <th className="text-left p-4 font-medium text-gray-600">Status</th>
                       <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                     </tr>
@@ -658,6 +664,21 @@ export default function ATS() {
                             {candidate?.experience_years ? `${candidate.experience_years} years` : candidate?.experience_level || '-'}
                           </td>
                           <td className="p-4">
+                            {candidate?.resume_url ? (
+                              <a 
+                                href={candidate.resume_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-lg text-sm hover:bg-green-100"
+                              >
+                                <FileText className="w-4 h-4" />
+                                View
+                              </a>
+                            ) : (
+                              <span className="text-gray-400 text-sm">None</span>
+                            )}
+                          </td>
+                          <td className="p-4">
                             {stage ? (
                               <Badge className={stage.color}>{stage.label}</Badge>
                             ) : (
@@ -671,13 +692,6 @@ export default function ATS() {
                                   <Eye className="w-4 h-4 mr-1" /> View
                                 </Button>
                               </Link>
-                              {candidate?.resume_url && (
-                                <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
-                                  <Button size="sm" variant="outline">
-                                    <FileText className="w-4 h-4" />
-                                  </Button>
-                                </a>
-                              )}
                             </div>
                           </td>
                         </tr>
