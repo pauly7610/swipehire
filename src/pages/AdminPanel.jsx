@@ -25,8 +25,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   Trash2, Search, Users, Briefcase, Building2, Video, 
-  Flag, Loader2, ShieldAlert, Eye, Ban
+  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog
 } from 'lucide-react';
+import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { format } from 'date-fns';
 
 export default function AdminPanel() {
@@ -40,6 +41,7 @@ export default function AdminPanel() {
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteType, setDeleteType] = useState('');
+  const [recruiterFeedback, setRecruiterFeedback] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -55,18 +57,20 @@ export default function AdminPanel() {
         return;
       }
 
-      const [allCandidates, allCompanies, allJobs, allVideos, allUsers] = await Promise.all([
+      const [allCandidates, allCompanies, allJobs, allVideos, allUsers, allFeedback] = await Promise.all([
         base44.entities.Candidate.list('-created_date'),
         base44.entities.Company.list('-created_date'),
         base44.entities.Job.list('-created_date'),
         base44.entities.VideoPost.list('-created_date'),
-        base44.entities.User.list()
+        base44.entities.User.list(),
+        base44.entities.RecruiterFeedback.list('-created_date')
       ]);
 
       setCandidates(allCandidates);
       setCompanies(allCompanies);
       setJobs(allJobs);
       setVideos(allVideos);
+      setRecruiterFeedback(allFeedback);
 
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
@@ -215,6 +219,7 @@ export default function AdminPanel() {
         <Tabs defaultValue="candidates">
           <TabsList className="mb-4">
             <TabsTrigger value="candidates">Candidates</TabsTrigger>
+            <TabsTrigger value="recruiters">Recruiters</TabsTrigger>
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="videos">
@@ -260,6 +265,64 @@ export default function AdminPanel() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="recruiters">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Recruiter</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Reviews</TableHead>
+                    <TableHead>Jobs Posted</TableHead>
+                    <TableHead>Joined</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies
+                    .filter(c => !search || 
+                      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+                      users[c.user_id]?.full_name?.toLowerCase().includes(search.toLowerCase())
+                    )
+                    .map((company) => {
+                      const recruiter = users[company.user_id];
+                      const feedback = recruiterFeedback.filter(f => f.recruiter_id === company.user_id);
+                      const avgRating = feedback.length > 0 
+                        ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length 
+                        : 0;
+                      const recruiterJobs = jobs.filter(j => j.company_id === company.id);
+                      
+                      return (
+                        <TableRow key={company.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {company.logo_url ? (
+                                <img src={company.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">
+                                  {recruiter?.full_name?.charAt(0) || '?'}
+                                </div>
+                              )}
+                              <span className="font-medium">{recruiter?.full_name || '-'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{recruiter?.email || '-'}</TableCell>
+                          <TableCell>{company.name}</TableCell>
+                          <TableCell>
+                            <RecruiterRating rating={avgRating} size="sm" />
+                          </TableCell>
+                          <TableCell>{feedback.length}</TableCell>
+                          <TableCell>{recruiterJobs.length}</TableCell>
+                          <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
                         </TableRow>
                       );
                     })}
