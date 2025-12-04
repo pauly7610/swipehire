@@ -23,6 +23,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
+import ResumeAnalysis from '@/components/ats/ResumeAnalysis';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -981,6 +982,13 @@ export default function ATS() {
                       </div>
                     </div>
                   )}
+
+                  {/* AI Resume Analysis */}
+                  <ResumeAnalysis 
+                    candidate={candidate} 
+                    user={user} 
+                    searchQuery={searchQuery}
+                  />
 
                   {/* Job Applied For */}
                   <div className="bg-gray-50 rounded-xl p-4">
