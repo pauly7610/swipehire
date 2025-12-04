@@ -274,6 +274,8 @@ export default function AdminPanel() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Company</TableHead>
+                    <TableHead>Recruiter</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Industry</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Created</TableHead>
@@ -283,24 +285,29 @@ export default function AdminPanel() {
                 <TableBody>
                   {companies
                     .filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()))
-                    .map((company) => (
-                      <TableRow key={company.id}>
-                        <TableCell className="font-medium">{company.name}</TableCell>
-                        <TableCell>{company.industry || '-'}</TableCell>
-                        <TableCell>{company.location || '-'}</TableCell>
-                        <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => { setDeleteTarget(company); setDeleteType('company'); }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    .map((company) => {
+                      const recruiter = users[company.user_id];
+                      return (
+                        <TableRow key={company.id}>
+                          <TableCell className="font-medium">{company.name}</TableCell>
+                          <TableCell>{recruiter?.full_name || '-'}</TableCell>
+                          <TableCell>{recruiter?.email || '-'}</TableCell>
+                          <TableCell>{company.industry || '-'}</TableCell>
+                          <TableCell>{company.location || '-'}</TableCell>
+                          <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => { setDeleteTarget(company); setDeleteType('company'); }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </Card>
