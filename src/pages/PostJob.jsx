@@ -18,6 +18,7 @@ import { motion } from 'framer-motion';
 import AIJobWizard from '@/components/jobs/AIJobWizard';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import LocationSelect from '@/components/shared/LocationSelect';
+import IndustrySelect from '@/components/shared/IndustrySelect';
 
 export default function PostJob() {
   const navigate = useNavigate();
@@ -43,7 +44,8 @@ export default function PostJob() {
     benefits: [],
     responsibilities: [],
     requirements: [],
-    screening_questions: []
+    screening_questions: [],
+    industry: ''
   });
 
   useEffect(() => {
@@ -133,12 +135,24 @@ export default function PostJob() {
             className="space-y-6"
           >
             <div>
+              <Label className="text-gray-700 text-base">Industry *</Label>
+              <div className="mt-2">
+                <IndustrySelect
+                  value={jobData.industry}
+                  onChange={(v) => setJobData({ ...jobData, industry: v, title: '' })}
+                  placeholder="Select industry first"
+                />
+              </div>
+            </div>
+
+            <div>
               <Label className="text-gray-700 text-base">Job Title *</Label>
               <div className="mt-2">
                 <JobTitleSelect
                   value={jobData.title}
                   onChange={(v) => setJobData({ ...jobData, title: v })}
-                  placeholder="Select job title"
+                  placeholder={jobData.industry ? "Select job title" : "Select industry first"}
+                  industry={jobData.industry}
                 />
               </div>
             </div>

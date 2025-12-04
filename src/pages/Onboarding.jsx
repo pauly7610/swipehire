@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2 } from 'lucide-react';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import LocationSelect from '@/components/shared/LocationSelect';
+import IndustrySelect from '@/components/shared/IndustrySelect';
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -204,12 +205,24 @@ export default function Onboarding() {
                 </div>
 
                 <div>
+                  <Label className="text-gray-700">Industry</Label>
+                  <div className="mt-2">
+                    <IndustrySelect
+                      value={candidateData.industry}
+                      onChange={(v) => setCandidateData({ ...candidateData, industry: v, headline: '' })}
+                      placeholder="Select your industry"
+                    />
+                  </div>
+                </div>
+
+                <div>
                   <Label className="text-gray-700">Job Title / Role</Label>
                   <div className="mt-2">
                     <JobTitleSelect
                       value={candidateData.headline}
                       onChange={(v) => setCandidateData({ ...candidateData, headline: v })}
-                      placeholder="Select your job title"
+                      placeholder={candidateData.industry ? "Select your job title" : "Select industry first"}
+                      industry={candidateData.industry}
                     />
                   </div>
                 </div>
