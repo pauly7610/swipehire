@@ -33,6 +33,8 @@ import Gamification from './pages/Gamification';
 import DirectMessages from './pages/DirectMessages';
 import EditJob from './pages/EditJob';
 import CommunicationHub from './pages/CommunicationHub';
+import FavoriteCandidates from './pages/FavoriteCandidates';
+import FollowedCompanies from './pages/FollowedCompanies';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +74,8 @@ export const PAGES = {
     "DirectMessages": DirectMessages,
     "EditJob": EditJob,
     "CommunicationHub": CommunicationHub,
+    "FavoriteCandidates": FavoriteCandidates,
+    "FollowedCompanies": FollowedCompanies,
 }
 
 export const pagesConfig = {
