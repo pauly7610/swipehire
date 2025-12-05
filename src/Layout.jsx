@@ -93,16 +93,15 @@ export default function Layout({ children, currentPageName }) {
   const isMainAdmin = user?.email === 'xmitchell99@gmail.com';
   
   const employerNav = [
-                    { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
-                    { name: 'Feed', icon: Home, page: 'VideoFeed' },
-                    { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
-                    { name: 'Favorites', icon: Star, page: 'FavoriteCandidates' },
-                    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
-                    { name: 'ATS', icon: MessageCircle, page: 'ATS' },
-                    { name: 'Rewards', icon: Trophy, page: 'Gamification' },
-                    { name: 'Profile', icon: User, page: 'RecruiterProfile' },
-                    ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
-                  ];
+                            { name: 'Dashboard', icon: Home, page: 'EmployerDashboard' },
+                            { name: 'Feed', icon: Home, page: 'VideoFeed' },
+                            { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
+                            { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
+                            { name: 'ATS', icon: MessageCircle, page: 'ATS' },
+                            { name: 'Rewards', icon: Trophy, page: 'Gamification' },
+                            { name: 'Profile', icon: User, page: 'RecruiterProfile' },
+                            ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
+                          ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;
 
