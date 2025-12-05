@@ -27,6 +27,8 @@ export default function Welcome() {
       try {
         const authenticated = await base44.auth.isAuthenticated();
         if (authenticated) {
+          // User is logged in, skip splash and redirect
+          setShowSplash(false);
           const user = await base44.auth.me();
           // Check if user has completed onboarding
           const candidates = await base44.entities.Candidate.filter({ user_id: user.id });

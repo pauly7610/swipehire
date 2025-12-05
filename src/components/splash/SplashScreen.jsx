@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ChevronRight } from 'lucide-react';
 
 export default function SplashScreen({ onComplete }) {
   const [stage, setStage] = useState(0);
@@ -9,13 +11,11 @@ export default function SplashScreen({ onComplete }) {
       setTimeout(() => setStage(1), 500),
       setTimeout(() => setStage(2), 1200),
       setTimeout(() => setStage(3), 2000),
-      setTimeout(() => setStage(4), 3000),
-      setTimeout(() => onComplete?.(), 4500),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+  }, []);
 
-  const taglineWords = ['Swipe.', 'Match.', 'Interview.', 'Grow.'];
+  const taglineWords = ['Swipe.', 'Match.', 'Hire.'];
 
   return (
     <motion.div
@@ -87,9 +87,9 @@ export default function SplashScreen({ onComplete }) {
         ))}
       </div>
 
-      {/* Feature highlights */}
+      {/* Content */}
       <motion.div
-        className="mt-12 flex flex-col items-center gap-3 text-center px-8"
+        className="mt-8 flex flex-col items-center gap-4 text-center px-6 max-w-lg"
         initial={{ opacity: 0, y: 30 }}
         animate={{ 
           opacity: stage >= 3 ? 1 : 0, 
@@ -97,53 +97,39 @@ export default function SplashScreen({ onComplete }) {
         }}
         transition={{ duration: 0.6 }}
       >
-        <p className="text-gray-600 max-w-md">
-          The modern way to hire and get hired. Swipe through opportunities, 
-          match with perfect fits, and land your dream job or candidate.
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Welcome to SwipeHire
+        </h2>
+        
+        <p className="text-gray-600 leading-relaxed">
+          The hiring world just got an upgrade. SwipeHire is where jobs meet social energy and matching talent with companies feels as easy as swiping through your favorite apps.
         </p>
         
-        <div className="flex gap-6 mt-4">
-          {[
-            { icon: '👆', label: 'Swipe Jobs' },
-            { icon: '🤝', label: 'Smart Matching' },
-            { icon: '🎥', label: 'Video Intros' },
-          ].map((feature, i) => (
-            <motion.div
-              key={feature.label}
-              className="flex flex-col items-center gap-1"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: stage >= 3 ? 1 : 0, 
-                scale: stage >= 3 ? 1 : 0.8 
-              }}
-              transition={{ delay: 0.2 + i * 0.1 }}
-            >
-              <span className="text-2xl">{feature.icon}</span>
-              <span className="text-xs text-gray-500">{feature.label}</span>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+        <p className="text-gray-700 font-medium">
+          Show who you are. Discover who you need. Connect fast.
+        </p>
+        
+        <p className="text-gray-600 leading-relaxed">
+          Candidates get real visibility. Employers get real talent. Everyone wins without the boring back and forth, black holes or endless forms.
+        </p>
 
-      {/* Loading indicator */}
-      <motion.div
-        className="absolute bottom-12 flex flex-col items-center gap-3"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: stage >= 4 ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <motion.div
-          className="w-48 h-1 bg-gray-200 rounded-full overflow-hidden"
+        <p className="text-lg font-semibold mt-2" style={{
+          background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          Welcome to recruiting that finally makes sense.
+        </p>
+
+        <Button
+          onClick={onComplete}
+          className="mt-6 text-white text-lg px-8 py-6 rounded-2xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all hover:scale-105"
+          style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
         >
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #FF005C, #FF7B00)' }}
-            initial={{ width: '0%' }}
-            animate={{ width: stage >= 4 ? '100%' : '0%' }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
-          />
-        </motion.div>
-        <span className="text-sm text-gray-400">Loading your experience...</span>
+          Continue
+          <ChevronRight className="w-5 h-5 ml-2" />
+        </Button>
       </motion.div>
 
       {/* Floating particles */}
