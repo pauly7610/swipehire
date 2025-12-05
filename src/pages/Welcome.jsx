@@ -19,7 +19,7 @@ export default function Welcome() {
       const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
       
       if (!splashSeen) {
-        // Show splash first
+        // Show splash first - always
         setShowSplash(true);
         setLoading(false);
         return;
@@ -47,9 +47,12 @@ export default function Welcome() {
           return;
         }
       } catch (e) {
-        // Not authenticated, continue to show welcome
+        // Not authenticated, redirect to login
+        base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+        return;
       }
-      setLoading(false);
+      // Not authenticated, redirect to login
+      base44.auth.redirectToLogin(createPageUrl('Onboarding'));
     };
     
     init();
