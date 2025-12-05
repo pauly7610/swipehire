@@ -11,8 +11,10 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(false);
   const [showWelcomeContent, setShowWelcomeContent] = useState(false);
+
+  // Check if splash was already seen this session
+  const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
@@ -21,9 +23,14 @@ export default function Welcome() {
   };
 
   useEffect(() => {
-    const checkAuthFirst = async () => {
+    // If splash hasn't been seen, don't run auth check yet
+    if (!hasSeenSplash) {
+      setLoading(false);
+      return;
+    }
+
+    const checkAuth = async () => {
       try {
-        // Check auth FIRST before showing splash
         const authenticated = await base44.auth.isAuthenticated();
         if (authenticated) {
           const user = await base44.auth.me();
@@ -40,36 +47,26 @@ export default function Welcome() {
           return;
         }
         
-        // Not authenticated - check if should show splash
-        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
-        if (!hasSeenSplash) {
-          setShowSplash(true);
-        } else {
-          setShowWelcomeContent(true);
-        }
+        // Not authenticated - show welcome content
+        setShowWelcomeContent(true);
         setIsAuthenticated(false);
       } catch (e) {
-        // Not authenticated - check if should show splash
-        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
-        if (!hasSeenSplash) {
-          setShowSplash(true);
-        } else {
-          setShowWelcomeContent(true);
-        }
+        // Not authenticated - show welcome content
+        setShowWelcomeContent(true);
       }
       setLoading(false);
     };
-    checkAuthFirst();
-  }, [navigate]);
+    checkAuth();
+  }, [navigate, hasSeenSplash]);
 
   const handleGetStarted = () => {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
-  // Show splash FIRST, before any auth checks
-    if (showSplash) {
-      return <SplashScreen onComplete={handleSplashComplete} />;
-    }
+  // Show splash FIRST if not seen yet
+  if (!hasSeenSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   if (loading) {
     return (
