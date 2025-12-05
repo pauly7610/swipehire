@@ -117,7 +117,8 @@ export default function Layout({ children, currentPageName }) {
   
   const employerNav = [
                             { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard' },
-                            { name: 'Candidates', icon: Users, page: 'SwipeCandidates' },
+                            { name: 'Browse', icon: Search, page: 'BrowseCandidates' },
+                            { name: 'Swipe', icon: Users, page: 'SwipeCandidates' },
                             { name: 'Feed', icon: Home, page: 'VideoFeed' },
                             { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
                             { name: 'ATS', icon: Monitor, page: 'ATS' },

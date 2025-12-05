@@ -35,6 +35,7 @@ import EditJob from './pages/EditJob';
 import CommunicationHub from './pages/CommunicationHub';
 import FavoriteCandidates from './pages/FavoriteCandidates';
 import FollowedCompanies from './pages/FollowedCompanies';
+import BrowseCandidates from './pages/BrowseCandidates';
 import __Layout from './Layout.jsx';
 
 
@@ -76,6 +77,7 @@ export const PAGES = {
     "CommunicationHub": CommunicationHub,
     "FavoriteCandidates": FavoriteCandidates,
     "FollowedCompanies": FollowedCompanies,
+    "BrowseCandidates": BrowseCandidates,
 }
 
 export const pagesConfig = {
