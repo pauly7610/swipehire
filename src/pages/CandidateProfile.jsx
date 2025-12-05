@@ -506,8 +506,8 @@ export default function CandidateProfile() {
               <CardContent>
                 {candidate?.video_intro_url ? (
                   <div className="space-y-4">
-                    <div className="relative rounded-xl overflow-hidden">
-                      <video src={candidate.video_intro_url} controls className="w-full max-h-64 rounded-xl object-contain bg-black mx-auto" />
+                    <div className="relative rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                      <video src={candidate.video_intro_url} controls className="max-w-full max-h-64 rounded-xl object-contain" />
                       <Badge className="absolute top-2 left-2 bg-green-100 text-green-700">
                         <CheckCircle2 className="w-3 h-3 mr-1" /> Video Added
                       </Badge>
