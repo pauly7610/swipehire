@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
         setUserType(newMode);
         localStorage.setItem('swipehire_view_mode', newMode);
         // Navigate to appropriate home page
-        navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'DiscoverFeed'));
+        navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'));
       };
 
       const handleRoleSelect = (role) => {

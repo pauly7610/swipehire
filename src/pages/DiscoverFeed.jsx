@@ -235,7 +235,7 @@ export default function DiscoverFeed() {
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
-              placeholder={userType === 'candidate' ? "Search jobs, skills, companies..." : "Search candidates, skills..."}
+              placeholder={userType === 'candidate' ? "Search jobs, companies, locations..." : "Search candidates, skills..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-12 rounded-full border-gray-200"
