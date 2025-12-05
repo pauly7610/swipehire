@@ -9,7 +9,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Briefcase, Users, Calendar, MessageCircle, Plus, TrendingUp,
-  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap, Palette
+  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap, Palette, Bot
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isSameDay, addHours, addMinutes, differenceInHours, differenceInMinutes } from 'date-fns';
@@ -17,6 +17,7 @@ import AICandidateSourcing from '@/components/recruiter/AICandidateSourcing';
 import AutoScheduler from '@/components/recruiter/AutoScheduler';
 import RecruitmentAnalytics from '@/components/recruiter/RecruitmentAnalytics';
 import AdvancedHiringAnalytics from '@/components/analytics/AdvancedHiringAnalytics';
+import AIRecruiterAssistant from '@/components/recruiter/AIRecruiterAssistant';
 
 export default function EmployerDashboard() {
   const [company, setCompany] = useState(null);
@@ -238,6 +239,9 @@ export default function EmployerDashboard() {
             <TabsTrigger value="branding" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Palette className="w-4 h-4 mr-2" /> Culture
             </TabsTrigger>
+            <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Bot className="w-4 h-4 mr-2" /> AI Assistant
+            </TabsTrigger>
             </TabsList>
 
           {/* AI Sourcing Tab */}
@@ -264,6 +268,16 @@ export default function EmployerDashboard() {
               matches={matches} 
               interviews={interviews} 
               swipes={swipes}
+            />
+          </TabsContent>
+
+          {/* AI Assistant Tab */}
+          <TabsContent value="ai-assistant" className="mt-6">
+            <AIRecruiterAssistant 
+              jobs={jobs}
+              candidates={candidates}
+              users={users}
+              company={company}
             />
           </TabsContent>
 
