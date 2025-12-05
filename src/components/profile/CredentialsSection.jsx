@@ -11,6 +11,7 @@ import {
   GraduationCap, Award, BadgeCheck, FileText, Plus, X, 
   Upload, Loader2, ExternalLink, Calendar, Building2, Trash2
 } from 'lucide-react';
+import { DegreeSelect, MajorSelect, UniversitySelect } from '@/components/shared/EducationSelects';
 
 export default function CredentialsSection({ candidate, editing, editData, setEditData }) {
   const [activeModal, setActiveModal] = useState(null); // 'education', 'certification', 'award', 'license'
@@ -270,19 +271,26 @@ export default function CredentialsSection({ candidate, editing, editData, setEd
             <DialogTitle>Add Education</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Degree</Label>
-                <Input placeholder="e.g., Bachelor's" value={formData.degree || ''} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} />
-              </div>
-              <div>
-                <Label>Major/Field</Label>
-                <Input placeholder="e.g., Computer Science" value={formData.major || ''} onChange={(e) => setFormData({ ...formData, major: e.target.value })} />
-              </div>
+            <div>
+              <Label>Degree</Label>
+              <DegreeSelect 
+                value={formData.degree || ''} 
+                onChange={(v) => setFormData({ ...formData, degree: v })} 
+              />
+            </div>
+            <div>
+              <Label>Major/Field</Label>
+              <MajorSelect 
+                value={formData.major || ''} 
+                onChange={(v) => setFormData({ ...formData, major: v })} 
+              />
             </div>
             <div>
               <Label>University/Institution</Label>
-              <Input placeholder="e.g., MIT" value={formData.university || ''} onChange={(e) => setFormData({ ...formData, university: e.target.value })} />
+              <UniversitySelect 
+                value={formData.university || ''} 
+                onChange={(v) => setFormData({ ...formData, university: v })} 
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
