@@ -23,6 +23,8 @@ import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 import VideoTranscript from '@/components/candidate/VideoTranscript';
 import CredentialsSection from '@/components/profile/CredentialsSection';
 import RecommendedConnections from '@/components/networking/RecommendedConnections';
+import JobTitleSelect from '@/components/shared/JobTitleSelect';
+import IndustrySelect from '@/components/shared/IndustrySelect';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -40,10 +42,19 @@ export default function CandidateProfile() {
   const [showVideoRecorder, setShowVideoRecorder] = useState(false);
   const [videoTranscript, setVideoTranscript] = useState(null);
   const [isGeneratingTranscript, setIsGeneratingTranscript] = useState(false);
+  const [suggestedSkills, setSuggestedSkills] = useState([]);
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Update suggested skills when job title changes
+  useEffect(() => {
+    if (editing && editData.headline) {
+      const skills = getSkillsForTitle(editData.headline);
+      setSuggestedSkills(skills);
+    }
+  }, [editing, editData.headline]);
 
   const loadProfile = async () => {
     try {
@@ -98,14 +109,41 @@ export default function CandidateProfile() {
     setEditing(false);
   };
 
-  const addSkill = () => {
-    if (newSkill.trim() && !editData.skills?.includes(newSkill.trim())) {
+  const addSkill = (skill = newSkill) => {
+    const skillToAdd = skill.trim();
+    if (skillToAdd && !editData.skills?.includes(skillToAdd)) {
       setEditData({
         ...editData,
-        skills: [...(editData.skills || []), newSkill.trim()]
+        skills: [...(editData.skills || []), skillToAdd]
       });
       setNewSkill('');
     }
+  };
+
+  const getSkillsForTitle = (title) => {
+    const titleLower = title.toLowerCase();
+    const skillMap = {
+      'software': ['JavaScript', 'Python', 'React', 'Node.js', 'Git', 'SQL', 'TypeScript', 'AWS', 'Docker', 'REST APIs'],
+      'developer': ['JavaScript', 'Python', 'React', 'Node.js', 'Git', 'SQL', 'TypeScript', 'AWS', 'Docker', 'REST APIs'],
+      'frontend': ['React', 'JavaScript', 'CSS', 'HTML', 'TypeScript', 'Vue.js', 'Tailwind CSS', 'Responsive Design', 'Git'],
+      'backend': ['Node.js', 'Python', 'Java', 'SQL', 'MongoDB', 'REST APIs', 'GraphQL', 'Docker', 'AWS', 'Microservices'],
+      'data': ['Python', 'SQL', 'Pandas', 'NumPy', 'Machine Learning', 'TensorFlow', 'Data Visualization', 'Statistics', 'Excel'],
+      'analyst': ['Excel', 'SQL', 'Tableau', 'Power BI', 'Python', 'Data Analysis', 'Statistics', 'Business Intelligence'],
+      'designer': ['Figma', 'Adobe XD', 'Sketch', 'UI/UX', 'Photoshop', 'Illustrator', 'Prototyping', 'User Research', 'Wireframing'],
+      'marketing': ['SEO', 'Google Analytics', 'Content Marketing', 'Social Media', 'Google Ads', 'Email Marketing', 'Copywriting', 'Facebook Ads'],
+      'manager': ['Leadership', 'Project Management', 'Agile', 'Scrum', 'Team Building', 'Strategic Planning', 'Communication', 'Jira'],
+      'sales': ['Salesforce', 'Cold Calling', 'Negotiation', 'CRM', 'Lead Generation', 'B2B Sales', 'Account Management', 'Closing'],
+      'hr': ['Recruiting', 'Employee Relations', 'Performance Management', 'HRIS', 'Talent Acquisition', 'Onboarding', 'Compensation'],
+      'accountant': ['QuickBooks', 'Excel', 'Financial Reporting', 'Tax Preparation', 'Bookkeeping', 'GAAP', 'Auditing', 'Accounts Payable'],
+      'engineer': ['AutoCAD', 'SolidWorks', 'MATLAB', 'Project Management', 'Technical Writing', 'Problem Solving', 'CAD'],
+    };
+
+    for (const [key, skills] of Object.entries(skillMap)) {
+      if (titleLower.includes(key)) {
+        return skills.filter(s => !editData.skills?.includes(s));
+      }
+    }
+    return [];
   };
 
   const removeSkill = (skill) => {
@@ -232,14 +270,24 @@ export default function CandidateProfile() {
             <div className="mt-4">
               <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
               {editing ? (
-                <Input
-                  value={editData.headline || ''}
-                  onChange={(e) => setEditData({ ...editData, headline: e.target.value })}
-                  placeholder="Your professional headline"
-                  className="mt-2"
-                />
+                <div className="space-y-2 mt-2">
+                  <Label className="text-sm text-gray-600">Industry</Label>
+                  <IndustrySelect
+                    value={editData.industry || ''}
+                    onChange={(v) => setEditData({ ...editData, industry: v, headline: '' })}
+                    placeholder="Select your industry"
+                  />
+                  <Label className="text-sm text-gray-600 mt-2">Job Title</Label>
+                  <JobTitleSelect
+                    value={editData.headline || ''}
+                    onChange={(v) => setEditData({ ...editData, headline: v })}
+                    placeholder={editData.industry ? "Select your job title" : "Select industry first"}
+                    industry={editData.industry}
+                    allowCustom
+                  />
+                </div>
               ) : (
-                <p className="text-gray-600">{candidate?.headline || 'Add your headline'}</p>
+                <p className="text-gray-600">{candidate?.headline || 'Add your job title'}</p>
               )}
 
               <div className="flex items-center gap-2 mt-2 text-gray-500">
@@ -360,18 +408,42 @@ export default function CandidateProfile() {
               </CardHeader>
               <CardContent>
                 {editing && (
-                  <div className="flex gap-2 mb-4">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      placeholder="Add a skill"
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                    />
-                    <Button onClick={addSkill} className="swipe-gradient">
-                      <Plus className="w-5 h-5" />
-                    </Button>
-                  </div>
+                  <>
+                    {/* Suggested Skills */}
+                    {suggestedSkills.length > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm font-medium text-blue-900 mb-2">Suggested for {editData.headline}:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestedSkills.slice(0, 10).map((skill) => (
+                            <Badge
+                              key={skill}
+                              className="cursor-pointer bg-white text-blue-700 hover:bg-blue-100 border border-blue-200"
+                              onClick={() => addSkill(skill)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Manual Skill Input */}
+                    <div className="flex gap-2 mb-4">
+                      <Input
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="Add a custom skill"
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                      />
+                      <Button onClick={() => addSkill()} className="swipe-gradient">
+                        <Plus className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </>
                 )}
+                
+                {/* Current Skills */}
                 <div className="flex flex-wrap gap-2">
                   {(editing ? editData.skills : candidate?.skills)?.map((skill) => (
                     <Badge
