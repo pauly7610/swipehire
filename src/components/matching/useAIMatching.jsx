@@ -312,31 +312,36 @@ export function useAIMatching() {
     };
   }, [findRelatedSkills]);
 
-  // Analyze patterns from swipe history
-  const analyzeSwipePatterns = (rightSwipes, job, candidate, company) => {
-    let patternScore = 0;
+  // Analyze user feedback patterns to improve matching
+  const analyzeUserFeedbackPatterns = useCallback((feedbackHistory, job, company) => {
+    if (!feedbackHistory?.length) return 0;
     
-    // This is a simplified pattern analysis
-    // In production, this could use ML models
+    let bonus = 0;
+    const positiveFeedback = feedbackHistory.filter(f => f.is_positive);
+    const negativeFeedback = feedbackHistory.filter(f => !f.is_positive);
     
-    // Count common attributes in positive swipes
-    const feedback = rightSwipes.filter(s => s.feedback).map(s => s.feedback);
+    // Analyze positive patterns
+    const positiveReasons = positiveFeedback.map(f => f.reason).filter(Boolean);
+    const reasonCounts = {};
+    positiveReasons.forEach(r => { reasonCounts[r] = (reasonCounts[r] || 0) + 1; });
     
-    if (feedback.length > 0) {
-      const reasons = feedback.map(f => f.reason);
-      const topReason = reasons.sort((a, b) =>
-        reasons.filter(v => v === a).length - reasons.filter(v => v === b).length
-      ).pop();
-      
-      // If the top reason matches this job/candidate characteristics
-      if (topReason === 'skills_match' && job?.skills_required?.length > 3) patternScore += 5;
-      if (topReason === 'salary' && job?.salary_max > 80000) patternScore += 5;
-      if (topReason === 'location' && job?.job_type === 'remote') patternScore += 5;
-      if (topReason === 'culture' && company?.culture_traits?.length > 2) patternScore += 5;
-    }
+    // Check if current job matches preferred patterns
+    if (reasonCounts['skills_match'] >= 2 && job?.skills_required?.length >= 3) bonus += 2;
+    if (reasonCounts['salary'] >= 2 && job?.salary_max >= 80000) bonus += 2;
+    if (reasonCounts['location'] >= 2 && job?.job_type === 'remote') bonus += 2;
+    if (reasonCounts['culture'] >= 2 && company?.culture_traits?.length >= 2) bonus += 2;
+    if (reasonCounts['company'] >= 2 && company?.size === '500+') bonus += 1;
     
-    return Math.min(10, patternScore);
-  };
+    // Reduce score if matches negative patterns
+    const negativeReasons = negativeFeedback.map(f => f.reason).filter(Boolean);
+    const negCounts = {};
+    negativeReasons.forEach(r => { negCounts[r] = (negCounts[r] || 0) + 1; });
+    
+    if (negCounts['salary'] >= 2 && job?.salary_max < 60000) bonus -= 2;
+    if (negCounts['location'] >= 2 && job?.job_type !== 'remote') bonus -= 1;
+    
+    return Math.max(0, Math.min(5, bonus));
+  }, []);
 
   const checkDealBreakers = useCallback((candidate, job, company) => {
     if (!candidate?.deal_breakers?.length) return { passed: true, violations: [] };
