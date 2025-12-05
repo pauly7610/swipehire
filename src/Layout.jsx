@@ -81,8 +81,8 @@ export default function Layout({ children, currentPageName }) {
       }
 
   const candidateNav = [
-            { name: 'Feed', icon: Home, page: 'VideoFeed' },
             { name: 'Jobs', icon: Briefcase, page: 'SwipeJobs' },
+            { name: 'Feed', icon: Home, page: 'VideoFeed' },
             { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
             { name: 'Network', icon: Users, page: 'Connections' },
             { name: 'Following', icon: Heart, page: 'FollowedCompanies' },
