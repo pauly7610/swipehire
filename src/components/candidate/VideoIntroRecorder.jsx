@@ -4,9 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
 import { 
-  Video, Circle, Square, Play, RotateCcw, Upload, 
-  CheckCircle2, Loader2, Clock, Lightbulb, X
+  Video, Circle, Square, Play, Pause, RotateCcw, Upload, 
+  CheckCircle2, Loader2, Clock, Lightbulb, X, Scissors, SkipBack, SkipForward
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,14 +20,22 @@ const TIPS = [
 ];
 
 export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, existingVideo }) {
-  const [mode, setMode] = useState(existingVideo ? 'preview' : 'tips'); // tips, recording, preview, uploading
+  const [mode, setMode] = useState(existingVideo ? 'preview' : 'tips'); // tips, recording, preview, editing, uploading
   const [recording, setRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState(null);
   const [recordedUrl, setRecordedUrl] = useState(existingVideo || null);
   const [timer, setTimer] = useState(0);
   const [uploading, setUploading] = useState(false);
   
+  // Editing state
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  
   const videoRef = useRef(null);
+  const previewVideoRef = useRef(null);
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -134,8 +143,83 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
     const file = e.target.files[0];
     if (!file) return;
 
+    // Show preview for editing instead of direct upload
+    const url = URL.createObjectURL(file);
+    setRecordedUrl(url);
+    setRecordedBlob(file);
+    setMode('editing');
+  };
+
+  // Video editing functions
+  const handleVideoLoaded = () => {
+    if (previewVideoRef.current) {
+      const duration = previewVideoRef.current.duration;
+      setVideoDuration(duration);
+      setTrimEnd(duration);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (previewVideoRef.current) {
+      const time = previewVideoRef.current.currentTime;
+      setCurrentTime(time);
+      
+      // Stop at trim end
+      if (time >= trimEnd) {
+        previewVideoRef.current.pause();
+        previewVideoRef.current.currentTime = trimStart;
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const togglePlayPause = () => {
+    if (previewVideoRef.current) {
+      if (isPlaying) {
+        previewVideoRef.current.pause();
+      } else {
+        if (previewVideoRef.current.currentTime < trimStart || previewVideoRef.current.currentTime >= trimEnd) {
+          previewVideoRef.current.currentTime = trimStart;
+        }
+        previewVideoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const seekTo = (time) => {
+    if (previewVideoRef.current) {
+      previewVideoRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  const handleTrimChange = (values) => {
+    setTrimStart(values[0]);
+    setTrimEnd(values[1]);
+    if (previewVideoRef.current) {
+      previewVideoRef.current.currentTime = values[0];
+      setCurrentTime(values[0]);
+    }
+  };
+
+  const goToEdit = () => {
+    setMode('editing');
+  };
+
+  const handleSaveWithTrim = async () => {
+    if (!recordedBlob) return;
+    
     setUploading(true);
     try {
+      // For now, upload the full video (trimming would require server-side processing)
+      // The trim values could be stored as metadata
+      let file;
+      if (recordedBlob instanceof File) {
+        file = recordedBlob;
+      } else {
+        file = new File([recordedBlob], 'video_intro.webm', { type: 'video/webm' });
+      }
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       onVideoSaved(file_url);
       onOpenChange(false);
@@ -268,6 +352,9 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                 <Button onClick={retake} variant="secondary" className="flex-1">
                   <RotateCcw className="w-4 h-4 mr-2" /> Retake
                 </Button>
+                <Button onClick={goToEdit} variant="secondary" className="flex-1">
+                  <Scissors className="w-4 h-4 mr-2" /> Edit
+                </Button>
                 <Button 
                   onClick={handleUpload} 
                   disabled={uploading}
@@ -278,7 +365,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                   ) : (
                     <CheckCircle2 className="w-4 h-4 mr-2" />
                   )}
-                  {uploading ? 'Saving...' : 'Save Video'}
+                  Save
                 </Button>
               </div>
 
@@ -289,6 +376,140 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+          )}
+
+          {mode === 'editing' && recordedUrl && (
+            <div className="bg-black">
+              {/* Video Preview */}
+              <div className="relative aspect-[9/16]">
+                <video 
+                  ref={previewVideoRef}
+                  src={recordedUrl} 
+                  className="w-full h-full object-cover"
+                  onLoadedMetadata={handleVideoLoaded}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={() => setIsPlaying(false)}
+                />
+                
+                {/* Play/Pause Overlay */}
+                <button 
+                  onClick={togglePlayPause}
+                  className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
+                >
+                  {!isPlaying && (
+                    <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
+                      <Play className="w-8 h-8 text-gray-900 ml-1" />
+                    </div>
+                  )}
+                </button>
+
+                {/* Close Button */}
+                <button 
+                  onClick={() => onOpenChange(false)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Editing Controls */}
+              <div className="p-4 bg-gray-900 space-y-4">
+                {/* Trim Label */}
+                <div className="flex items-center justify-between text-white">
+                  <div className="flex items-center gap-2">
+                    <Scissors className="w-4 h-4 text-pink-400" />
+                    <span className="text-sm font-medium">Trim Video</span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    Duration: {formatTime(Math.round(trimEnd - trimStart))}
+                  </span>
+                </div>
+
+                {/* Timeline */}
+                <div className="space-y-2">
+                  {/* Current position indicator */}
+                  <div className="h-1 bg-gray-700 rounded-full relative">
+                    <div 
+                      className="absolute h-full bg-pink-500 rounded-full"
+                      style={{ 
+                        left: `${(trimStart / videoDuration) * 100}%`,
+                        width: `${((trimEnd - trimStart) / videoDuration) * 100}%`
+                      }}
+                    />
+                    <div 
+                      className="absolute w-2 h-2 bg-white rounded-full -top-0.5"
+                      style={{ left: `${(currentTime / videoDuration) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Trim Slider */}
+                  <Slider
+                    value={[trimStart, trimEnd]}
+                    min={0}
+                    max={videoDuration || 60}
+                    step={0.1}
+                    onValueChange={handleTrimChange}
+                    className="w-full"
+                  />
+
+                  {/* Time Labels */}
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>{formatTime(Math.round(trimStart))}</span>
+                    <span>{formatTime(Math.round(currentTime))}</span>
+                    <span>{formatTime(Math.round(trimEnd))}</span>
+                  </div>
+                </div>
+
+                {/* Playback Controls */}
+                <div className="flex items-center justify-center gap-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => seekTo(trimStart)}
+                    className="text-white hover:bg-gray-800"
+                  >
+                    <SkipBack className="w-5 h-5" />
+                  </Button>
+                  <Button 
+                    onClick={togglePlayPause}
+                    className="w-12 h-12 rounded-full swipe-gradient"
+                  >
+                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => seekTo(trimEnd)}
+                    className="text-white hover:bg-gray-800"
+                  >
+                    <SkipForward className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <Button 
+                    onClick={retake} 
+                    variant="outline" 
+                    className="flex-1 border-gray-600 text-white hover:bg-gray-800"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" /> Retake
+                  </Button>
+                  <Button 
+                    onClick={handleSaveWithTrim} 
+                    disabled={uploading}
+                    className="flex-1 swipe-gradient text-white"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                    )}
+                    {uploading ? 'Saving...' : 'Save Video'}
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
