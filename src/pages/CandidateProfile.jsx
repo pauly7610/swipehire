@@ -331,6 +331,18 @@ export default function CandidateProfile() {
                 )}
               </div>
 
+              {/* View Resume Button */}
+              {candidate?.resume_url && !editing && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowResume(true)}
+                  className="mt-3 w-full"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  View Resume
+                </Button>
+              )}
+
               {/* Social Links */}
               {editing ? (
                 <div className="mt-4 space-y-2">
@@ -900,6 +912,13 @@ export default function CandidateProfile() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Resume Viewer */}
+      <ResumeViewer
+        resumeUrl={candidate?.resume_url}
+        open={showResume}
+        onOpenChange={setShowResume}
+      />
     </div>
   );
 }
