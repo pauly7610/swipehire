@@ -25,6 +25,8 @@ import { format } from 'date-fns';
 import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
 import ResumeAnalysis from '@/components/ats/ResumeAnalysis';
 import ResumeCompare from '@/components/ats/ResumeCompare';
+import DetailedMatchInsights from '@/components/matching/DetailedMatchInsights';
+import MatchFeedbackForm from '@/components/matching/MatchFeedbackForm';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -58,6 +60,9 @@ export default function ATS() {
   const [searchMode, setSearchMode] = useState('pipeline'); // 'pipeline' or 'all'
   const [globalSearchResults, setGlobalSearchResults] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackMatch, setFeedbackMatch] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -66,6 +71,7 @@ export default function ATS() {
   const loadData = async () => {
     try {
       const user = await base44.auth.me();
+      setCurrentUser(user);
       const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
       setCompany(companyData);
 
@@ -1000,12 +1006,34 @@ export default function ATS() {
                     <p className="text-sm text-gray-500 mb-1">Applied for</p>
                     <p className="font-semibold text-gray-900">{job?.title}</p>
                     {selectedCandidate.match_score && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium">{selectedCandidate.match_score}% Match</span>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-sm font-medium">{selectedCandidate.match_score}% Match</span>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setFeedbackMatch(selectedCandidate);
+                            setShowFeedbackForm(true);
+                          }}
+                        >
+                          Rate Match
+                        </Button>
                       </div>
                     )}
                   </div>
+
+                  {/* Detailed Match Insights */}
+                  <DetailedMatchInsights
+                    candidate={candidate}
+                    job={job}
+                    company={company}
+                    score={selectedCandidate.match_score}
+                    insights={[]}
+                    showDetailed={false}
+                  />
 
                   {/* Skills */}
                   {candidate?.skills?.length > 0 && (
@@ -1113,6 +1141,21 @@ export default function ATS() {
           const match = matches.find(m => m.id === matchId);
           return match?.candidate_id;
         }).filter(Boolean)}
+      />
+
+      {/* Match Feedback Form */}
+      <MatchFeedbackForm
+        open={showFeedbackForm}
+        onOpenChange={setShowFeedbackForm}
+        matchId={feedbackMatch?.id}
+        candidateId={feedbackMatch?.candidate_id}
+        jobId={feedbackMatch?.job_id}
+        aiScore={feedbackMatch?.match_score}
+        recruiterId={currentUser?.id}
+        onSubmit={() => {
+          setShowFeedbackForm(false);
+          setFeedbackMatch(null);
+        }}
       />
     </div>
   );
