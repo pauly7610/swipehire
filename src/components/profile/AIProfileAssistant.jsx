@@ -5,11 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sparkles, Loader2, FileText, Briefcase, Target, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function AIProfileAssistant({ candidate, onUpdate, resumeUrl }) {
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState(null);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedDealBreakers, setSelectedDealBreakers] = useState([]);
+  const [useBio, setUseBio] = useState(false);
+  const [useExpLevel, setUseExpLevel] = useState(false);
 
   const analyzeProfile = async () => {
     setLoading(true);
@@ -68,6 +73,10 @@ Return your analysis in the following JSON format:
       });
 
       setSuggestions(result);
+      setSelectedSkills(result.skills || []);
+      setSelectedDealBreakers(result.deal_breakers?.map((_, i) => i) || []);
+      setUseBio(true);
+      setUseExpLevel(true);
       setShowSuggestions(true);
     } catch (error) {
       console.error('AI analysis failed:', error);
@@ -159,33 +168,45 @@ Return structured data in JSON format.`;
     setLoading(false);
   };
 
-  const applySuggestions = (field) => {
+  const applySelectedSuggestions = () => {
     if (!suggestions) return;
 
-    switch (field) {
-      case 'skills':
-        onUpdate({
-          skills: [...new Set([...(candidate?.skills || []), ...suggestions.skills])]
-        });
-        break;
-      case 'bio':
-        onUpdate({ bio: suggestions.bio });
-        break;
-      case 'deal_breakers':
-        onUpdate({ deal_breakers: suggestions.deal_breakers });
-        break;
-      case 'experience_level':
-        onUpdate({ experience_level: suggestions.experience_level });
-        break;
-      case 'all':
-        onUpdate({
-          skills: [...new Set([...(candidate?.skills || []), ...suggestions.skills])],
-          bio: suggestions.bio,
-          deal_breakers: suggestions.deal_breakers,
-          experience_level: suggestions.experience_level
-        });
-        break;
+    const updates = {};
+    
+    if (selectedSkills.length > 0) {
+      updates.skills = [...new Set([...(candidate?.skills || []), ...selectedSkills])];
     }
+    
+    if (useBio && suggestions.bio) {
+      updates.bio = suggestions.bio;
+    }
+    
+    if (selectedDealBreakers.length > 0) {
+      updates.deal_breakers = selectedDealBreakers.map(i => suggestions.deal_breakers[i]);
+    }
+    
+    if (useExpLevel && suggestions.experience_level) {
+      updates.experience_level = suggestions.experience_level;
+    }
+    
+    onUpdate(updates);
+    setShowSuggestions(false);
+  };
+
+  const toggleSkill = (skill) => {
+    setSelectedSkills(prev => 
+      prev.includes(skill) 
+        ? prev.filter(s => s !== skill) 
+        : [...prev, skill]
+    );
+  };
+
+  const toggleDealBreaker = (index) => {
+    setSelectedDealBreakers(prev =>
+      prev.includes(index)
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
   };
 
   return (
@@ -262,21 +283,39 @@ Return structured data in JSON format.`;
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Briefcase className="w-4 h-4" />
-                    Suggested Skills
+                    Suggested Skills ({selectedSkills.length}/{suggestions.skills?.length || 0} selected)
                   </h3>
-                  <Button
-                    size="sm"
-                    onClick={() => applySuggestions('skills')}
-                    className="swipe-gradient"
-                  >
-                    Add All
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedSkills([])}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setSelectedSkills(suggestions.skills || [])}
+                      className="swipe-gradient"
+                    >
+                      Select All
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.skills?.map((skill) => (
-                    <Badge key={skill} variant="secondary">
-                      {skill}
-                    </Badge>
+                    <label key={skill} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={selectedSkills.includes(skill)}
+                        onCheckedChange={() => toggleSkill(skill)}
+                      />
+                      <Badge 
+                        variant={selectedSkills.includes(skill) ? "default" : "secondary"}
+                        className={selectedSkills.includes(skill) ? "swipe-gradient" : ""}
+                      >
+                        {skill}
+                      </Badge>
+                    </label>
                   ))}
                 </div>
               </div>
@@ -288,15 +327,15 @@ Return structured data in JSON format.`;
                     <User className="w-4 h-4" />
                     Professional Summary
                   </h3>
-                  <Button
-                    size="sm"
-                    onClick={() => applySuggestions('bio')}
-                    className="swipe-gradient"
-                  >
-                    Use This
-                  </Button>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={useBio}
+                      onCheckedChange={setUseBio}
+                    />
+                    <span className="text-sm">Use this</span>
+                  </label>
                 </div>
-                <p className="text-sm text-gray-700 p-3 bg-gray-50 rounded-lg">
+                <p className={`text-sm text-gray-700 p-3 rounded-lg ${useBio ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'}`}>
                   {suggestions.bio}
                 </p>
               </div>
@@ -306,24 +345,40 @@ Return structured data in JSON format.`;
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Suggested Deal Breakers
+                    Suggested Deal Breakers ({selectedDealBreakers.length}/{suggestions.deal_breakers?.length || 0} selected)
                   </h3>
-                  <Button
-                    size="sm"
-                    onClick={() => applySuggestions('deal_breakers')}
-                    className="swipe-gradient"
-                  >
-                    Apply All
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedDealBreakers([])}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setSelectedDealBreakers(suggestions.deal_breakers?.map((_, i) => i) || [])}
+                      className="swipe-gradient"
+                    >
+                      Select All
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {suggestions.deal_breakers?.map((db, i) => (
-                    <div key={i} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                      <p className="font-medium text-sm text-amber-900">
-                        {db.type}: {db.value}
-                      </p>
-                      <p className="text-xs text-amber-700 mt-1">{db.reason}</p>
-                    </div>
+                    <label key={i} className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={selectedDealBreakers.includes(i)}
+                        onCheckedChange={() => toggleDealBreaker(i)}
+                        className="mt-3"
+                      />
+                      <div className={`flex-1 p-3 rounded-lg border ${selectedDealBreakers.includes(i) ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-200'}`}>
+                        <p className="font-medium text-sm text-amber-900">
+                          {db.type}: {db.value}
+                        </p>
+                        <p className="text-xs text-amber-700 mt-1">{db.reason}</p>
+                      </div>
+                    </label>
                   ))}
                 </div>
               </div>
@@ -333,15 +388,17 @@ Return structured data in JSON format.`;
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">Suggested Experience Level</h3>
-                    <Button
-                      size="sm"
-                      onClick={() => applySuggestions('experience_level')}
-                      className="swipe-gradient"
-                    >
-                      Apply
-                    </Button>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={useExpLevel}
+                        onCheckedChange={setUseExpLevel}
+                      />
+                      <span className="text-sm">Use this</span>
+                    </label>
                   </div>
-                  <Badge className="capitalize">{suggestions.experience_level}</Badge>
+                  <Badge className={`capitalize ${useExpLevel ? 'swipe-gradient text-white' : ''}`}>
+                    {suggestions.experience_level}
+                  </Badge>
                 </div>
               )}
 
@@ -360,15 +417,13 @@ Return structured data in JSON format.`;
                 </div>
               )}
 
-              {/* Apply All */}
+              {/* Apply Selected */}
               <Button
-                onClick={() => {
-                  applySuggestions('all');
-                  setShowSuggestions(false);
-                }}
+                onClick={applySelectedSuggestions}
+                disabled={selectedSkills.length === 0 && !useBio && selectedDealBreakers.length === 0 && !useExpLevel}
                 className="w-full swipe-gradient"
               >
-                Apply All Suggestions
+                Apply Selected Suggestions
               </Button>
             </div>
           )}
