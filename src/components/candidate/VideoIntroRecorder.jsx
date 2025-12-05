@@ -178,7 +178,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
       if (isPlaying) {
         previewVideoRef.current.pause();
       } else {
-        if (previewVideoRef.current.currentTime < trimStart || previewVideoRef.current.currentTime >= trimEnd) {
+        if (isFinite(trimStart) && (previewVideoRef.current.currentTime < trimStart || previewVideoRef.current.currentTime >= trimEnd)) {
           previewVideoRef.current.currentTime = trimStart;
         }
         previewVideoRef.current.play();
@@ -188,7 +188,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   };
 
   const seekTo = (time) => {
-    if (previewVideoRef.current) {
+    if (previewVideoRef.current && isFinite(time)) {
       previewVideoRef.current.currentTime = time;
       setCurrentTime(time);
     }
@@ -197,7 +197,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   const handleTrimChange = (values) => {
     setTrimStart(values[0]);
     setTrimEnd(values[1]);
-    if (previewVideoRef.current) {
+    if (previewVideoRef.current && isFinite(values[0])) {
       previewVideoRef.current.currentTime = values[0];
       setCurrentTime(values[0]);
     }
