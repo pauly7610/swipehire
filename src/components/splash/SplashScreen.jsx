@@ -124,7 +124,8 @@ export default function SplashScreen({ onComplete, onSelectRole }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          style={{ zIndex: 100 }}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
