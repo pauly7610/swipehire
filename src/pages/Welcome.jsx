@@ -44,6 +44,8 @@ export default function Welcome() {
         const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
         if (!hasSeenSplash) {
           setShowSplash(true);
+        } else {
+          setShowWelcomeContent(true);
         }
         setIsAuthenticated(false);
       } catch (e) {
@@ -51,6 +53,8 @@ export default function Welcome() {
         const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
         if (!hasSeenSplash) {
           setShowSplash(true);
+        } else {
+          setShowWelcomeContent(true);
         }
       }
       setLoading(false);
