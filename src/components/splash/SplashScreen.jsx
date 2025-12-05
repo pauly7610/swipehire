@@ -38,7 +38,7 @@ export default function SplashScreen({ onComplete }) {
         {swipeCount < 4 ? (
           <motion.img
             key={swipeCount}
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/d908b2b8e_logo.jpg"
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
             alt="SwipeHire"
             className="w-40 md:w-52 h-auto absolute"
             initial={{ x: swipeCount % 2 === 0 ? -400 : 400, opacity: 0, rotate: swipeCount % 2 === 0 ? -10 : 10 }}
@@ -51,7 +51,7 @@ export default function SplashScreen({ onComplete }) {
           />
         ) : (
           <motion.img
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/d908b2b8e_logo.jpg"
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
             alt="SwipeHire"
             className="w-40 md:w-52 h-auto"
             initial={{ scale: 1.3, opacity: 0 }}
