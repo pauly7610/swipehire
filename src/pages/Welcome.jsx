@@ -11,7 +11,16 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Check if user has seen splash before in this session
+    const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
+    return !hasSeenSplash;
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('swipehire_splash_seen', 'true');
+    setShowSplash(false);
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -44,13 +53,20 @@ export default function Welcome() {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
-  if (loading || showSplash) {
+  // Show splash first, before anything else
+  if (showSplash) {
     return (
       <AnimatePresence>
-        {showSplash && (
-          <SplashScreen onComplete={() => setShowSplash(false)} />
-        )}
+        <SplashScreen onComplete={handleSplashComplete} />
       </AnimatePresence>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
+      </div>
     );
   }
 
