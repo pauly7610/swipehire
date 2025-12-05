@@ -6,6 +6,7 @@ import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings,
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
+import { Badge } from '@/components/ui/badge';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -13,6 +14,7 @@ export default function Layout({ children, currentPageName }) {
   const [isRecruiter, setIsRecruiter] = useState(false); // true if user has company profile
   const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
   const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,11 +48,32 @@ export default function Layout({ children, currentPageName }) {
                 setUserType('candidate');
                 setViewMode('candidate');
               }
+
+              // Load unread counts for inbox badge
+              const [unreadNotifs, unreadMessages] = await Promise.all([
+                base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
+                base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
+              ]);
+              setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
             } catch (e) {
               // Not logged in
             }
           };
     loadUser();
+
+    // Poll for unread count every 5 seconds
+    const interval = setInterval(async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        const [unreadNotifs, unreadMessages] = await Promise.all([
+          base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
+          base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
+        ]);
+        setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+      } catch (e) {}
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const toggleViewMode = () => {
@@ -141,19 +164,26 @@ export default function Layout({ children, currentPageName }) {
               key={item.name}
               to={createPageUrl(item.page)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 py-1.5 transition-colors",
+                "flex flex-col items-center justify-center flex-1 py-1.5 transition-colors relative",
                 currentPageName === item.page 
                   ? "text-transparent" 
                   : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <item.icon 
-                className={cn(
-                  "w-5 h-5 mb-0.5",
-                  currentPageName === item.page && "stroke-[url(#gradient)]"
+              <div className="relative">
+                <item.icon 
+                  className={cn(
+                    "w-5 h-5 mb-0.5",
+                    currentPageName === item.page && "stroke-[url(#gradient)]"
+                  )}
+                  style={currentPageName === item.page ? { stroke: '#FF005C' } : {}}
+                />
+                {item.page === 'CommunicationHub' && unreadInboxCount > 0 && (
+                  <span className="absolute -top-1 -right-2 w-4 h-4 bg-pink-500 text-white text-[10px] rounded-full flex items-center justify-center">
+                    {unreadInboxCount > 9 ? '9+' : unreadInboxCount}
+                  </span>
                 )}
-                style={currentPageName === item.page ? { stroke: '#FF005C' } : {}}
-              />
+              </div>
               <span className={cn(
                 "text-[10px] font-medium",
                 currentPageName === item.page && "swipe-gradient-text"
@@ -189,6 +219,11 @@ export default function Layout({ children, currentPageName }) {
             >
               <item.icon className="w-5 h-5" />
               <span className="font-medium">{item.name}</span>
+              {item.page === 'CommunicationHub' && unreadInboxCount > 0 && (
+                <span className="ml-auto w-5 h-5 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadInboxCount > 9 ? '9+' : unreadInboxCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

@@ -271,7 +271,7 @@ export default function CommunicationHub() {
           <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm h-auto">
             <TabsTrigger 
               value="all" 
-              className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg py-2"
+              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               All
               {unreadCount > 0 && (
@@ -280,21 +280,21 @@ export default function CommunicationHub() {
             </TabsTrigger>
             <TabsTrigger 
               value="messages" 
-              className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg py-2"
+              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
               Messages
             </TabsTrigger>
             <TabsTrigger 
               value="interviews" 
-              className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg py-2"
+              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <Calendar className="w-4 h-4 mr-1" />
               Interviews
             </TabsTrigger>
             <TabsTrigger 
               value="updates" 
-              className="flex-1 data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg py-2"
+              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <Bell className="w-4 h-4 mr-1" />
               Updates
