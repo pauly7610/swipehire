@@ -58,8 +58,7 @@ export default function Welcome() {
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
     setShowSplash(false);
-    // Redirect to login, after login go to Onboarding
-    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+    setLoading(false);
   };
 
   const handleGetStarted = () => {
