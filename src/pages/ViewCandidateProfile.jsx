@@ -32,9 +32,15 @@ export default function ViewCandidateProfile() {
       const candidates = await base44.entities.Candidate.filter({ id: candidateId });
       if (candidates.length > 0) {
         setCandidate(candidates[0]);
-        const users = await base44.entities.User.filter({ id: candidates[0].user_id });
-        if (users.length > 0) {
-          setCandidateUser(users[0]);
+        // Try to get user info, but handle if not accessible due to permissions
+        try {
+          const users = await base44.entities.User.list();
+          const user = users.find(u => u.id === candidates[0].user_id);
+          if (user) {
+            setCandidateUser(user);
+          }
+        } catch (userError) {
+          console.log('Could not load user info:', userError);
         }
       }
     } catch (error) {
@@ -88,12 +94,12 @@ export default function ViewCandidateProfile() {
 
       {/* Header Banner */}
       <div className="swipe-gradient h-32 relative">
-        <Link 
-          to={createPageUrl('EmployerMatches')} 
+        <button 
+          onClick={() => window.history.back()}
           className="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
-        </Link>
+        </button>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">
