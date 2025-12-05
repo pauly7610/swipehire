@@ -11,10 +11,7 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(() => {
-    const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
-    return !hasSeenSplash;
-  });
+  const [showSplash, setShowSplash] = useState(false);
   const [showWelcomeContent, setShowWelcomeContent] = useState(false);
 
   const handleSplashComplete = () => {
@@ -24,11 +21,9 @@ export default function Welcome() {
   };
 
   useEffect(() => {
-    // Don't check auth until splash is done
-    if (showSplash) return;
-    
-    const checkAuth = async () => {
+    const checkAuthFirst = async () => {
       try {
+        // Check auth FIRST before showing splash
         const authenticated = await base44.auth.isAuthenticated();
         if (authenticated) {
           const user = await base44.auth.me();
@@ -44,14 +39,24 @@ export default function Welcome() {
           }
           return;
         }
-        setIsAuthenticated(authenticated);
+        
+        // Not authenticated - check if should show splash
+        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
+        if (!hasSeenSplash) {
+          setShowSplash(true);
+        }
+        setIsAuthenticated(false);
       } catch (e) {
-        console.log('Not authenticated');
+        // Not authenticated - check if should show splash
+        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
+        if (!hasSeenSplash) {
+          setShowSplash(true);
+        }
       }
       setLoading(false);
     };
-    checkAuth();
-  }, [navigate, showSplash]);
+    checkAuthFirst();
+  }, [navigate]);
 
   const handleGetStarted = () => {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
