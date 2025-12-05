@@ -22,6 +22,7 @@ import ResumeParser from '@/components/profile/ResumeParser';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 import VideoTranscript from '@/components/candidate/VideoTranscript';
 import CredentialsSection from '@/components/profile/CredentialsSection';
+import RecommendedConnections from '@/components/networking/RecommendedConnections';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -652,8 +653,9 @@ export default function CandidateProfile() {
 
         {/* Job Suggestions */}
         {candidate?.id && !editing && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-6">
             <JobSuggestions candidate={candidate} />
+            <RecommendedConnections candidate={candidate} userId={user?.id} userType="candidate" />
           </div>
         )}
 

@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import CompanyMediaGallery from '@/components/company/CompanyMediaGallery';
 import CompanyTeamSection from '@/components/company/CompanyTeamSection';
 import CompanyJobsList from '@/components/company/CompanyJobsList';
+import FollowCompanyButton from '@/components/networking/FollowCompanyButton';
 
 export default function CompanyProfile() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,8 @@ export default function CompanyProfile() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOwnCompany, setIsOwnCompany] = useState(false);
+  const [candidate, setCandidate] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     loadCompany();
@@ -32,6 +35,11 @@ export default function CompanyProfile() {
   const loadCompany = async () => {
     try {
       const user = await base44.auth.me();
+      setCurrentUser(user);
+      
+      // Load candidate profile for follow functionality
+      const [candidateData] = await base44.entities.Candidate.filter({ user_id: user.id });
+      setCandidate(candidateData);
       
       let companyData;
       if (companyId) {
@@ -162,10 +170,17 @@ export default function CompanyProfile() {
                           </Button>
                         </a>
                       )}
-                      {isOwnCompany && (
+                      {isOwnCompany ? (
                         <Link to={createPageUrl('CompanyBranding')}>
                           <Button className="swipe-gradient text-white">Edit Profile</Button>
                         </Link>
+                      ) : candidate && (
+                        <FollowCompanyButton 
+                          companyId={company.id}
+                          candidateId={candidate.id}
+                          userId={currentUser?.id}
+                          variant="default"
+                        />
                       )}
                     </div>
                   </div>

@@ -10,6 +10,7 @@ import { useAIMatching } from '@/components/matching/useAIMatching';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
+import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
 
 export default function SwipeCandidates() {
   const [searchParams] = useSearchParams();
@@ -349,10 +350,21 @@ export default function SwipeCandidates() {
           )}
         </div>
 
-        {/* Match Insights */}
-                  {currentCandidate && selectedJobId && currentInsights && (
-                    <div className="mb-4">
-                      <MatchInsights insights={currentInsights} score={currentScore} />
+        {/* Favorite Button & Match Insights */}
+                  {currentCandidate && selectedJobId && (
+                    <div className="mb-4 space-y-3">
+                      <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm">
+                        <span className="text-sm text-gray-600">Save to favorites</span>
+                        <FavoriteCandidateButton 
+                          candidateId={currentCandidate.id}
+                          companyId={company?.id}
+                          recruiterUserId={user?.id}
+                          jobId={selectedJobId}
+                        />
+                      </div>
+                      {currentInsights && (
+                        <MatchInsights insights={currentInsights} score={currentScore} />
+                      )}
                     </div>
                   )}
 
