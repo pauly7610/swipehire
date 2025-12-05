@@ -9,10 +9,12 @@ import {
   Briefcase, Building2, MapPin, Clock, CheckCircle2, XCircle, 
   Eye, Users, Calendar, Loader2, FileText, TrendingUp, Video
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow, isSameDay } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ApplicationStatusTimeline, { LiveStatusIndicator } from '@/components/candidate/ApplicationStatusTimeline';
 
 export default function ApplicationTracker() {
   const [applications, setApplications] = useState([]);
@@ -24,6 +26,7 @@ export default function ApplicationTracker() {
   const [candidate, setCandidate] = useState(null);
   const [interviews, setInterviews] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -387,14 +390,31 @@ export default function ApplicationTracker() {
                             })}
                           </div>
 
+                          {/* Live Status */}
+                          <div className="mt-3">
+                            <LiveStatusIndicator status={app.status} lastUpdate={app.updated_date || app.created_date} />
+                          </div>
+
                           {/* Actions */}
-                          {!['rejected', 'withdrawn', 'hired'].includes(app.status) && (
-                            <div className="mt-4 flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => withdrawApplication(app.id)}>
+                          <div className="mt-4 flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setSelectedApplication(app)}
+                            >
+                              View Details
+                            </Button>
+                            {!['rejected', 'withdrawn', 'hired'].includes(app.status) && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-gray-500"
+                                onClick={() => withdrawApplication(app.id)}
+                              >
                                 Withdraw
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -405,6 +425,62 @@ export default function ApplicationTracker() {
           </div>
         )}
       </div>
+      {/* Application Detail Modal */}
+      {selectedApplication && (
+        <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Application Status</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Job Info */}
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                {companies[selectedApplication.company_id]?.logo_url ? (
+                  <img 
+                    src={companies[selectedApplication.company_id].logo_url} 
+                    alt="" 
+                    className="w-12 h-12 rounded-xl object-cover" 
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-semibold text-gray-900">
+                    {jobs[selectedApplication.job_id]?.title || 'Position'}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {companies[selectedApplication.company_id]?.name || 'Company'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <ApplicationStatusTimeline 
+                application={selectedApplication}
+                statusHistory={[
+                  { status: 'applied', date: selectedApplication.created_date, message: 'You applied for this position' },
+                  ...(selectedApplication.status !== 'applied' ? [
+                    { status: selectedApplication.status, date: selectedApplication.updated_date, message: `Status updated to ${selectedApplication.status}` }
+                  ] : [])
+                ]}
+              />
+
+              {/* Action Buttons */}
+              {selectedApplication.match_id && (
+                <Button 
+                  onClick={() => navigate(createPageUrl('Chat') + `?matchId=${selectedApplication.match_id}`)}
+                  className="w-full swipe-gradient text-white"
+                >
+                  Open Chat
+                </Button>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

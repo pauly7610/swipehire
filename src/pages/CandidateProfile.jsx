@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   User, MapPin, Briefcase, GraduationCap, Upload, Plus, X, Edit2, 
   Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle,
-  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin, Play
+  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin, Play, CheckCircle2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,7 @@ import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
 import ResumeParser from '@/components/profile/ResumeParser';
+import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ export default function CandidateProfile() {
   const [followers, setFollowers] = useState(0);
   const [userVideos, setUserVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -483,20 +485,33 @@ export default function CandidateProfile() {
 
             {/* Video Intro */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Video className="w-5 h-5 text-pink-500" />
                   Video Introduction
                 </CardTitle>
+                {candidate?.video_intro_url && (
+                  <Button variant="outline" size="sm" onClick={() => setShowVideoRecorder(true)}>
+                    <Edit2 className="w-4 h-4 mr-1" /> Change
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {candidate?.video_intro_url ? (
-                  <video src={candidate.video_intro_url} controls className="w-full rounded-xl" />
+                  <div className="relative rounded-xl overflow-hidden">
+                    <video src={candidate.video_intro_url} controls className="w-full rounded-xl" />
+                    <Badge className="absolute top-2 left-2 bg-green-100 text-green-700">
+                      <CheckCircle2 className="w-3 h-3 mr-1" /> Video Added
+                    </Badge>
+                  </div>
                 ) : (
-                  <div className="text-center py-8 bg-gray-50 rounded-xl">
-                    <Video className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500 mb-4">Add a 30-second video introduction</p>
-                    <Button variant="outline">Record Video</Button>
+                  <div className="text-center py-8 bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl">
+                    <Video className="w-12 h-12 mx-auto text-pink-400 mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Stand out with a video intro!</h4>
+                    <p className="text-gray-500 mb-4 text-sm">Candidates with videos get 2x more views</p>
+                    <Button onClick={() => setShowVideoRecorder(true)} className="swipe-gradient text-white">
+                      <Video className="w-4 h-4 mr-2" /> Record Video
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -659,6 +674,19 @@ export default function CandidateProfile() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Video Intro Recorder */}
+      <VideoIntroRecorder
+        open={showVideoRecorder}
+        onOpenChange={setShowVideoRecorder}
+        existingVideo={candidate?.video_intro_url}
+        onVideoSaved={async (videoUrl) => {
+          const updated = { ...candidate, video_intro_url: videoUrl };
+          await base44.entities.Candidate.update(candidate.id, { video_intro_url: videoUrl });
+          setCandidate(updated);
+          setEditData(updated);
+        }}
+      />
 
       {/* Experience Modal */}
       <Dialog open={showExperienceModal} onOpenChange={setShowExperienceModal}>

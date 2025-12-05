@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function JobCard({ job, company, isFlipped, onFlip, matchScore }) {
+export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply }) {
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     if (min && max) {
@@ -88,14 +88,24 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore })
             ))}
           </div>
 
-          {/* Flip Button */}
-          <button
-            onClick={onFlip}
-            className="mt-auto flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700 transition-colors py-3"
-          >
-            <span className="text-sm font-medium">See Details</span>
-            <ChevronDown className="w-5 h-5" />
-          </button>
+          {/* Action Buttons */}
+          <div className="mt-auto flex items-center gap-2">
+            {onQuickApply && (
+              <Button
+                onClick={(e) => { e.stopPropagation(); onQuickApply(); }}
+                className="flex-1 swipe-gradient text-white"
+              >
+                <Zap className="w-4 h-4 mr-1" /> Quick Apply
+              </Button>
+            )}
+            <button
+              onClick={onFlip}
+              className="flex items-center justify-center gap-1 text-gray-500 hover:text-gray-700 transition-colors py-3 px-3"
+            >
+              <span className="text-sm font-medium">Details</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Back of card */}

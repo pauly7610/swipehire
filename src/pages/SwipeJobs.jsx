@@ -9,6 +9,7 @@ import CandidateChatbot from '@/components/engagement/CandidateChatbot';
 import { Loader2, Inbox, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
+import QuickApplyModal from '@/components/candidate/QuickApplyModal';
 
 export default function SwipeJobs() {
   const [jobs, setJobs] = useState([]);
@@ -27,6 +28,7 @@ export default function SwipeJobs() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [pendingSwipe, setPendingSwipe] = useState(null);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [showQuickApply, setShowQuickApply] = useState(false);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
@@ -278,6 +280,7 @@ export default function SwipeJobs() {
                                         isFlipped={isFlipped}
                                         onFlip={() => setIsFlipped(!isFlipped)}
                                         matchScore={currentMatchScore}
+                                        onQuickApply={() => setShowQuickApply(true)}
                                       />
 
                 {/* Swipe indicators */}
@@ -369,6 +372,23 @@ export default function SwipeJobs() {
                 onSubmit={handleFeedbackSubmit}
                 onSkip={handleFeedbackSkip}
               />
-            </div>
-          );
-        }
+
+              {/* Quick Apply Modal */}
+              <QuickApplyModal
+                open={showQuickApply}
+                onOpenChange={setShowQuickApply}
+                job={currentJob}
+                company={currentCompany}
+                candidate={candidate}
+                user={user}
+                onApply={async (applyData) => {
+                  await handleSwipe('right', { 
+                    reason: 'quick_apply',
+                    is_positive: true,
+                    comment: applyData.coverLetter 
+                  });
+                }}
+              />
+              </div>
+              );
+              }
