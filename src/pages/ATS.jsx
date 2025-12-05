@@ -16,7 +16,8 @@ import {
   MessageCircle, Video, FileText, Star, Clock, CheckCircle2,
   XCircle, ArrowUpCircle, Loader2, Mail, Phone, MapPin,
   MoreVertical, Eye, UserPlus, Trash2, GripVertical, AlertTriangle,
-  Download, ExternalLink, Trophy
+  Download, ExternalLink, Trophy, Tag, Send, History, Activity,
+  Plus, X, Edit2, Copy
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -34,6 +35,21 @@ const PIPELINE_STAGES = [
   { id: 'interviewing', label: 'Interviewing', color: 'bg-yellow-100 text-yellow-700', status: 'interviewing' },
   { id: 'offered', label: 'Offered', color: 'bg-green-100 text-green-700', status: 'offered' },
   { id: 'hired', label: 'Hired', color: 'bg-emerald-100 text-emerald-700', status: 'hired' },
+];
+
+const CANDIDATE_TAGS = [
+  { id: 'hot', label: 'Hot Lead', color: 'bg-red-100 text-red-700' },
+  { id: 'qualified', label: 'Qualified', color: 'bg-green-100 text-green-700' },
+  { id: 'follow-up', label: 'Follow Up', color: 'bg-yellow-100 text-yellow-700' },
+  { id: 'referred', label: 'Referred', color: 'bg-blue-100 text-blue-700' },
+  { id: 'passive', label: 'Passive', color: 'bg-gray-100 text-gray-700' },
+];
+
+const EMAIL_TEMPLATES = [
+  { id: 'intro', name: 'Introduction', subject: 'Exciting Opportunity at {company}', body: 'Hi {name},\n\nI came across your profile and was impressed by your experience in {skills}. We have an exciting opportunity at {company} that I think would be a great fit.\n\nWould you be open to a quick call this week?\n\nBest,\n{recruiter}' },
+  { id: 'follow-up', name: 'Follow Up', subject: 'Following up - {job} at {company}', body: 'Hi {name},\n\nI wanted to follow up on our conversation about the {job} role at {company}.\n\nDo you have any questions I can help answer?\n\nBest,\n{recruiter}' },
+  { id: 'interview', name: 'Interview Invite', subject: 'Interview Invitation - {job} at {company}', body: 'Hi {name},\n\nGreat news! We would like to invite you for an interview for the {job} position.\n\nPlease let me know your availability this week.\n\nBest,\n{recruiter}' },
+  { id: 'rejection', name: 'Rejection', subject: 'Update on your application - {company}', body: 'Hi {name},\n\nThank you for your interest in the {job} role at {company}. After careful consideration, we have decided to move forward with other candidates.\n\nWe appreciate your time and wish you the best in your job search.\n\nBest,\n{recruiter}' },
 ];
 
 export default function ATS() {
@@ -63,6 +79,14 @@ export default function ATS() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackMatch, setFeedbackMatch] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailCandidate, setEmailCandidate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [candidateTags, setCandidateTags] = useState({});
+  const [activities, setActivities] = useState({});
+  const [showActivityLog, setShowActivityLog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -94,11 +118,131 @@ export default function ATS() {
         const userMap = {};
         allUsers.forEach(u => { userMap[u.id] = u; });
         setUsers(userMap);
+
+        // Load tags and activities from match notes (stored as JSON)
+        const tagsMap = {};
+        const activitiesMap = {};
+        allMatches.forEach(m => {
+          if (m.notes) {
+            try {
+              const data = JSON.parse(m.notes);
+              if (data.tags) tagsMap[m.id] = data.tags;
+              if (data.activities) activitiesMap[m.id] = data.activities;
+            } catch {
+              // Notes is plain text, ignore
+            }
+          }
+        });
+        setCandidateTags(tagsMap);
+        setActivities(activitiesMap);
       }
     } catch (error) {
       console.error('Failed to load ATS data:', error);
     }
     setLoading(false);
+  };
+
+  const addTag = async (matchId, tagId) => {
+    const currentTags = candidateTags[matchId] || [];
+    if (currentTags.includes(tagId)) return;
+    
+    const newTags = [...currentTags, tagId];
+    setCandidateTags({ ...candidateTags, [matchId]: newTags });
+    
+    await saveMatchData(matchId, { tags: newTags });
+    await logActivity(matchId, 'tag_added', `Added tag: ${CANDIDATE_TAGS.find(t => t.id === tagId)?.label}`);
+  };
+
+  const removeTag = async (matchId, tagId) => {
+    const currentTags = candidateTags[matchId] || [];
+    const newTags = currentTags.filter(t => t !== tagId);
+    setCandidateTags({ ...candidateTags, [matchId]: newTags });
+    
+    await saveMatchData(matchId, { tags: newTags });
+  };
+
+  const logActivity = async (matchId, type, description) => {
+    const currentActivities = activities[matchId] || [];
+    const newActivity = {
+      type,
+      description,
+      timestamp: new Date().toISOString(),
+      user: currentUser?.full_name || 'System'
+    };
+    const newActivities = [newActivity, ...currentActivities].slice(0, 50);
+    setActivities({ ...activities, [matchId]: newActivities });
+    
+    await saveMatchData(matchId, { activities: newActivities });
+  };
+
+  const saveMatchData = async (matchId, newData) => {
+    const match = matches.find(m => m.id === matchId);
+    let existingData = {};
+    
+    try {
+      if (match?.notes) {
+        existingData = JSON.parse(match.notes);
+      }
+    } catch {
+      existingData = { plainNotes: match?.notes || '' };
+    }
+    
+    const updatedData = { ...existingData, ...newData };
+    await base44.entities.Match.update(matchId, { notes: JSON.stringify(updatedData) });
+  };
+
+  const openEmailDialog = (match) => {
+    const candidate = candidates[match.candidate_id];
+    const user = candidate ? users[candidate.user_id] : null;
+    setEmailCandidate({ match, candidate, user });
+    setSelectedTemplate(null);
+    setEmailSubject('');
+    setEmailBody('');
+    setShowEmailDialog(true);
+  };
+
+  const applyEmailTemplate = (template) => {
+    if (!emailCandidate) return;
+    
+    const { candidate, user, match } = emailCandidate;
+    const job = jobs.find(j => j.id === match.job_id);
+    
+    const replacements = {
+      '{name}': user?.full_name?.split(' ')[0] || 'there',
+      '{company}': company?.name || 'Our Company',
+      '{job}': job?.title || 'the position',
+      '{skills}': candidate?.skills?.slice(0, 3).join(', ') || 'your field',
+      '{recruiter}': currentUser?.recruiter_name || currentUser?.full_name || 'The Team'
+    };
+    
+    let subject = template.subject;
+    let body = template.body;
+    
+    Object.entries(replacements).forEach(([key, value]) => {
+      subject = subject.replace(new RegExp(key, 'g'), value);
+      body = body.replace(new RegExp(key, 'g'), value);
+    });
+    
+    setSelectedTemplate(template);
+    setEmailSubject(subject);
+    setEmailBody(body);
+  };
+
+  const sendEmail = async () => {
+    if (!emailCandidate || !emailSubject || !emailBody) return;
+    
+    const { user, match } = emailCandidate;
+    
+    await base44.integrations.Core.SendEmail({
+      to: user.email,
+      subject: emailSubject,
+      body: emailBody
+    });
+    
+    await logActivity(match.id, 'email_sent', `Sent email: ${emailSubject}`);
+    
+    setShowEmailDialog(false);
+    setEmailCandidate(null);
   };
 
   const getStageFromStatus = (status) => {
@@ -564,6 +708,20 @@ export default function ATS() {
                                             </div>
                                           </div>
                                           
+                                          {/* Tags */}
+                                          {candidateTags[match.id]?.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                              {candidateTags[match.id].map(tagId => {
+                                                const tag = CANDIDATE_TAGS.find(t => t.id === tagId);
+                                                return tag ? (
+                                                  <span key={tagId} className={`text-xs px-1.5 py-0.5 rounded ${tag.color}`}>
+                                                    {tag.label}
+                                                  </span>
+                                                ) : null;
+                                              })}
+                                            </div>
+                                          )}
+                                          
                                           {match.match_score && (
                                             <div className="mt-2 flex items-center gap-2">
                                               <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -740,6 +898,7 @@ export default function ATS() {
                     <th className="text-left p-4 font-medium text-gray-600">Job</th>
                     <th className="text-left p-4 font-medium text-gray-600">Stage</th>
                     <th className="text-left p-4 font-medium text-gray-600">Match</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Tags</th>
                     <th className="text-left p-4 font-medium text-gray-600">Resume</th>
                     <th className="text-left p-4 font-medium text-gray-600">Applied</th>
                     <th className="text-left p-4 font-medium text-gray-600">Actions</th>
@@ -786,6 +945,18 @@ export default function ATS() {
                           <span className="font-medium text-pink-600">{match.match_score || '-'}%</span>
                         </td>
                         <td className="p-4">
+                          <div className="flex flex-wrap gap-1">
+                            {candidateTags[match.id]?.map(tagId => {
+                              const tag = CANDIDATE_TAGS.find(t => t.id === tagId);
+                              return tag ? (
+                                <span key={tagId} className={`text-xs px-1.5 py-0.5 rounded ${tag.color}`}>
+                                  {tag.label}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        </td>
+                        <td className="p-4">
                           {candidate?.resume_url ? (
                             <a 
                               href={candidate.resume_url} 
@@ -823,6 +994,12 @@ export default function ATS() {
                                 confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name); 
                               }}>
                                 <ArrowUpCircle className="w-4 h-4 mr-2" /> Move to Screening
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => { 
+                                e.stopPropagation(); 
+                                openEmailDialog(match);
+                              }}>
+                                <Mail className="w-4 h-4 mr-2" /> Send Email
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={(e) => { 
                                 e.stopPropagation(); 
@@ -1001,6 +1178,32 @@ export default function ATS() {
                     searchQuery={searchQuery}
                   />
 
+                  {/* Tags Section */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-purple-500" /> Tags
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {CANDIDATE_TAGS.map(tag => {
+                        const isActive = candidateTags[selectedCandidate.id]?.includes(tag.id);
+                        return (
+                          <button
+                            key={tag.id}
+                            onClick={() => isActive ? removeTag(selectedCandidate.id, tag.id) : addTag(selectedCandidate.id, tag.id)}
+                            className={`text-sm px-3 py-1 rounded-full transition-all ${
+                              isActive ? tag.color + ' ring-2 ring-offset-1 ring-gray-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            }`}
+                          >
+                            {tag.label}
+                            {isActive && <X className="w-3 h-3 ml-1 inline" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Job Applied For */}
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-sm text-gray-500 mb-1">Applied for</p>
@@ -1023,6 +1226,34 @@ export default function ATS() {
                         </Button>
                       </div>
                     )}
+                  </div>
+
+                  {/* Activity Log */}
+                  <div className="border rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-blue-500" /> Activity Log
+                      </h3>
+                      <Button variant="ghost" size="sm" onClick={() => setShowActivityLog(!showActivityLog)}>
+                        {showActivityLog ? 'Hide' : 'Show All'}
+                      </Button>
+                    </div>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {(activities[selectedCandidate.id] || []).slice(0, showActivityLog ? undefined : 3).map((activity, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5" />
+                          <div className="flex-1">
+                            <p className="text-gray-700">{activity.description}</p>
+                            <p className="text-xs text-gray-400">
+                              {format(new Date(activity.timestamp), 'MMM d, h:mm a')} • {activity.user}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {(!activities[selectedCandidate.id] || activities[selectedCandidate.id].length === 0) && (
+                        <p className="text-sm text-gray-400">No activity yet</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Detailed Match Insights */}
@@ -1109,6 +1340,10 @@ export default function ATS() {
                       </Button>
                     </Link>
                     
+                    <Button variant="outline" onClick={() => openEmailDialog(selectedCandidate)}>
+                      <Mail className="w-4 h-4 mr-2" /> Email
+                    </Button>
+                    
                     <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate?.id}`}>
                       <Button variant="outline">
                         <Eye className="w-4 h-4 mr-2" /> Full Profile
@@ -1157,6 +1392,69 @@ export default function ATS() {
           setFeedbackMatch(null);
         }}
       />
+
+      {/* Email Dialog */}
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-pink-500" />
+              Send Email to {emailCandidate?.user?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Template Selection */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Quick Templates</label>
+              <div className="flex flex-wrap gap-2">
+                {EMAIL_TEMPLATES.map(template => (
+                  <Button
+                    key={template.id}
+                    variant={selectedTemplate?.id === template.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => applyEmailTemplate(template)}
+                    className={selectedTemplate?.id === template.id ? 'swipe-gradient text-white' : ''}
+                  >
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">To</label>
+              <Input value={emailCandidate?.user?.email || ''} disabled className="bg-gray-50" />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Subject</label>
+              <Input 
+                value={emailSubject} 
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="Email subject..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Message</label>
+              <Textarea 
+                value={emailBody} 
+                onChange={(e) => setEmailBody(e.target.value)}
+                placeholder="Write your message..."
+                rows={8}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEmailDialog(false)}>Cancel</Button>
+            <Button onClick={sendEmail} disabled={!emailSubject || !emailBody} className="swipe-gradient text-white">
+              <Send className="w-4 h-4 mr-2" /> Send Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
