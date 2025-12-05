@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2 } from 'lucide-react';
+import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2, Users } from 'lucide-react';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import LocationSelect from '@/components/shared/LocationSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
@@ -128,7 +128,7 @@ export default function Onboarding() {
           ...candidateData
         });
         navigate(createPageUrl('SwipeJobs'));
-      } else {
+      } else if (userType === 'employer') {
         // Save recruiter info to user profile
         await base44.auth.updateMe({
           recruiter_name: recruiterData.recruiter_name,
@@ -137,6 +137,13 @@ export default function Onboarding() {
         });
         
         // Create company
+        await base44.entities.Company.create({
+          user_id: user.id,
+          ...companyData
+        });
+        navigate(createPageUrl('EmployerDashboard'));
+      } else {
+        // Company flow - just create the company
         await base44.entities.Company.create({
           user_id: user.id,
           ...companyData
@@ -162,27 +169,38 @@ export default function Onboarding() {
             <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome, {user?.full_name}!</h2>
             <p className="text-gray-600 mb-12">What brings you to SwipeHire?</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
               <button
                 onClick={() => { setUserType('candidate'); setStep(2); }}
-                className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-lg"
+                className="group p-6 rounded-3xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-lg"
               >
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <User className="w-10 h-10 text-pink-500" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <User className="w-8 h-8 text-pink-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm Looking for a Job</h3>
-                <p className="text-gray-500">Find opportunities, swipe on jobs, and connect with employers</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Job Seeker</h3>
+                <p className="text-gray-500 text-sm">Find opportunities and connect with employers</p>
               </button>
 
               <button
                 onClick={() => { setUserType('employer'); setStep(2); }}
-                className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-lg"
+                className="group p-6 rounded-3xl border-2 border-gray-200 hover:border-purple-500 transition-all hover:shadow-lg"
               >
-                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Building2 className="w-10 h-10 text-orange-500" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="w-8 h-8 text-purple-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm a Recruiter</h3>
-                <p className="text-gray-500">Post jobs, discover talent, and build your team</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Recruiter</h3>
+                <p className="text-gray-500 text-sm">Find talent for your company</p>
+              </button>
+
+              <button
+                onClick={() => { setUserType('company'); setStep(2); }}
+                className="group p-6 rounded-3xl border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-lg"
+              >
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Building2 className="w-8 h-8 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Company</h3>
+                <p className="text-gray-500 text-sm">Create your company page and post jobs</p>
               </button>
             </div>
           </motion.div>
@@ -346,7 +364,8 @@ export default function Onboarding() {
               </div>
             </motion.div>
           );
-        } else {
+        } else if (userType === 'employer') {
+          // Recruiter flow
           return (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -368,8 +387,8 @@ export default function Onboarding() {
                         className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                       />
                     ) : (
-                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
-                        <User className="w-12 h-12 text-orange-400" />
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <User className="w-12 h-12 text-purple-400" />
                       </div>
                     )}
                     <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
@@ -380,9 +399,9 @@ export default function Onboarding() {
                 </div>
 
                 {/* Recruiter Info Section */}
-                <div className="p-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-2xl space-y-4">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl space-y-4">
                   <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <User className="w-5 h-5 text-orange-500" /> Your Information
+                    <User className="w-5 h-5 text-purple-500" /> Your Information
                   </h3>
                   
                   <div>
@@ -428,7 +447,7 @@ export default function Onboarding() {
                       />
                     </div>
                     <div className="pt-7">
-                      <label className="flex items-center justify-center w-12 h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-400 transition-colors">
+                      <label className="flex items-center justify-center w-12 h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 transition-colors">
                         <Upload className="w-5 h-5 text-gray-400" />
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
                       </label>
@@ -444,17 +463,6 @@ export default function Onboarding() {
                         placeholder="Select your industry"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-gray-700">Company Description</Label>
-                    <Textarea
-                      placeholder="Tell candidates about your company..."
-                      value={companyData.description}
-                      onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
-                      className="mt-2 rounded-xl resize-none"
-                      rows={3}
-                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -478,6 +486,111 @@ export default function Onboarding() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        } else {
+          // Company flow - full company page setup
+          return (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="max-w-lg mx-auto"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Your Company Page</h2>
+              <p className="text-gray-600 mb-8">Showcase your company to attract top talent</p>
+
+              <div className="space-y-6">
+                {/* Logo Upload */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    {companyData.logo_url ? (
+                      <img
+                        src={companyData.logo_url}
+                        alt="Company Logo"
+                        className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <Building2 className="w-12 h-12 text-orange-400" />
+                      </div>
+                    )}
+                    <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
+                      <Upload className="w-5 h-5 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Company Name</Label>
+                  <Input
+                    placeholder="Your company name"
+                    value={companyData.name}
+                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Industry</Label>
+                  <div className="mt-2">
+                    <IndustrySelect
+                      value={companyData.industry}
+                      onChange={(v) => setCompanyData({ ...companyData, industry: v })}
+                      placeholder="Select your industry"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Description</Label>
+                  <Textarea
+                    placeholder="Tell candidates about your company, culture, and what makes you unique..."
+                    value={companyData.description}
+                    onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
+                    className="mt-2 rounded-xl resize-none"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-700">Location</Label>
+                    <div className="mt-2">
+                      <LocationSelect
+                        value={companyData.location}
+                        onChange={(v) => setCompanyData({ ...companyData, location: v })}
+                        placeholder="HQ location"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-gray-700">Company Size</Label>
+                    <select
+                      value={companyData.size}
+                      onChange={(e) => setCompanyData({ ...companyData, size: e.target.value })}
+                      className="mt-2 w-full h-12 rounded-xl border border-gray-200 px-3"
+                    >
+                      <option value="1-10">1-10 employees</option>
+                      <option value="11-50">11-50 employees</option>
+                      <option value="51-200">51-200 employees</option>
+                      <option value="201-500">201-500 employees</option>
+                      <option value="500+">500+ employees</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Website</Label>
+                  <Input
+                    placeholder="https://yourcompany.com"
+                    value={companyData.website}
+                    onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
+                    className="mt-2 h-12 rounded-xl"
+                  />
                 </div>
               </div>
             </motion.div>
@@ -541,7 +654,7 @@ export default function Onboarding() {
           <div className="max-w-lg mx-auto">
             <Button
               onClick={handleComplete}
-              disabled={loading || (userType === 'candidate' ? !candidateData.headline : (!recruiterData.recruiter_name || !companyData.name))}
+              disabled={loading || (userType === 'candidate' ? !candidateData.headline : userType === 'employer' ? (!recruiterData.recruiter_name || !companyData.name) : !companyData.name)}
               className="w-full swipe-gradient text-white h-14 rounded-2xl text-lg font-semibold shadow-lg shadow-pink-500/25 disabled:opacity-50"
             >
               {loading ? 'Setting up...' : 'Complete Setup'}
