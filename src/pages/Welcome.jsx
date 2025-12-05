@@ -9,70 +9,65 @@ import SplashScreen from '@/components/splash/SplashScreen';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showWelcomeContent, setShowWelcomeContent] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
-  const [hasSeenSplash, setHasSeenSplash] = useState(false);
-
-  const handleSplashComplete = () => {
-    setHasSeenSplash(true);
-    sessionStorage.setItem('swipehire_splash_seen', 'true');
-    // Go to login, then onboarding for role selection
-    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
-  };
-
+  // Check splash and auth on mount
   useEffect(() => {
-    // Check if splash was seen in this session
-    const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
-    if (splashSeen) {
-      setHasSeenSplash(true);
-    }
-  }, []);
+    const init = async () => {
+      // Check if splash was already seen this session
+      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+      
+      if (!splashSeen) {
+        // Show splash first
+        setShowSplash(true);
+        setLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    // Only check auth after splash is seen
-    if (!hasSeenSplash) {
-      setLoading(false);
-      return;
-    }
-
-    const checkAuth = async () => {
+      // Splash was seen, check auth status
+      setShowSplash(false);
+      
       try {
         const authenticated = await base44.auth.isAuthenticated();
         if (authenticated) {
           const user = await base44.auth.me();
-          const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
-          const companies = await base44.entities.Company.filter({ user_id: user.id });
+          const [candidates, companies] = await Promise.all([
+            base44.entities.Candidate.filter({ user_id: user.id }),
+            base44.entities.Company.filter({ user_id: user.id })
+          ]);
           
           if (companies.length > 0) {
-            navigate(createPageUrl('EmployerDashboard'));
+            navigate(createPageUrl('EmployerDashboard'), { replace: true });
           } else if (candidates.length > 0) {
-            navigate(createPageUrl('SwipeJobs'));
+            navigate(createPageUrl('SwipeJobs'), { replace: true });
           } else {
-            navigate(createPageUrl('Onboarding'));
+            navigate(createPageUrl('Onboarding'), { replace: true });
           }
           return;
         }
-        
-        // Not authenticated - show welcome content
-        setShowWelcomeContent(true);
-        setIsAuthenticated(false);
       } catch (e) {
-        // Not authenticated - show welcome content
-        setShowWelcomeContent(true);
+        // Not authenticated, continue to show welcome
       }
       setLoading(false);
     };
-    checkAuth();
-  }, [navigate, hasSeenSplash]);
+    
+    init();
+  }, [navigate]);
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('swipehire_splash_seen', 'true');
+    setShowSplash(false);
+    // Redirect to login, after login go to Onboarding
+    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+  };
 
   const handleGetStarted = () => {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
   // Show splash FIRST if not seen yet
-  if (!hasSeenSplash) {
+  if (showSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
@@ -108,7 +103,7 @@ export default function Welcome() {
         <header className="relative z-10 p-6 md:p-8">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-3xl md:text-4xl font-bold swipe-gradient-text"
           >
@@ -120,7 +115,7 @@ export default function Welcome() {
         <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, scale: showWelcomeContent ? 1 : 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mb-8"
           >
@@ -149,7 +144,7 @@ export default function Welcome() {
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="text-4xl md:text-6xl font-bold text-gray-900 mb-4"
           >
@@ -160,7 +155,7 @@ export default function Welcome() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-xl text-gray-600 mb-8 max-w-md"
           >
@@ -171,7 +166,7 @@ export default function Welcome() {
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
             <Button
@@ -186,7 +181,7 @@ export default function Welcome() {
           {/* Features */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 40 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.5 }}
             className="grid grid-cols-3 gap-8 mt-16 max-w-2xl"
           >
