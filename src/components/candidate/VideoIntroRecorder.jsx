@@ -7,8 +7,9 @@ import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { 
   Video, Circle, Square, Play, Pause, RotateCcw, Upload, 
-  CheckCircle2, Loader2, Clock, Lightbulb, X, Scissors, SkipBack, SkipForward, RefreshCw
+  CheckCircle2, Loader2, Clock, Lightbulb, X, Scissors, SkipBack, SkipForward, RefreshCw, Repeat, Gauge
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 
 const TIPS = [
@@ -35,6 +36,9 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTrimming, setIsTrimming] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isLooping, setIsLooping] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -167,15 +171,19 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   };
 
   const handleTimeUpdate = () => {
-    if (previewVideoRef.current) {
+    if (previewVideoRef.current && !isScrubbing) {
       const time = previewVideoRef.current.currentTime;
       setCurrentTime(time);
       
-      // Stop at trim end
+      // Stop or loop at trim end
       if (time >= trimEnd) {
-        previewVideoRef.current.pause();
-        previewVideoRef.current.currentTime = trimStart;
-        setIsPlaying(false);
+        if (isLooping) {
+          previewVideoRef.current.currentTime = trimStart;
+        } else {
+          previewVideoRef.current.pause();
+          previewVideoRef.current.currentTime = trimStart;
+          setIsPlaying(false);
+        }
       }
     }
   };
@@ -188,10 +196,39 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
         if (isFinite(trimStart) && (previewVideoRef.current.currentTime < trimStart || previewVideoRef.current.currentTime >= trimEnd)) {
           previewVideoRef.current.currentTime = trimStart;
         }
+        previewVideoRef.current.playbackRate = playbackSpeed;
         previewVideoRef.current.play();
       }
       setIsPlaying(!isPlaying);
     }
+  };
+
+  const changePlaybackSpeed = (speed) => {
+    setPlaybackSpeed(speed);
+    if (previewVideoRef.current) {
+      previewVideoRef.current.playbackRate = speed;
+    }
+  };
+
+  const handleScrubStart = (e) => {
+    setIsScrubbing(true);
+    if (previewVideoRef.current && isPlaying) {
+      previewVideoRef.current.pause();
+    }
+    handleScrub(e);
+  };
+
+  const handleScrub = (e) => {
+    if (!isScrubbing) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const percent = x / rect.width;
+    const time = percent * videoDuration;
+    seekTo(Math.max(trimStart, Math.min(trimEnd, time)));
+  };
+
+  const handleScrubEnd = () => {
+    setIsScrubbing(false);
   };
 
   const seekTo = (time) => {
@@ -534,16 +571,14 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                 <div className="space-y-2">
                   {/* Visual Timeline with Scrubbing */}
                   <div 
-                    className="h-10 bg-gray-800 rounded-lg relative overflow-hidden cursor-pointer"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = e.clientX - rect.left;
-                      const percent = x / rect.width;
-                      const time = percent * videoDuration;
-                      if (time >= trimStart && time <= trimEnd) {
-                        seekTo(time);
-                      }
-                    }}
+                    className="h-10 bg-gray-800 rounded-lg relative overflow-hidden cursor-pointer select-none"
+                    onMouseDown={handleScrubStart}
+                    onMouseMove={handleScrub}
+                    onMouseUp={handleScrubEnd}
+                    onMouseLeave={handleScrubEnd}
+                    onTouchStart={(e) => { setIsScrubbing(true); handleScrub(e.touches[0]); }}
+                    onTouchMove={(e) => handleScrub(e.touches[0])}
+                    onTouchEnd={handleScrubEnd}
                   >
                     {/* Excluded regions (darker) */}
                     <div 
@@ -614,7 +649,17 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                 </div>
 
                 {/* Playback Controls */}
-                <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center justify-center gap-2">
+                  {/* Loop Toggle */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsLooping(!isLooping)}
+                    className={`text-white hover:bg-gray-800 ${isLooping ? 'bg-pink-500/20 text-pink-400' : ''}`}
+                  >
+                    <Repeat className="w-4 h-4" />
+                  </Button>
+
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -637,6 +682,31 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                   >
                     <SkipForward className="w-5 h-5" />
                   </Button>
+
+                  {/* Playback Speed */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-white hover:bg-gray-800 min-w-[50px]"
+                      >
+                        <Gauge className="w-4 h-4 mr-1" />
+                        <span className="text-xs">{playbackSpeed}x</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-gray-800 border-gray-700">
+                      {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                        <DropdownMenuItem 
+                          key={speed}
+                          onClick={() => changePlaybackSpeed(speed)}
+                          className={`text-white hover:bg-gray-700 cursor-pointer ${playbackSpeed === speed ? 'bg-pink-500/20 text-pink-400' : ''}`}
+                        >
+                          {speed}x {speed === 1 && '(Normal)'}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Action Buttons */}
