@@ -51,15 +51,14 @@ export default function BrowseCandidates() {
       const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
       setCompany(companyData);
 
-      // Load all candidates
-      const allCandidates = await base44.entities.Candidate.list();
-      setCandidates(allCandidates);
+      // Load all data in parallel for better performance
+      const [allCandidates, favs] = await Promise.all([
+        base44.entities.Candidate.list(),
+        companyData ? base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }) : Promise.resolve([])
+      ]);
 
-      // Load favorites
-      if (companyData) {
-        const favs = await base44.entities.FavoriteCandidate.filter({ company_id: companyData.id });
-        setFavorites(favs);
-      }
+      setCandidates(allCandidates);
+      setFavorites(favs);
 
       // Extract unique values for filters
       const uniqueIndustries = [...new Set(allCandidates.map(c => c.industry).filter(Boolean))];
@@ -313,10 +312,10 @@ export default function BrowseCandidates() {
         {/* Candidates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCandidates.map((candidate) => (
-            <Card key={candidate.id} className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card key={candidate.id} className="hover:shadow-lg transition-shadow group relative">
               <CardContent className="pt-6">
                 {/* Favorite Button */}
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-4 right-4 z-10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -330,9 +329,7 @@ export default function BrowseCandidates() {
                   </button>
                 </div>
 
-                <div
-                  onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}
-                >
+                <div className="cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                   {/* Profile Photo */}
                   <div className="flex justify-center mb-4">
                     {candidate.photo_url ? (
