@@ -25,6 +25,7 @@ import CredentialsSection from '@/components/profile/CredentialsSection';
 import RecommendedConnections from '@/components/networking/RecommendedConnections';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
+import AIProfileAssistant from '@/components/profile/AIProfileAssistant';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -424,6 +425,15 @@ export default function CandidateProfile() {
                 )}
               </CardContent>
             </Card>
+
+            {/* AI Assistant */}
+            {editing && (
+              <AIProfileAssistant
+                candidate={editData}
+                resumeUrl={candidate?.resume_url}
+                onUpdate={(updates) => setEditData({ ...editData, ...updates })}
+              />
+            )}
 
             {/* Skills */}
             <Card>
