@@ -9,8 +9,15 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Briefcase, Users, Calendar, MessageCircle, Plus, TrendingUp,
-  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap, Palette, Bot
+  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap, Bot, Search
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { format, isSameDay, addHours, addMinutes, differenceInHours, differenceInMinutes } from 'date-fns';
 import AICandidateSourcing from '@/components/recruiter/AICandidateSourcing';
@@ -31,6 +38,9 @@ export default function EmployerDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [swipes, setSwipes] = useState([]);
   const [user, setUser] = useState(null);
+  const [showCompanySearch, setShowCompanySearch] = useState(false);
+  const [allCompanies, setAllCompanies] = useState([]);
+  const [companySearch, setCompanySearch] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,17 +53,23 @@ export default function EmployerDashboard() {
       setUser(currentUser);
       const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
       
+      // Also load all companies for linking
+      const companiesList = await base44.entities.Company.list();
+      setAllCompanies(companiesList);
+
       if (companyData) {
         setCompany(companyData);
 
-        const [companyJobs, companyMatches, companyInterviews, allCandidates, allUsers, companySwipes] = await Promise.all([
+        const [companyJobs, companyMatches, companyInterviews, allCandidates, allUsers, companySwipes, companiesList] = await Promise.all([
           base44.entities.Job.filter({ company_id: companyData.id }),
           base44.entities.Match.filter({ company_id: companyData.id }),
           base44.entities.Interview.filter({ company_id: companyData.id }),
           base44.entities.Candidate.list(),
           base44.entities.User.list(),
-          base44.entities.Swipe.filter({ swiper_id: currentUser.id, swiper_type: 'employer' })
+          base44.entities.Swipe.filter({ swiper_id: currentUser.id, swiper_type: 'employer' }),
+          base44.entities.Company.list()
         ]);
+        setAllCompanies(companiesList);
 
         setJobs(companyJobs);
         setMatches(companyMatches);
@@ -213,7 +229,22 @@ export default function EmployerDashboard() {
             )}
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Welcome back, {user?.recruiter_name || user?.full_name?.split(' ')[0] || 'Recruiter'}!</h1>
-              <p className="text-gray-500">{user?.recruiter_title || 'Recruiter'} {company ? `at ${company.name}` : ''}</p>
+              {company ? (
+                <button 
+                  onClick={() => setShowCompanySearch(true)}
+                  className="text-gray-500 hover:text-pink-500 transition-colors flex items-center gap-1"
+                >
+                  {user?.recruiter_title || 'Recruiter'} at <span className="font-medium">{company.name}</span>
+                  <Building2 className="w-4 h-4" />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowCompanySearch(true)}
+                  className="text-pink-500 hover:text-pink-600 transition-colors flex items-center gap-1 font-medium"
+                >
+                  <Plus className="w-4 h-4" /> Link to a company
+                </button>
+              )}
             </div>
           </div>
           <Link to={createPageUrl('PostJob')}>
@@ -238,9 +269,7 @@ export default function EmployerDashboard() {
             <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4 mr-2" /> Analytics
             </TabsTrigger>
-            <TabsTrigger value="company" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
-              <Building2 className="w-4 h-4 mr-2" /> Company
-            </TabsTrigger>
+
             <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Bot className="w-4 h-4 mr-2" /> AI Assistant
             </TabsTrigger>
@@ -283,166 +312,7 @@ export default function EmployerDashboard() {
             />
           </TabsContent>
 
-          {/* Company Tab */}
-          <TabsContent value="company" className="mt-6">
-            {company ? (
-              <>
-                {/* Company Header - LinkedIn Style */}
-                <Card className="border-0 shadow-sm mb-6 overflow-hidden">
-                  {/* Cover Image */}
-                  <div className="h-32 md:h-48 bg-gradient-to-r from-pink-500 to-orange-500 relative">
-                    {company.cover_image_url && (
-                      <img src={company.cover_image_url} alt="" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  
-                  <CardContent className="relative pt-0">
-                    {/* Logo */}
-                    <div className="absolute -top-12 left-6">
-                      {company.logo_url ? (
-                        <img src={company.logo_url} alt={company.name} className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-lg" />
-                      ) : (
-                        <div className="w-24 h-24 rounded-xl bg-white border-4 border-white shadow-lg flex items-center justify-center">
-                          <Building2 className="w-10 h-10 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="pt-14 pb-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h2 className="text-2xl font-bold text-gray-900">{company.name}</h2>
-                          <p className="text-gray-600">{company.description?.slice(0, 100)}{company.description?.length > 100 ? '...' : ''}</p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                            <span>{company.industry}</span>
-                            <span>•</span>
-                            <span>{company.location}</span>
-                            <span>•</span>
-                            <span>{company.size} employees</span>
-                          </div>
-                        </div>
-                        <Link to={createPageUrl('CompanyBranding')}>
-                          <Button className="swipe-gradient text-white">
-                            <Palette className="w-4 h-4 mr-2" /> Edit Page
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  {/* About Section */}
-                  <Card className="border-0 shadow-sm md:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-lg">About</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 mb-4">{company.description || 'No description yet.'}</p>
-                      {company.mission && (
-                        <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl">
-                          <h4 className="font-semibold text-gray-900 mb-1">Our Mission</h4>
-                          <p className="text-gray-600 text-sm">{company.mission}</p>
-                        </div>
-                      )}
-                      {company.culture_traits?.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="font-semibold text-gray-900 mb-2">Culture</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {company.culture_traits.map(trait => (
-                              <Badge key={trait} variant="secondary">{trait}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Quick Stats */}
-                  <Card className="border-0 shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Page Stats</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Active Jobs</span>
-                        <Badge className="bg-pink-100 text-pink-700">{jobs.filter(j => j.is_active).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Team Members</span>
-                        <Badge>{company.team_members?.length || 0}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Benefits</span>
-                        <Badge>{company.benefits?.length || 0}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500">Media</span>
-                        <Badge>{company.media_gallery?.length || 0}</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Jobs Section */}
-                {jobs.filter(j => j.is_active).length > 0 && (
-                  <Card className="border-0 shadow-sm mt-6">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg">Open Positions</CardTitle>
-                      <Link to={createPageUrl('ManageJobs')}>
-                        <Button variant="ghost" size="sm" className="text-pink-500">
-                          View All <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </Link>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {jobs.filter(j => j.is_active).slice(0, 4).map(job => (
-                          <div key={job.id} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                            <h4 className="font-semibold text-gray-900">{job.title}</h4>
-                            <p className="text-sm text-gray-500">{job.location} • {job.job_type}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {matches.filter(m => m.job_id === job.id).length} applicants
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                <div className="mt-6 flex justify-center gap-4">
-                  <Link to={createPageUrl('CompanyBranding')}>
-                    <Button variant="outline">
-                      <Palette className="w-4 h-4 mr-2" /> Edit Company Page
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
-                    <Button variant="outline">
-                      <Eye className="w-4 h-4 mr-2" /> Preview Public Page
-                    </Button>
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-12 text-center">
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center mb-4">
-                    <Building2 className="w-10 h-10 text-orange-500" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No Company Page Yet</h3>
-                  <p className="text-gray-500 mb-6">Create your company page to attract top talent and showcase your culture</p>
-                  <Link to={createPageUrl('CompanyBranding')}>
-                    <Button className="swipe-gradient text-white">
-                      <Plus className="w-4 h-4 mr-2" /> Create Company Page
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-6">
@@ -734,6 +604,69 @@ export default function EmployerDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Company Search/Link Dialog */}
+      <Dialog open={showCompanySearch} onOpenChange={setShowCompanySearch}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Your Company</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search companies..."
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {allCompanies
+                .filter(c => c.name?.toLowerCase().includes(companySearch.toLowerCase()))
+                .map(c => (
+                  <button
+                    key={c.id}
+                    onClick={async () => {
+                      // Update company to link this user
+                      await base44.entities.Company.update(c.id, { user_id: user.id });
+                      setCompany(c);
+                      setShowCompanySearch(false);
+                      loadDashboard();
+                    }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 transition-colors text-left ${company?.id === c.id ? 'bg-pink-50 border border-pink-200' : 'bg-gray-50'}`}
+                  >
+                    {c.logo_url ? (
+                      <img src={c.logo_url} alt={c.name} className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-pink-500" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{c.name}</p>
+                      <p className="text-xs text-gray-500">{c.industry} • {c.location}</p>
+                    </div>
+                    {company?.id === c.id && (
+                      <CheckCircle2 className="w-5 h-5 text-pink-500" />
+                    )}
+                  </button>
+                ))}
+              {allCompanies.filter(c => c.name?.toLowerCase().includes(companySearch.toLowerCase())).length === 0 && (
+                <div className="text-center py-8">
+                  <Building2 className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                  <p className="text-gray-500 text-sm">No companies found</p>
+                  <Link to={createPageUrl('CompanyBranding')}>
+                    <Button variant="link" className="text-pink-500 mt-2">
+                      Create a new company
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
