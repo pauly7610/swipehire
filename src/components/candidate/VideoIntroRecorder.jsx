@@ -237,7 +237,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-black border-0">
+      <DialogContent className="max-w-lg p-0 overflow-hidden bg-black border-0">
         <div className="relative">
           {mode === 'tips' && (
             <div className="p-6 space-y-4 bg-white rounded-lg">
@@ -287,13 +287,20 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'recording' && (
-            <div className="relative aspect-[3/4] max-h-[60vh] bg-black">
+            <div className="relative aspect-[3/4] max-h-[60vh] bg-black flex items-center justify-center">
               <video 
                 ref={videoRef} 
                 autoPlay 
                 muted 
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+              />
+              
+              {/* SwipeHire Logo */}
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
+                alt="SwipeHire"
+                className="absolute bottom-4 right-4 w-20 opacity-80"
               />
               
               {/* Timer Overlay */}
@@ -340,11 +347,18 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'preview' && recordedUrl && (
-            <div className="relative aspect-[3/4] max-h-[60vh] bg-black">
+            <div className="relative aspect-[3/4] max-h-[60vh] bg-black flex items-center justify-center">
               <video 
                 src={recordedUrl} 
                 controls 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+              />
+              
+              {/* SwipeHire Logo */}
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
+                alt="SwipeHire"
+                className="absolute bottom-16 right-4 w-20 opacity-80 pointer-events-none"
               />
               
               {/* Actions */}
@@ -382,14 +396,21 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           {mode === 'editing' && recordedUrl && (
             <div className="bg-black">
               {/* Video Preview */}
-              <div className="relative aspect-[3/4] max-h-[50vh]">
+              <div className="relative aspect-[3/4] max-h-[50vh] flex items-center justify-center">
                 <video 
                   ref={previewVideoRef}
                   src={recordedUrl} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   onLoadedMetadata={handleVideoLoaded}
                   onTimeUpdate={handleTimeUpdate}
                   onEnded={() => setIsPlaying(false)}
+                />
+                
+                {/* SwipeHire Logo */}
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
+                  alt="SwipeHire"
+                  className="absolute bottom-4 right-4 w-20 opacity-80 pointer-events-none"
                 />
                 
                 {/* Play/Pause Overlay */}
