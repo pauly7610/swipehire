@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   User, MapPin, Briefcase, Mail, Video, FileText, 
-  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink, Download
+  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink, Download, UserPlus, Check
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -18,6 +18,9 @@ export default function ViewCandidateProfile() {
   const [candidate, setCandidate] = useState(null);
   const [candidateUser, setCandidateUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [connection, setConnection] = useState(null);
+  const [sendingConnection, setSendingConnection] = useState(false);
 
   useEffect(() => {
     loadCandidate();
@@ -29,15 +32,30 @@ export default function ViewCandidateProfile() {
       return;
     }
     try {
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+      
       const candidates = await base44.entities.Candidate.filter({ id: candidateId });
       if (candidates.length > 0) {
         setCandidate(candidates[0]);
-        // Try to get user info, but handle if not accessible due to permissions
+        
+        // Check if already connected
+        const connections = await base44.entities.Connection.filter({
+          $or: [
+            { requester_id: user.id, receiver_id: candidates[0].user_id },
+            { requester_id: candidates[0].user_id, receiver_id: user.id }
+          ]
+        });
+        if (connections.length > 0) {
+          setConnection(connections[0]);
+        }
+        
+        // Try to get user info
         try {
           const users = await base44.entities.User.list();
-          const user = users.find(u => u.id === candidates[0].user_id);
-          if (user) {
-            setCandidateUser(user);
+          const candUser = users.find(u => u.id === candidates[0].user_id);
+          if (candUser) {
+            setCandidateUser(candUser);
           }
         } catch (userError) {
           console.log('Could not load user info:', userError);
@@ -47,6 +65,34 @@ export default function ViewCandidateProfile() {
       console.error('Failed to load candidate:', error);
     }
     setLoading(false);
+  };
+
+  const handleConnect = async () => {
+    if (!currentUser || !candidateUser) return;
+    
+    setSendingConnection(true);
+    try {
+      const newConnection = await base44.entities.Connection.create({
+        requester_id: currentUser.id,
+        receiver_id: candidateUser.id,
+        status: 'pending',
+        message: `Hi! I'd like to connect with you on SwipeHire.`
+      });
+      
+      // Send notification
+      await base44.entities.Notification.create({
+        user_id: candidateUser.id,
+        type: 'system',
+        title: '🤝 New Connection Request',
+        message: `${currentUser.full_name} wants to connect with you!`,
+        navigate_to: 'Connections'
+      });
+      
+      setConnection(newConnection);
+    } catch (error) {
+      console.error('Failed to send connection:', error);
+    }
+    setSendingConnection(false);
   };
 
   const getLinkIcon = (type) => {
@@ -100,6 +146,40 @@ export default function ViewCandidateProfile() {
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
+
+        {/* Connect Button */}
+        {currentUser && candidateUser && currentUser.id !== candidateUser.id && (
+          <div className="absolute top-4 right-4">
+            {connection ? (
+              <Button disabled className="bg-white text-gray-600">
+                {connection.status === 'accepted' ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Connected
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Request Sent
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleConnect}
+                disabled={sendingConnection}
+                className="bg-white text-pink-600 hover:bg-gray-50"
+              >
+                {sendingConnection ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="w-4 h-4 mr-2" />
+                )}
+                Connect
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">

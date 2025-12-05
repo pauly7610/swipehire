@@ -717,27 +717,44 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="experience" className="space-y-4">
-            {editing && (
-              <Button 
-                onClick={() => setShowExperienceModal(true)} 
-                className="w-full swipe-gradient text-white"
-              >
-                <Plus className="w-5 h-5 mr-2" /> Add Experience
-              </Button>
-            )}
+            <Button 
+              onClick={() => setShowExperienceModal(true)} 
+              className="w-full swipe-gradient text-white"
+            >
+              <Plus className="w-5 h-5 mr-2" /> Add Experience
+            </Button>
 
             {(editing ? editData.experience : candidate?.experience)?.map((exp, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
                       <Briefcase className="w-6 h-6 text-pink-500" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{exp.title}</h3>
-                      <p className="text-gray-600">{exp.company}</p>
-                      <p className="text-sm text-gray-400">{exp.start_date} - {exp.end_date || 'Present'}</p>
-                      {exp.description && <p className="text-gray-600 mt-2">{exp.description}</p>}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{exp.title}</h3>
+                          <p className="text-gray-600">{exp.company}</p>
+                          <p className="text-sm text-gray-400">{exp.start_date} - {exp.end_date || 'Present'}</p>
+                          {exp.description && <p className="text-gray-600 mt-2">{exp.description}</p>}
+                        </div>
+                        {editing && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setEditData({
+                                ...editData,
+                                experience: editData.experience.filter((_, idx) => idx !== i)
+                              });
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
