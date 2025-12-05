@@ -26,6 +26,7 @@ import RecommendedConnections from '@/components/networking/RecommendedConnectio
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
 import AIProfileAssistant from '@/components/profile/AIProfileAssistant';
+import ResumeViewer from '@/components/profile/ResumeViewer';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,7 @@ export default function CandidateProfile() {
   const [videoTranscript, setVideoTranscript] = useState(null);
   const [isGeneratingTranscript, setIsGeneratingTranscript] = useState(false);
   const [suggestedSkills, setSuggestedSkills] = useState([]);
+  const [showResume, setShowResume] = useState(false);
 
   useEffect(() => {
     loadProfile();
