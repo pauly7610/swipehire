@@ -75,7 +75,6 @@ export default function Layout({ children, currentPageName }) {
         return (
           <>
             {children}
-            <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />
           </>
         );
       }
