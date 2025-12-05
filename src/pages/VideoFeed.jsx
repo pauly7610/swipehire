@@ -6,7 +6,7 @@ import {
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
   Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search,
-  UserPlus, UserCheck, Clock, Filter
+  UserPlus, UserCheck, Clock, Filter, Video
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +19,7 @@ import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 import FeedFilters from '@/components/video/FeedFilters';
+import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
@@ -400,6 +401,8 @@ export default function VideoFeed() {
   const [showConfirmPost, setShowConfirmPost] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [recordedVideoUrl, setRecordedVideoUrl] = useState(null);
   const [likedPostIds, setLikedPostIds] = useState(new Set());
   const [viewedPostIds, setViewedPostIds] = useState(new Set());
   const [loadingMore, setLoadingMore] = useState(false);
@@ -863,11 +866,17 @@ const scoredPosts = allScoredPosts.map((p, index) => {
   };
 
   const handleConfirmUpload = async () => {
-    if (!pendingFile) return;
+    if (!pendingFile && !recordedVideoUrl) return;
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: pendingFile });
+      let videoUrl = recordedVideoUrl;
+      
+      // If pendingFile exists, upload it
+      if (pendingFile && !recordedVideoUrl) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: pendingFile });
+        videoUrl = file_url;
+      }
       
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: user.id });
       const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
@@ -875,7 +884,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
       const post = await base44.entities.VideoPost.create({
         author_id: user.id,
         author_type: companyData ? 'employer' : 'candidate',
-        video_url: file_url,
+        video_url: videoUrl,
         caption: newPost.caption || '',
         type: newPost.type || 'intro',
         tags: newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
@@ -889,6 +898,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
       // Refresh the feed to show the new post
       setShowConfirmPost(false);
       setPendingFile(null);
+      setRecordedVideoUrl(null);
       setNewPost({ caption: '', type: 'intro', tags: '' });
       
       // Reload data to get fresh posts including the new one
@@ -1436,22 +1446,49 @@ const scoredPosts = allScoredPosts.map((p, index) => {
               onChange={e => setNewPost({ ...newPost, tags: e.target.value })}
             />
 
-            <label className="block">
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-pink-500 transition-colors">
-                {uploading ? (
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-pink-500" />
-                ) : (
-                  <>
-                    <Plus className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                    <p className="text-gray-500">Click to upload video</p>
-                  </>
-                )}
-              </div>
-              <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
-            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => {
+                  setShowUpload(false);
+                  setShowVideoRecorder(true);
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              >
+                <Video className="w-4 h-4 mr-2" />
+                Record Video
+              </Button>
+              
+              <label className="block">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Upload Video
+                </Button>
+                <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
+              </label>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Video Recorder */}
+      <VideoIntroRecorder
+        open={showVideoRecorder}
+        onOpenChange={setShowVideoRecorder}
+        onVideoSaved={(videoUrl) => {
+          setRecordedVideoUrl(videoUrl);
+          setShowVideoRecorder(false);
+          setShowConfirmPost(true);
+        }}
+      />
 
       {/* Comments Dialog */}
       <Dialog open={showComments} onOpenChange={setShowComments}>
