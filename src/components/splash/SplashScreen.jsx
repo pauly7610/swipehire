@@ -40,7 +40,7 @@ export default function SplashScreen({ onComplete }) {
             key={swipeCount}
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
             alt="SwipeHire"
-            className="w-40 md:w-52 h-auto absolute"
+            className="w-40 md:w-52 h-auto object-contain absolute"
             initial={{ x: swipeCount % 2 === 0 ? -400 : 400, opacity: 0, rotate: swipeCount % 2 === 0 ? -10 : 10 }}
             animate={{ x: 0, opacity: 1, rotate: 0 }}
             exit={{ x: swipeCount % 2 === 0 ? 400 : -400, opacity: 0 }}
@@ -53,7 +53,7 @@ export default function SplashScreen({ onComplete }) {
           <motion.img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
             alt="SwipeHire"
-            className="w-40 md:w-52 h-auto"
+            className="w-40 md:w-52 h-auto object-contain"
             initial={{ scale: 1.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
