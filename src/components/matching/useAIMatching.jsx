@@ -472,11 +472,38 @@ Provide specific, actionable insights.`,
     });
   }, []);
 
+  // Quick match score for card display (synchronous, no API calls)
+  const getQuickMatchScore = useCallback((candidate, job, company) => {
+    return calculateMatchScore(candidate, job, company, {});
+  }, [calculateMatchScore]);
+
+  // Smart candidate ranking with multiple factors
+  const smartRankCandidates = useCallback((candidates, job, company, options = {}) => {
+    return candidates
+      .map(candidate => {
+        const { score, insights } = calculateMatchScore(candidate.candidate || candidate, job, company, options);
+        return { ...candidate, matchScore: score, matchInsights: insights };
+      })
+      .sort((a, b) => {
+        // Primary: match score
+        const scoreDiff = b.matchScore - a.matchScore;
+        if (Math.abs(scoreDiff) > 5) return scoreDiff;
+        
+        // Secondary: experience years
+        const expA = a.candidate?.experience_years || a.experience_years || 0;
+        const expB = b.candidate?.experience_years || b.experience_years || 0;
+        return expB - expA;
+      });
+  }, [calculateMatchScore]);
+
   return {
     calculateMatchScore,
     checkDealBreakers,
     getAIInsights,
     rankMatches,
+    getQuickMatchScore,
+    smartRankCandidates,
+    findRelatedSkills,
     loading
   };
 }
