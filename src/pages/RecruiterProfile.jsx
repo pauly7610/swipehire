@@ -3,11 +3,15 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building2, MapPin, Globe, Users, Briefcase, Loader2, 
-  Eye, Heart, Play, Video, Linkedin, ExternalLink, Star
+  Eye, Heart, Play, Video, Linkedin, ExternalLink, Star, User, Edit2, Upload, Mail, Phone
 } from 'lucide-react';
 import RecruiterFeedbackSection from '@/components/recruiter/RecruiterFeedbackSection';
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
@@ -25,6 +29,8 @@ export default function RecruiterProfile() {
   const [videoStats, setVideoStats] = useState({ views: 0, likes: 0 });
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({});
 
   useEffect(() => {
     loadProfile();
@@ -62,10 +68,43 @@ export default function RecruiterProfile() {
         const avg = feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length;
         setAverageRating(avg);
       }
+
+      // Set edit data from user
+      setEditData({
+        full_name: currentUser.full_name,
+        title: currentUser.title || '',
+        bio: currentUser.bio || '',
+        phone: currentUser.phone || '',
+        linkedin_url: currentUser.linkedin_url || '',
+        photo_url: currentUser.photo_url || '',
+        years_recruiting: currentUser.years_recruiting || '',
+        specialties: currentUser.specialties || []
+      });
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
     setLoading(false);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditData({ ...editData, photo_url: file_url });
+    } catch (err) {
+      console.error('Upload failed:', err);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await base44.auth.updateMe(editData);
+      setUser({ ...user, ...editData });
+      setEditing(false);
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
   };
 
   if (loading) {
@@ -100,33 +139,112 @@ export default function RecruiterProfile() {
       )}
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">
-        {/* Profile Card */}
+        {/* Recruiter Personal Profile Card */}
         <Card className="shadow-xl border-0 mb-6 overflow-visible">
           <CardContent className="pt-0">
             <div className="flex justify-between items-start">
               <div className="relative -mt-12">
-                {company?.logo_url ? (
-                  <img
-                    src={company.logo_url}
-                    alt={company.name}
-                    className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-lg"
-                  />
+                {editing ? (
+                  <label className="cursor-pointer">
+                    {editData.photo_url ? (
+                      <img src={editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg" />
+                    ) : (
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <User className="w-12 h-12 text-pink-400" />
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 right-0 w-8 h-8 swipe-gradient rounded-full flex items-center justify-center">
+                      <Upload className="w-4 h-4 text-white" />
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  </label>
                 ) : (
-                  <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
-                    <Building2 className="w-12 h-12 text-pink-400" />
-                  </div>
+                  (user?.photo_url || editData.photo_url) ? (
+                    <img src={user?.photo_url || editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg" />
+                  ) : (
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                      <User className="w-12 h-12 text-pink-400" />
+                    </div>
+                  )
                 )}
               </div>
 
-              <Link to={createPageUrl('CompanyBranding')}>
-                <Button variant="outline" className="mt-4">
-                  Edit Profile
-                </Button>
-              </Link>
+              <Button 
+                variant={editing ? "default" : "outline"} 
+                onClick={() => editing ? handleSave() : setEditing(true)}
+                className={`mt-4 ${editing ? 'swipe-gradient text-white' : ''}`}
+              >
+                {editing ? 'Save Changes' : <><Edit2 className="w-4 h-4 mr-2" /> Edit Profile</>}
+              </Button>
+            </div>
+
+            {/* Recruiter Info */}
+            <div className="mt-4">
+              {editing ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input value={editData.full_name || ''} onChange={(e) => setEditData({ ...editData, full_name: e.target.value })} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Title / Role</Label>
+                    <Input placeholder="e.g., Senior Technical Recruiter" value={editData.title || ''} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea placeholder="Tell candidates about yourself..." value={editData.bio || ''} onChange={(e) => setEditData({ ...editData, bio: e.target.value })} className="mt-1" rows={3} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Phone</Label>
+                      <Input placeholder="+1 (555) 000-0000" value={editData.phone || ''} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Years Recruiting</Label>
+                      <Input type="number" placeholder="5" value={editData.years_recruiting || ''} onChange={(e) => setEditData({ ...editData, years_recruiting: e.target.value })} className="mt-1" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>LinkedIn URL</Label>
+                    <Input placeholder="https://linkedin.com/in/..." value={editData.linkedin_url || ''} onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })} className="mt-1" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
+                  <p className="text-gray-600">{user?.title || 'Recruiter'}</p>
+                  {user?.bio && <p className="text-gray-500 text-sm mt-2">{user.bio}</p>}
+                  
+                  <div className="flex items-center gap-4 mt-3 text-gray-500 text-sm">
+                    {user?.email && (
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" />
+                        {user.email}
+                      </span>
+                    )}
+                    {user?.years_recruiting && (
+                      <span className="flex items-center gap-1">
+                        <Briefcase className="w-4 h-4" />
+                        {user.years_recruiting}+ years recruiting
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Social Links */}
+                  <div className="flex gap-3 mt-3">
+                    {user?.linkedin_url && (
+                      <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer"
+                         className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                        <Linkedin className="w-4 h-4 text-blue-600" />
+                      </a>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Stats Row */}
-            <div className="flex gap-6 mt-4 mb-2">
+            <div className="flex gap-6 mt-4 pt-4 border-t">
               <div className="text-center">
                 <p className="text-xl font-bold text-gray-900">{videos.length}</p>
                 <p className="text-xs text-gray-500">Videos</p>
@@ -148,45 +266,64 @@ export default function RecruiterProfile() {
                 <p className="text-xs text-gray-500 mt-0.5">{reviewCount} Reviews</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Company Info */}
-            <div className="mt-4">
-              <h1 className="text-2xl font-bold text-gray-900">{company?.name || 'Company'}</h1>
-              <p className="text-gray-600">{company?.industry}</p>
-              
-              <div className="flex items-center gap-4 mt-2 text-gray-500 text-sm">
-                {company?.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {company.location}
-                  </span>
+        {/* Company Card */}
+        {company && (
+          <Card className="shadow-sm border-0 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                {company?.logo_url ? (
+                  <img src={company.logo_url} alt={company.name} className="w-14 h-14 rounded-xl object-cover" />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                    <Building2 className="w-7 h-7 text-pink-400" />
+                  </div>
                 )}
-                {company?.size && (
-                  <span className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    {company.size} employees
-                  </span>
-                )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{company.name}</h3>
+                  <p className="text-sm text-gray-500">{company.industry}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                    {company?.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {company.location}
+                      </span>
+                    )}
+                    {company?.size && (
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" /> {company.size}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Link to={createPageUrl('CompanyBranding')}>
+                  <Button variant="outline" size="sm">
+                    <Edit2 className="w-4 h-4 mr-1" /> Edit
+                  </Button>
+                </Link>
               </div>
-
-              {/* Social Links */}
-              <div className="flex gap-3 mt-3">
+              
+              {/* Company Social Links */}
+              <div className="flex gap-2 mt-3 pt-3 border-t">
                 {company?.website && (
-                  <a href={company.website} target="_blank" rel="noopener noreferrer" 
-                     className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-                    <Globe className="w-4 h-4 text-gray-600" />
+                  <a href={company.website} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="sm">
+                      <Globe className="w-4 h-4 mr-1" /> Website
+                    </Button>
                   </a>
                 )}
                 {company?.linkedin_url && (
-                  <a href={company.linkedin_url} target="_blank" rel="noopener noreferrer"
-                     className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
-                    <Linkedin className="w-4 h-4 text-blue-600" />
+                  <a href={company.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="sm">
+                      <Linkedin className="w-4 h-4 mr-1" /> LinkedIn
+                    </Button>
                   </a>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-6">
