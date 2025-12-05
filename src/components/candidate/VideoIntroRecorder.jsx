@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { 
   Video, Circle, Square, Play, Pause, RotateCcw, Upload, 
-  CheckCircle2, Loader2, Clock, Lightbulb, X, Scissors, SkipBack, SkipForward
+  CheckCircle2, Loader2, Clock, Lightbulb, X, Scissors, SkipBack, SkipForward, RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -33,8 +33,11 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   const [trimEnd, setTrimEnd] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isTrimming, setIsTrimming] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const previewVideoRef = useRef(null);
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
@@ -211,20 +214,98 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
     setMode('editing');
   };
 
+  const resetTrim = () => {
+    setTrimStart(0);
+    setTrimEnd(videoDuration);
+    if (previewVideoRef.current) {
+      previewVideoRef.current.currentTime = 0;
+      setCurrentTime(0);
+    }
+  };
+
+  const trimVideo = async () => {
+    if (!previewVideoRef.current || !recordedBlob) return null;
+    
+    setIsTrimming(true);
+    
+    return new Promise((resolve) => {
+      const video = previewVideoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 720;
+      canvas.height = video.videoHeight || 1280;
+      const ctx = canvas.getContext('2d');
+      
+      const stream = canvas.captureStream(30);
+      
+      // Add audio track if available
+      if (video.captureStream) {
+        const videoStream = video.captureStream();
+        const audioTracks = videoStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          stream.addTrack(audioTracks[0]);
+        }
+      }
+      
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const chunks = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = () => {
+        const trimmedBlob = new Blob(chunks, { type: 'video/webm' });
+        setIsTrimming(false);
+        resolve(trimmedBlob);
+      };
+      
+      video.currentTime = trimStart;
+      video.muted = false;
+      
+      const drawFrame = () => {
+        if (video.currentTime >= trimEnd || video.paused) {
+          recorder.stop();
+          video.pause();
+          return;
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(drawFrame);
+      };
+      
+      video.onseeked = () => {
+        recorder.start();
+        video.play();
+        drawFrame();
+      };
+    });
+  };
+
   const handleSaveWithTrim = async () => {
     if (!recordedBlob) return;
     
     setUploading(true);
     try {
-      // For now, upload the full video (trimming would require server-side processing)
-      // The trim values could be stored as metadata
-      let file;
-      if (recordedBlob instanceof File) {
-        file = recordedBlob;
-      } else {
-        file = new File([recordedBlob], 'video_intro.webm', { type: 'video/webm' });
+      let fileToUpload;
+      
+      // Check if trimming is needed
+      const needsTrim = trimStart > 0.1 || (videoDuration - trimEnd) > 0.1;
+      
+      if (needsTrim) {
+        const trimmedBlob = await trimVideo();
+        if (trimmedBlob) {
+          fileToUpload = new File([trimmedBlob], 'video_intro.webm', { type: 'video/webm' });
+        }
       }
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      if (!fileToUpload) {
+        if (recordedBlob instanceof File) {
+          fileToUpload = recordedBlob;
+        } else {
+          fileToUpload = new File([recordedBlob], 'video_intro.webm', { type: 'video/webm' });
+        }
+      }
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       onVideoSaved(file_url);
       onOpenChange(false);
     } catch (err) {
@@ -434,26 +515,82 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                     <Scissors className="w-4 h-4 text-pink-400" />
                     <span className="text-sm font-medium">Trim Video</span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    Duration: {formatTime(Math.round(trimEnd - trimStart))}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">
+                      Duration: {formatTime(Math.round(trimEnd - trimStart))}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetTrim}
+                      className="text-xs text-pink-400 hover:text-pink-300 hover:bg-gray-800 h-7 px-2"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" /> Reset
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Timeline */}
                 <div className="space-y-2">
-                  {/* Current position indicator */}
-                  <div className="h-1 bg-gray-700 rounded-full relative">
+                  {/* Visual Timeline with Scrubbing */}
+                  <div 
+                    className="h-10 bg-gray-800 rounded-lg relative overflow-hidden cursor-pointer"
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const percent = x / rect.width;
+                      const time = percent * videoDuration;
+                      if (time >= trimStart && time <= trimEnd) {
+                        seekTo(time);
+                      }
+                    }}
+                  >
+                    {/* Excluded regions (darker) */}
                     <div 
-                      className="absolute h-full bg-pink-500 rounded-full"
+                      className="absolute inset-y-0 left-0 bg-gray-900/70"
+                      style={{ width: `${(trimStart / videoDuration) * 100}%` }}
+                    />
+                    <div 
+                      className="absolute inset-y-0 right-0 bg-gray-900/70"
+                      style={{ width: `${((videoDuration - trimEnd) / videoDuration) * 100}%` }}
+                    />
+                    
+                    {/* Selected region highlight */}
+                    <div 
+                      className="absolute inset-y-0 bg-gradient-to-r from-pink-500/30 to-orange-500/30"
                       style={{ 
                         left: `${(trimStart / videoDuration) * 100}%`,
                         width: `${((trimEnd - trimStart) / videoDuration) * 100}%`
                       }}
                     />
+                    
+                    {/* Trim handles */}
                     <div 
-                      className="absolute w-2 h-2 bg-white rounded-full -top-0.5"
+                      className="absolute top-0 bottom-0 w-1 bg-pink-500 cursor-ew-resize"
+                      style={{ left: `${(trimStart / videoDuration) * 100}%` }}
+                    >
+                      <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-pink-500 rounded-sm flex items-center justify-center">
+                        <div className="w-0.5 h-3 bg-white rounded-full" />
+                      </div>
+                    </div>
+                    <div 
+                      className="absolute top-0 bottom-0 w-1 bg-pink-500 cursor-ew-resize"
+                      style={{ left: `${(trimEnd / videoDuration) * 100}%` }}
+                    >
+                      <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-pink-500 rounded-sm flex items-center justify-center">
+                        <div className="w-0.5 h-3 bg-white rounded-full" />
+                      </div>
+                    </div>
+                    
+                    {/* Current position playhead */}
+                    <motion.div 
+                      className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg z-10"
                       style={{ left: `${(currentTime / videoDuration) * 100}%` }}
-                    />
+                      animate={{ opacity: [1, 0.7, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    >
+                      <div className="absolute -left-1.5 -top-1 w-3.5 h-3.5 bg-white rounded-full shadow-lg" />
+                    </motion.div>
                   </div>
 
                   {/* Trim Slider */}
@@ -463,14 +600,16 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                     max={videoDuration || 60}
                     step={0.1}
                     onValueChange={handleTrimChange}
+                    onPointerDown={() => setIsDragging(true)}
+                    onPointerUp={() => setIsDragging(false)}
                     className="w-full"
                   />
 
                   {/* Time Labels */}
                   <div className="flex justify-between text-xs text-gray-400">
-                    <span>{formatTime(Math.round(trimStart))}</span>
-                    <span>{formatTime(Math.round(currentTime))}</span>
-                    <span>{formatTime(Math.round(trimEnd))}</span>
+                    <span className="bg-gray-800 px-2 py-0.5 rounded">{formatTime(Math.round(trimStart))}</span>
+                    <span className="bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded font-medium">{formatTime(Math.round(currentTime))}</span>
+                    <span className="bg-gray-800 px-2 py-0.5 rounded">{formatTime(Math.round(trimEnd))}</span>
                   </div>
                 </div>
 
@@ -506,20 +645,21 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                     onClick={retake} 
                     variant="outline" 
                     className="flex-1 border-gray-600 text-white hover:bg-gray-800"
+                    disabled={uploading || isTrimming}
                   >
                     <RotateCcw className="w-4 h-4 mr-2" /> Retake
                   </Button>
                   <Button 
                     onClick={handleSaveWithTrim} 
-                    disabled={uploading}
+                    disabled={uploading || isTrimming}
                     className="flex-1 swipe-gradient text-white"
                   >
-                    {uploading ? (
+                    {(uploading || isTrimming) ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
                       <CheckCircle2 className="w-4 h-4 mr-2" />
                     )}
-                    {uploading ? 'Saving...' : 'Save Video'}
+                    {isTrimming ? 'Trimming...' : uploading ? 'Saving...' : 'Save Video'}
                   </Button>
                 </div>
               </div>
