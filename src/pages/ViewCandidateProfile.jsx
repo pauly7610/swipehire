@@ -133,7 +133,10 @@ export default function ViewCandidateProfile() {
               {/* Info */}
               <div className="mt-4">
                 <h1 className="text-2xl font-bold text-gray-900">{candidateUser?.full_name || 'Candidate'}</h1>
-                <p className="text-gray-600">{candidate.headline || 'Professional'}</p>
+                <p className="text-gray-600">
+                  {candidate.headline || 'Professional'}
+                  {candidate.current_company && <span className="text-gray-500"> @ {candidate.current_company}</span>}
+                </p>
 
                 {candidate.location && (
                   <div className="flex items-center gap-2 mt-2 text-gray-500">
@@ -147,6 +150,30 @@ export default function ViewCandidateProfile() {
                     <Briefcase className="w-4 h-4" />
                     <span className="capitalize">{candidate.experience_level} Level</span>
                     {candidate.experience_years && <span>• {candidate.experience_years} years experience</span>}
+                  </div>
+                )}
+
+                {/* Social Links */}
+                {(candidate.linkedin_url || candidate.github_url || candidate.website_url) && (
+                  <div className="flex gap-3 mt-3">
+                    {candidate.linkedin_url && (
+                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
+                         className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                        <Linkedin className="w-4 h-4 text-blue-600" />
+                      </a>
+                    )}
+                    {candidate.github_url && (
+                      <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
+                         className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        <Github className="w-4 h-4 text-gray-800" />
+                      </a>
+                    )}
+                    {candidate.website_url && (
+                      <a href={candidate.website_url} target="_blank" rel="noopener noreferrer"
+                         className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center hover:bg-green-200 transition-colors">
+                        <Globe className="w-4 h-4 text-green-600" />
+                      </a>
+                    )}
                   </div>
                 )}
               </div>
@@ -282,9 +309,145 @@ export default function ViewCandidateProfile() {
           </motion.div>
         )}
 
+        {/* Portfolio Projects */}
+        {candidate.portfolio_projects?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <Card className="mb-6 border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Portfolio Projects</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {candidate.portfolio_projects.map((project, i) => (
+                  <div key={i} className="p-4 bg-gray-50 rounded-xl">
+                    {project.image_url && (
+                      <img src={project.image_url} alt={project.title} className="w-full h-48 object-cover rounded-lg mb-3" />
+                    )}
+                    <h4 className="font-semibold text-gray-900 mb-2">{project.title}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                    {project.skills_used?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {project.skills_used.map((skill, j) => (
+                          <Badge key={j} variant="secondary" className="text-xs">{skill}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {project.url && (
+                      <a 
+                        href={project.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-pink-600 hover:text-pink-700 text-sm font-medium inline-flex items-center gap-1"
+                      >
+                        View Project <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Education */}
+        {candidate.education?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <Card className="mb-6 border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Education</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {candidate.education.map((edu, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{edu.degree}</h4>
+                      <p className="text-gray-600">{edu.university}</p>
+                      {edu.major && <p className="text-sm text-gray-500">{edu.major}</p>}
+                      <p className="text-sm text-gray-400">
+                        {edu.graduation_year}
+                        {edu.gpa && ` • GPA: ${edu.gpa}`}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Certifications */}
+        {candidate.certifications?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+            <Card className="mb-6 border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Certifications</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {candidate.certifications.map((cert, i) => (
+                  <div key={i} className="p-3 bg-green-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{cert.name}</h4>
+                    <p className="text-sm text-gray-600">{cert.issuer}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Issued: {cert.issue_date}
+                      {cert.expiry_date && ` • Expires: ${cert.expiry_date}`}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Awards */}
+        {candidate.awards?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+            <Card className="mb-6 border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Awards & Honors</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {candidate.awards.map((award, i) => (
+                  <div key={i} className="p-3 bg-yellow-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{award.title}</h4>
+                    <p className="text-sm text-gray-600">{award.issuer}</p>
+                    <p className="text-xs text-gray-500 mt-1">{award.date}</p>
+                    {award.description && <p className="text-sm text-gray-600 mt-2">{award.description}</p>}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Licenses */}
+        {candidate.licenses?.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+            <Card className="mb-6 border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Professional Licenses</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {candidate.licenses.map((license, i) => (
+                  <div key={i} className="p-3 bg-indigo-50 rounded-lg">
+                    <h4 className="font-semibold text-gray-900">{license.name}</h4>
+                    <p className="text-sm text-gray-600">{license.issuing_authority}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      License #: {license.license_number}
+                      {license.issue_date && ` • Issued: ${license.issue_date}`}
+                      {license.expiry_date && ` • Expires: ${license.expiry_date}`}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Resume */}
         {candidate.resume_url && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
             <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-pink-50 to-orange-50">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
