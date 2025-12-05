@@ -9,13 +9,14 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Briefcase, Users, Calendar, MessageCircle, Plus, TrendingUp,
-  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap
+  Building2, ArrowRight, CheckCircle2, Clock, Eye, Video, BarChart3, Sparkles, Zap, Palette
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isSameDay, addHours, addMinutes, differenceInHours, differenceInMinutes } from 'date-fns';
 import AICandidateSourcing from '@/components/recruiter/AICandidateSourcing';
 import AutoScheduler from '@/components/recruiter/AutoScheduler';
 import RecruitmentAnalytics from '@/components/recruiter/RecruitmentAnalytics';
+import AdvancedHiringAnalytics from '@/components/analytics/AdvancedHiringAnalytics';
 
 export default function EmployerDashboard() {
   const [company, setCompany] = useState(null);
@@ -234,7 +235,10 @@ export default function EmployerDashboard() {
             <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4 mr-2" /> Analytics
             </TabsTrigger>
-          </TabsList>
+            <TabsTrigger value="branding" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+              <Palette className="w-4 h-4 mr-2" /> Culture
+            </TabsTrigger>
+            </TabsList>
 
           {/* AI Sourcing Tab */}
           <TabsContent value="sourcing" className="mt-6">
@@ -255,12 +259,142 @@ export default function EmployerDashboard() {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="mt-6">
-            <RecruitmentAnalytics 
+            <AdvancedHiringAnalytics 
               jobs={jobs} 
               matches={matches} 
               interviews={interviews} 
               swipes={swipes}
             />
+          </TabsContent>
+
+          {/* Company Culture/Branding Tab */}
+          <TabsContent value="branding" className="mt-6">
+            <Card className="border-0 shadow-sm mb-6">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {company?.logo_url ? (
+                      <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-xl object-cover" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl swipe-gradient flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{company?.name || 'Your Company'}</h3>
+                      <p className="text-gray-500">{company?.industry} • {company?.location}</p>
+                      {company?.culture_traits?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {company.culture_traits.slice(0, 4).map(trait => (
+                            <Badge key={trait} variant="secondary" className="text-xs">{trait}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Link to={createPageUrl('CompanyBranding')}>
+                    <Button className="swipe-gradient text-white">
+                      <Palette className="w-4 h-4 mr-2" /> Edit Culture Page
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Quick Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Team Members Listed</span>
+                    <Badge>{company?.team_members?.length || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Benefits Listed</span>
+                    <Badge>{company?.benefits?.length || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Culture Traits</span>
+                    <Badge>{company?.culture_traits?.length || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Media Gallery</span>
+                    <Badge>{company?.media_gallery?.length || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Testimonials</span>
+                    <Badge>{company?.testimonials?.length || 0}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-sm md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">Profile Completeness</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const sections = [
+                      { name: 'Basic Info', done: !!(company?.name && company?.industry && company?.location) },
+                      { name: 'Logo & Cover', done: !!(company?.logo_url) },
+                      { name: 'Description', done: !!(company?.description) },
+                      { name: 'Mission', done: !!(company?.mission) },
+                      { name: 'Culture Traits', done: company?.culture_traits?.length > 0 },
+                      { name: 'Benefits', done: company?.benefits?.length > 0 },
+                      { name: 'Team Members', done: company?.team_members?.length > 0 },
+                      { name: 'Media Gallery', done: company?.media_gallery?.length > 0 },
+                    ];
+                    const completedCount = sections.filter(s => s.done).length;
+                    const percentage = Math.round((completedCount / sections.length) * 100);
+
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-2xl font-bold text-gray-900">{percentage}%</span>
+                          <span className="text-sm text-gray-500">{completedCount} of {sections.length} sections</span>
+                        </div>
+                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-4">
+                          <div 
+                            className="h-full swipe-gradient rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {sections.map(section => (
+                            <div key={section.name} className="flex items-center gap-2 text-sm">
+                              {section.done ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              ) : (
+                                <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                              )}
+                              <span className={section.done ? 'text-gray-700' : 'text-gray-400'}>{section.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6 text-center">
+              <p className="text-gray-500 mb-4">Showcase your company culture to attract top talent</p>
+              <div className="flex justify-center gap-4">
+                <Link to={createPageUrl('CompanyBranding')}>
+                  <Button variant="outline">
+                    <Palette className="w-4 h-4 mr-2" /> Manage Branding
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('CompanyProfile')}>
+                  <Button variant="outline">
+                    <Eye className="w-4 h-4 mr-2" /> Preview Profile
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Overview Tab */}
