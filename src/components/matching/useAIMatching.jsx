@@ -1,40 +1,93 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 
+// Skill similarity groups for smart matching
+const SKILL_GROUPS = {
+  'javascript': ['js', 'typescript', 'ts', 'node', 'nodejs', 'react', 'vue', 'angular', 'next.js', 'nextjs'],
+  'python': ['django', 'flask', 'fastapi', 'pandas', 'numpy', 'pytorch', 'tensorflow'],
+  'java': ['spring', 'springboot', 'kotlin', 'scala'],
+  'data': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'data analysis', 'analytics'],
+  'cloud': ['aws', 'azure', 'gcp', 'google cloud', 'docker', 'kubernetes', 'k8s', 'devops'],
+  'design': ['figma', 'sketch', 'adobe xd', 'ui', 'ux', 'ui/ux', 'product design'],
+  'marketing': ['seo', 'sem', 'google ads', 'facebook ads', 'content marketing', 'digital marketing'],
+  'management': ['project management', 'agile', 'scrum', 'jira', 'leadership', 'team management'],
+};
+
 export function useAIMatching() {
   const [loading, setLoading] = useState(false);
 
-  // Enhanced matching algorithm with historical data analysis
-  const calculateMatchScore = useCallback(async (candidate, job, company, options = {}) => {
-    let score = 50; // Base score
+  // Find related skills using skill groups
+  const findRelatedSkills = useCallback((skill) => {
+    const skillLower = skill.toLowerCase();
+    for (const [group, skills] of Object.entries(SKILL_GROUPS)) {
+      if (skills.includes(skillLower) || group === skillLower) {
+        return skills;
+      }
+    }
+    return [skillLower];
+  }, []);
+
+  // Enhanced matching algorithm with smart scoring
+  const calculateMatchScore = useCallback((candidate, job, company, options = {}) => {
+    let score = 0;
     const insights = [];
-    const { swipeHistory, applicationHistory, connectionData } = options;
+    const weights = {
+      skills: 30,
+      experience: 20,
+      location: 15,
+      salary: 15,
+      culture: 10,
+      education: 5,
+      bonus: 5
+    };
     
-    // 1. Skills Match (up to 25 points) - Enhanced with skill weighting
+    const { swipeHistory, applicationHistory, connectionData, feedbackHistory } = options;
+    
+    // 1. SKILLS MATCH (up to 30 points) - Smart matching with related skills
     if (job?.skills_required?.length > 0 && candidate?.skills?.length > 0) {
       const candidateSkillsLower = candidate.skills.map(s => s.toLowerCase());
-      const matchingSkills = job.skills_required.filter(skill => 
-        candidateSkillsLower.some(cs => 
-          cs.includes(skill.toLowerCase()) || skill.toLowerCase().includes(cs)
-        )
-      );
-      
-      // Give more weight to exact matches vs partial matches
       let skillPoints = 0;
-      matchingSkills.forEach(skill => {
-        const exactMatch = candidateSkillsLower.includes(skill.toLowerCase());
-        skillPoints += exactMatch ? 5 : 3;
-      });
-      skillPoints = Math.min(25, skillPoints);
-      score += skillPoints;
+      const matchedSkills = [];
+      const relatedMatches = [];
       
-      if (matchingSkills.length > 0) {
+      job.skills_required.forEach(requiredSkill => {
+        const reqLower = requiredSkill.toLowerCase();
+        const relatedSkills = findRelatedSkills(reqLower);
+        
+        // Check for exact match
+        const exactMatch = candidateSkillsLower.find(cs => cs === reqLower || cs.includes(reqLower) || reqLower.includes(cs));
+        if (exactMatch) {
+          skillPoints += 6; // Full points for exact match
+          matchedSkills.push(requiredSkill);
+        } else {
+          // Check for related skill match
+          const relatedMatch = candidateSkillsLower.find(cs => 
+            relatedSkills.some(rs => cs.includes(rs) || rs.includes(cs))
+          );
+          if (relatedMatch) {
+            skillPoints += 3; // Partial points for related skill
+            relatedMatches.push(`${requiredSkill} (via ${relatedMatch})`);
+          }
+        }
+      });
+      
+      const skillScore = Math.min(weights.skills, skillPoints);
+      score += skillScore;
+      
+      if (matchedSkills.length > 0 || relatedMatches.length > 0) {
         insights.push({
           type: 'skills',
-          text: `Matches ${matchingSkills.length}/${job.skills_required.length} required skills`,
-          details: matchingSkills.slice(0, 3).join(', ') + (matchingSkills.length > 3 ? '...' : ''),
-          score: skillPoints,
-          isPositive: true
+          text: `${matchedSkills.length}/${job.skills_required.length} skills match${relatedMatches.length > 0 ? ` (+${relatedMatches.length} related)` : ''}`,
+          details: [...matchedSkills.slice(0, 3), ...relatedMatches.slice(0, 2)].join(', '),
+          score: skillScore,
+          isPositive: skillScore >= weights.skills * 0.5
+        });
+      } else {
+        insights.push({
+          type: 'skills',
+          text: 'Limited skill overlap',
+          score: 0,
+          isPositive: false
         });
       }
     }
