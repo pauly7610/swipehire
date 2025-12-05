@@ -32,6 +32,7 @@ import JobsList from './pages/JobsList';
 import Gamification from './pages/Gamification';
 import DirectMessages from './pages/DirectMessages';
 import EditJob from './pages/EditJob';
+import CommunicationHub from './pages/CommunicationHub';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "Gamification": Gamification,
     "DirectMessages": DirectMessages,
     "EditJob": EditJob,
+    "CommunicationHub": CommunicationHub,
 }
 
 export const pagesConfig = {
