@@ -5,12 +5,13 @@ import { motion, useMotionValue, useTransform } from 'framer-motion';
 import CandidateCard from '@/components/swipe/CandidateCard';
 import SwipeControls from '@/components/swipe/SwipeControls';
 import MatchModal from '@/components/swipe/MatchModal';
-import MatchInsights from '@/components/matching/MatchInsights';
+
 import { useAIMatching } from '@/components/matching/useAIMatching';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
+import DetailedMatchInsights from '@/components/matching/DetailedMatchInsights';
 
 export default function SwipeCandidates() {
   const [searchParams] = useSearchParams();
@@ -362,9 +363,13 @@ export default function SwipeCandidates() {
                           jobId={selectedJobId}
                         />
                       </div>
-                      {currentInsights && (
-                        <MatchInsights insights={currentInsights} score={currentScore} />
-                      )}
+                      <DetailedMatchInsights 
+                        candidate={currentCandidate}
+                        job={selectedJob}
+                        company={company}
+                        score={currentScore}
+                        insights={currentInsights}
+                      />
                     </div>
                   )}
 
