@@ -396,7 +396,7 @@ const UNIVERSITIES = [
   'Drury University',
   'Duke University',
   'Duquesne University',
-  'D'Youville College',
+  'D\'Youville College',
   'Earlham College',
   'Durham University',
   'East Carolina University',
