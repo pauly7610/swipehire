@@ -439,17 +439,17 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'recording' && (
-            <div className="relative aspect-[3/4] max-h-[60vh] flex items-center justify-center bg-black">
+            <div className="relative w-full h-[70vh] bg-black">
               <video 
                 ref={videoRef} 
                 autoPlay 
                 muted 
                 playsInline
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
               />
               
               {/* SwipeHire Logo */}
-              <span className="absolute bottom-4 right-4 text-white font-bold text-lg drop-shadow-lg">SwipeHire</span>
+              <span className="absolute bottom-20 right-4 text-white font-bold text-lg drop-shadow-lg z-10">SwipeHire</span>
               
               {/* Timer Overlay */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 backdrop-blur-sm rounded-full flex items-center gap-2">
