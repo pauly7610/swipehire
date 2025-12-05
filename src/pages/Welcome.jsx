@@ -11,8 +11,10 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => {
+    const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
+    return !hasSeenSplash;
+  });
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
@@ -20,13 +22,14 @@ export default function Welcome() {
   };
 
   useEffect(() => {
+    // Don't check auth until splash is done
+    if (showSplash) return;
+    
     const checkAuth = async () => {
       try {
         const authenticated = await base44.auth.isAuthenticated();
         if (authenticated) {
-          // User is logged in, skip splash and redirect
           const user = await base44.auth.me();
-          // Check if user has completed onboarding
           const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
           const companies = await base44.entities.Company.filter({ user_id: user.id });
           
@@ -39,24 +42,14 @@ export default function Welcome() {
           }
           return;
         }
-        // Not authenticated - check if should show splash
-        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
-        if (!hasSeenSplash) {
-          setShowSplash(true);
-        }
         setIsAuthenticated(authenticated);
       } catch (e) {
-        // Not authenticated - show splash if not seen
-        const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
-        if (!hasSeenSplash) {
-          setShowSplash(true);
-        }
+        console.log('Not authenticated');
       }
-      setAuthChecked(true);
       setLoading(false);
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, showSplash]);
 
   const handleGetStarted = () => {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
