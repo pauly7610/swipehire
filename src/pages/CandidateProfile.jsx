@@ -312,9 +312,21 @@ export default function CandidateProfile() {
                       className="mt-2"
                     />
                   </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Current Company</Label>
+                    <Input
+                      value={editData.current_company || ''}
+                      onChange={(e) => setEditData({ ...editData, current_company: e.target.value })}
+                      placeholder="Where do you currently work?"
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
               ) : (
-                <p className="text-gray-600">{candidate?.headline || 'Add your job title'}</p>
+                <p className="text-gray-600">
+                  {candidate?.headline || 'Add your job title'}
+                  {candidate?.current_company && <span className="text-gray-500"> @ {candidate.current_company}</span>}
+                </p>
               )}
 
               <div className="flex items-center gap-2 mt-2 text-gray-500">
