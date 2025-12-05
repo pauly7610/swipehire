@@ -20,6 +20,7 @@ import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
 import ResumeParser from '@/components/profile/ResumeParser';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
+import CredentialsSection from '@/components/profile/CredentialsSection';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -312,6 +313,9 @@ export default function CandidateProfile() {
             </TabsTrigger>
             <TabsTrigger value="portfolio" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Portfolio
+            </TabsTrigger>
+            <TabsTrigger value="credentials" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Credentials
             </TabsTrigger>
           </TabsList>
 
@@ -617,6 +621,15 @@ export default function CandidateProfile() {
                 }}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="credentials">
+            <CredentialsSection
+              candidate={candidate}
+              editing={editing}
+              editData={editData}
+              setEditData={setEditData}
+            />
           </TabsContent>
         </Tabs>
 
