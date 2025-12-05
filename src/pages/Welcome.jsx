@@ -26,7 +26,8 @@ export default function Welcome() {
 
   const handleSplashRoleSelect = (role) => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    localStorage.setItem('swipehire_selected_role', role);
+    // Role is already saved in localStorage by SplashScreen
+    // Redirect to login, which will then go to Onboarding
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 

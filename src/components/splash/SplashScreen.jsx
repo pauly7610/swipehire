@@ -144,7 +144,10 @@ export default function SplashScreen({ onComplete, onSelectRole }) {
             {/* Options */}
             <div className="space-y-4">
               <button
-                onClick={() => onSelectRole('candidate')}
+                onClick={() => {
+                  localStorage.setItem('swipehire_selected_role', 'candidate');
+                  onSelectRole('candidate');
+                }}
                 className="w-full group p-5 rounded-2xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-lg text-left flex items-center gap-4"
               >
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
@@ -157,7 +160,10 @@ export default function SplashScreen({ onComplete, onSelectRole }) {
               </button>
 
               <button
-                onClick={() => onSelectRole('employer')}
+                onClick={() => {
+                  localStorage.setItem('swipehire_selected_role', 'employer');
+                  onSelectRole('employer');
+                }}
                 className="w-full group p-5 rounded-2xl border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-lg text-left flex items-center gap-4"
               >
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
