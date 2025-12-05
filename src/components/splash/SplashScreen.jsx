@@ -72,23 +72,39 @@ export default function SplashScreen({ onComplete }) {
         transition={{ duration: 0.6 }}
       >
         {/* Headline */}
-        <h1 className="text-4xl md:text-5xl font-bold" style={{
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+          Welcome to SwipeHire
+        </h1>
+        
+        {/* Body Message */}
+        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+          The hiring world just got an upgrade. SwipeHire is where jobs meet social energy and matching talent with companies feels as easy as swiping through your favorite apps.
+        </p>
+
+        <p className="text-gray-700 font-semibold text-sm md:text-base">
+          Show who you are. Discover who you need. Connect fast.
+        </p>
+
+        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+          Candidates get real visibility. Employers get real talent. Everyone wins without the boring back and forth, black holes or endless forms.
+        </p>
+
+        <p className="text-xl md:text-2xl font-bold mt-2" style={{
           background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text'
         }}>
-          SwipeHire
-        </h1>
-        
-        {/* Sub-text */}
-        <p className="text-lg md:text-xl font-semibold text-gray-700">
-          Where hiring meets social connection
+          Swipe. Match. Hire.
         </p>
-        
-        {/* Body Message */}
-        <p className="text-gray-600 leading-relaxed text-sm md:text-base mt-2">
-          Discover a smarter way to match talent and opportunity. SwipeHire turns recruiting into connection — showcasing real people, real culture, and roles that actually fit. Explore companies, show who you are, and make matches that matter.
+
+        <p className="text-base md:text-lg font-semibold" style={{
+          background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          Welcome to recruiting that finally makes sense.
         </p>
 
         {/* CTA Button */}
