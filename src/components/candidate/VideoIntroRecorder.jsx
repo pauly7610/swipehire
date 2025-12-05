@@ -287,7 +287,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'recording' && (
-            <div className="relative aspect-[3/4] max-h-[60vh] bg-black flex items-center justify-center">
+            <div className="relative aspect-[3/4] max-h-[60vh] flex items-center justify-center">
               <video 
                 ref={videoRef} 
                 autoPlay 
@@ -297,13 +297,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
               />
               
               {/* SwipeHire Logo */}
-              <div className="absolute bottom-4 right-4 bg-white rounded-lg px-2 py-1">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
-                  alt="SwipeHire"
-                  className="w-16"
-                />
-              </div>
+              <span className="absolute bottom-4 right-4 text-white font-bold text-lg drop-shadow-lg">SwipeHire</span>
               
               {/* Timer Overlay */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 backdrop-blur-sm rounded-full flex items-center gap-2">
@@ -349,7 +343,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'preview' && recordedUrl && (
-            <div className="relative aspect-[3/4] max-h-[60vh] bg-black flex items-center justify-center">
+            <div className="relative aspect-[3/4] max-h-[60vh] flex items-center justify-center">
               <video 
                 src={recordedUrl} 
                 controls 
@@ -357,13 +351,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
               />
               
               {/* SwipeHire Logo */}
-              <div className="absolute bottom-16 right-4 bg-white rounded-lg px-2 py-1 pointer-events-none">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
-                  alt="SwipeHire"
-                  className="w-16"
-                />
-              </div>
+              <span className="absolute bottom-16 right-4 text-white font-bold text-lg drop-shadow-lg pointer-events-none">SwipeHire</span>
               
               {/* Actions */}
               <div className="absolute bottom-4 left-4 right-4 flex gap-3">
@@ -411,13 +399,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
                 />
                 
                 {/* SwipeHire Logo */}
-                <div className="absolute bottom-4 right-4 bg-white rounded-lg px-2 py-1 pointer-events-none">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/fefc4bf33_swipehire_no_bg1.png"
-                    alt="SwipeHire"
-                    className="w-16"
-                  />
-                </div>
+                <span className="absolute bottom-4 right-4 text-white font-bold text-lg drop-shadow-lg pointer-events-none">SwipeHire</span>
                 
                 {/* Play/Pause Overlay */}
                 <button 
