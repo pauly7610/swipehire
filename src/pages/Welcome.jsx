@@ -62,16 +62,20 @@ export default function Welcome() {
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
-  // Show splash first, before anything else
-  if (showSplash) {
+  if (loading) {
     return (
-      <AnimatePresence>
-        <SplashScreen onComplete={handleSplashComplete} />
-      </AnimatePresence>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
+      </div>
     );
   }
 
-  if (loading) {
+  // Show splash for non-authenticated users who haven't seen it
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
+  if (false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
