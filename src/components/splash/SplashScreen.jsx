@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Briefcase, Users, Zap } from 'lucide-react';
 
 export default function SplashScreen({ onComplete }) {
   const [showContent, setShowContent] = useState(false);
@@ -25,6 +25,18 @@ export default function SplashScreen({ onComplete }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
+      <style>{`
+        .swipe-gradient {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+        }
+        .swipe-gradient-text {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      `}</style>
+      
       {/* Background gradient */}
       <div
         className="absolute inset-0 opacity-15"
@@ -63,7 +75,7 @@ export default function SplashScreen({ onComplete }) {
 
       {/* Content - appears after swipes */}
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-3 md:gap-4 text-center px-6 max-w-md md:max-w-lg"
+        className="relative z-10 flex flex-col items-center gap-3 text-center px-6 max-w-md md:max-w-lg"
         initial={{ opacity: 0, y: 30 }}
         animate={{ 
           opacity: showContent ? 1 : 0, 
@@ -71,47 +83,40 @@ export default function SplashScreen({ onComplete }) {
         }}
         transition={{ duration: 0.6 }}
       >
-        {/* Headline */}
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-          Welcome to SwipeHire
+        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2">
+          Swipe Into Your
+          <br />
+          <span className="swipe-gradient-text">Next Opportunity</span>
         </h1>
-        
-        {/* Body Message */}
-        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-          The hiring world just got an upgrade. SwipeHire is where jobs meet social energy and matching talent with companies feels as easy as swiping through your favorite apps.
+
+        <p className="text-gray-600 leading-relaxed text-sm md:text-base mb-2">
+          SwipeHire is where jobs meet social energy. Matching talent with companies feels as easy as swiping through your favorite apps.
         </p>
 
-        <p className="text-gray-700 font-semibold text-sm md:text-base">
-          Show who you are. Discover who you need. Connect fast.
-        </p>
-
-        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-          Candidates get real visibility. Employers get real talent. Everyone wins without the boring back and forth, black holes or endless forms.
-        </p>
-
-        <p className="text-xl md:text-2xl font-bold mt-2" style={{
-          background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
+        <p className="text-xl md:text-2xl font-bold swipe-gradient-text">
           Swipe. Match. Hire.
         </p>
 
-        <p className="text-base md:text-lg font-semibold" style={{
-          background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
-          Welcome to recruiting that finally makes sense.
-        </p>
+        {/* Features */}
+        <div className="grid grid-cols-3 gap-4 mt-4 w-full max-w-sm">
+          {[
+            { icon: Briefcase, label: 'Find Jobs' },
+            { icon: Users, label: 'Connect' },
+            { icon: Zap, label: 'Get Hired' },
+          ].map((feature, i) => (
+            <div key={i} className="text-center">
+              <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-2">
+                <feature.icon className="w-6 h-6 text-pink-500" />
+              </div>
+              <p className="text-xs font-medium text-gray-700">{feature.label}</p>
+            </div>
+          ))}
+        </div>
 
         {/* CTA Button */}
         <Button
           onClick={onComplete}
-          className="mt-6 text-white text-lg px-10 py-6 rounded-2xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all hover:scale-105 font-semibold"
-          style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
+          className="mt-6 text-white text-lg px-10 py-6 rounded-2xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all hover:scale-105 font-semibold swipe-gradient"
         >
           Get Started
           <ChevronRight className="w-5 h-5 ml-2" />
