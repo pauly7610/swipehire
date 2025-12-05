@@ -73,6 +73,10 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
   };
 
   const startRecording = () => {
+    if (!streamRef.current) {
+      console.error('No stream available');
+      return;
+    }
     chunksRef.current = [];
     const recorder = new MediaRecorder(streamRef.current, { mimeType: 'video/webm' });
     
