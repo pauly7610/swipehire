@@ -24,6 +24,12 @@ export default function Welcome() {
     setTimeout(() => setShowWelcomeContent(true), 300);
   };
 
+  const handleSplashRoleSelect = (role) => {
+    sessionStorage.setItem('swipehire_splash_seen', 'true');
+    localStorage.setItem('swipehire_selected_role', role);
+    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+  };
+
   useEffect(() => {
     // Don't check auth until splash is done
     if (showSplash) return;
@@ -60,7 +66,7 @@ export default function Welcome() {
 
   // Show splash FIRST, before any auth checks
   if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+    return <SplashScreen onComplete={handleSplashComplete} onSelectRole={handleSplashRoleSelect} />;
   }
 
   if (loading) {
