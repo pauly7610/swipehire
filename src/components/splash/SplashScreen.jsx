@@ -1,99 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 
 export default function SplashScreen({ onComplete }) {
-  const [stage, setStage] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+  const [swipeCount, setSwipeCount] = useState(0);
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setStage(1), 500),
-      setTimeout(() => setStage(2), 1200),
-      setTimeout(() => setStage(3), 2000),
-    ];
-    return () => timers.forEach(clearTimeout);
+    // Logo swipes across 4 times, then content appears
+    const swipeInterval = setInterval(() => {
+      setSwipeCount(prev => {
+        if (prev >= 4) {
+          clearInterval(swipeInterval);
+          setShowContent(true);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 400);
+
+    return () => clearInterval(swipeInterval);
   }, []);
 
-  const taglineWords = ['Swipe.', 'Match.', 'Hire.'];
-
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden"
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Animated background gradient */}
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: stage >= 1 ? 0.1 : 0 }}
-        transition={{ duration: 1 }}
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
+      {/* Background gradient */}
+      <div
+        className="absolute inset-0 opacity-10"
         style={{
-          background: 'radial-gradient(circle at 50% 50%, #FF005C 0%, transparent 50%), radial-gradient(circle at 80% 20%, #FF7B00 0%, transparent 40%)'
+          background: 'radial-gradient(circle at 50% 30%, #FF005C 0%, transparent 50%), radial-gradient(circle at 80% 70%, #FF7B00 0%, transparent 40%)'
         }}
       />
 
-      {/* Logo animation */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center"
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ 
-          scale: stage >= 1 ? 1 : 0, 
-          rotate: stage >= 1 ? 0 : -180 
-        }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 200, 
-          damping: 15,
-          duration: 0.8 
-        }}
-      >
-        <motion.img
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/d908b2b8e_logo.jpg"
-          alt="SwipeHire"
-          className="w-64 h-auto mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        />
-      </motion.div>
-
-      {/* Tagline animation */}
-      <div className="flex gap-2 mt-4 h-8">
-        {taglineWords.map((word, index) => (
-          <motion.span
-            key={word}
-            className="text-xl font-semibold italic"
-            style={{
-              background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-              opacity: stage >= 2 ? 1 : 0, 
-              y: stage >= 2 ? 0 : 20 
-            }}
+      {/* Swiping Logo Animation */}
+      <div className="relative z-10 h-32 w-full flex items-center justify-center mb-8 overflow-hidden">
+        {swipeCount < 4 ? (
+          <motion.img
+            key={swipeCount}
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/d908b2b8e_logo.jpg"
+            alt="SwipeHire"
+            className="w-48 h-auto absolute"
+            initial={{ x: swipeCount % 2 === 0 ? -400 : 400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: swipeCount % 2 === 0 ? 400 : -400, opacity: 0 }}
             transition={{ 
-              delay: index * 0.15,
-              duration: 0.4,
+              duration: 0.3,
               ease: "easeOut"
             }}
-          >
-            {word}
-          </motion.span>
-        ))}
+          />
+        ) : (
+          <motion.img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/d908b2b8e_logo.jpg"
+            alt="SwipeHire"
+            className="w-48 h-auto"
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          />
+        )}
       </div>
 
-      {/* Content */}
+      {/* Content - appears after swipes */}
       <motion.div
-        className="mt-8 flex flex-col items-center gap-4 text-center px-6 max-w-lg"
+        className="relative z-10 flex flex-col items-center gap-4 text-center px-6 max-w-lg"
         initial={{ opacity: 0, y: 30 }}
         animate={{ 
-          opacity: stage >= 3 ? 1 : 0, 
-          y: stage >= 3 ? 0 : 30 
+          opacity: showContent ? 1 : 0, 
+          y: showContent ? 0 : 30 
         }}
         transition={{ duration: 0.6 }}
       >
@@ -113,7 +87,16 @@ export default function SplashScreen({ onComplete }) {
           Candidates get real visibility. Employers get real talent. Everyone wins without the boring back and forth, black holes or endless forms.
         </p>
 
-        <p className="text-lg font-semibold mt-2" style={{
+        <p className="text-xl font-bold mt-2" style={{
+          background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          Swipe. Match. Hire.
+        </p>
+        
+        <p className="text-lg font-semibold" style={{
           background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -131,35 +114,6 @@ export default function SplashScreen({ onComplete }) {
           <ChevronRight className="w-5 h-5 ml-2" />
         </Button>
       </motion.div>
-
-      {/* Floating particles */}
-      {stage >= 1 && (
-        <>
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 rounded-full"
-              style={{
-                background: i % 2 === 0 ? '#FF005C' : '#FF7B00',
-                left: `${20 + i * 12}%`,
-                top: `${30 + (i % 3) * 20}%`,
-              }}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: [0, 0.6, 0],
-                scale: [0, 1, 0],
-                y: [0, -50, -100],
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.2,
-                repeat: Infinity,
-                repeatDelay: 1,
-              }}
-            />
-          ))}
-        </>
-      )}
-    </motion.div>
+    </div>
   );
 }
