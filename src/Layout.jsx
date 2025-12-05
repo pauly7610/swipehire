@@ -75,6 +75,7 @@ export default function Layout({ children, currentPageName }) {
         return (
           <>
             {children}
+            {currentPageName === 'Onboarding' && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
           </>
         );
       }

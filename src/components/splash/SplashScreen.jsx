@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, User, Building2, Sparkles } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
-export default function SplashScreen({ onComplete, onSelectRole }) {
+export default function SplashScreen({ onComplete }) {
   const [showContent, setShowContent] = useState(false);
   const [swipeCount, setSwipeCount] = useState(0);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   useEffect(() => {
     // Logo swipes across 4 times, then content appears

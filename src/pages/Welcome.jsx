@@ -19,15 +19,7 @@ export default function Welcome() {
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    setShowSplash(false);
-    // Delay showing welcome content for smooth transition
-    setTimeout(() => setShowWelcomeContent(true), 300);
-  };
-
-  const handleSplashRoleSelect = (role) => {
-    sessionStorage.setItem('swipehire_splash_seen', 'true');
-    // Role is already saved in localStorage by SplashScreen
-    // Redirect to login, which will then go to Onboarding
+    // Go directly to signup/login, role selection will appear after
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
@@ -66,9 +58,9 @@ export default function Welcome() {
   };
 
   // Show splash FIRST, before any auth checks
-  if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} onSelectRole={handleSplashRoleSelect} />;
-  }
+    if (showSplash) {
+      return <SplashScreen onComplete={handleSplashComplete} />;
+    }
 
   if (loading) {
     return (
