@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, User, Building2, Sparkles } from 'lucide-react';
 
-export default function SplashScreen({ onComplete }) {
+export default function SplashScreen({ onComplete, onSelectRole }) {
   const [showContent, setShowContent] = useState(false);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   useEffect(() => {
     // Logo swipes across 4 times, then content appears
@@ -109,7 +110,7 @@ export default function SplashScreen({ onComplete }) {
 
         {/* CTA Button */}
         <Button
-          onClick={onComplete}
+          onClick={() => setShowRoleSelection(true)}
           className="mt-6 text-white text-lg px-10 py-6 rounded-2xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all hover:scale-105 font-semibold"
           style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
         >
@@ -117,6 +118,63 @@ export default function SplashScreen({ onComplete }) {
           <ChevronRight className="w-5 h-5 ml-2" />
         </Button>
       </motion.div>
+
+      {/* Role Selection Overlay */}
+      {showRoleSelection && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full"
+          >
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to SwipeHire!</h2>
+              <p className="text-gray-600">How would you like to use SwipeHire?</p>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-4">
+              <button
+                onClick={() => onSelectRole('candidate')}
+                className="w-full group p-5 rounded-2xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-lg text-left flex items-center gap-4"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                  <User className="w-7 h-7 text-pink-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">I'm a Candidate</h3>
+                  <p className="text-sm text-gray-500">Find jobs, swipe on opportunities, get hired</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onSelectRole('employer')}
+                className="w-full group p-5 rounded-2xl border-2 border-gray-200 hover:border-orange-500 transition-all hover:shadow-lg text-left flex items-center gap-4"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                  <Building2 className="w-7 h-7 text-orange-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">I'm a Recruiter</h3>
+                  <p className="text-sm text-gray-500">Post jobs, discover talent, build your team</p>
+                </div>
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 text-center mt-6">
+              You can always switch roles later in settings
+            </p>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
