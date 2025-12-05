@@ -43,6 +43,25 @@ export default function Chat() {
     }
   }, [matchId]);
 
+  // Real-time polling for new messages
+  useEffect(() => {
+    if (!matchId) return;
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const chatMessages = await base44.entities.Message.filter({ match_id: matchId });
+        const sortedMessages = chatMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        if (sortedMessages.length !== messages.length) {
+          setMessages(sortedMessages);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [matchId, messages.length]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -124,16 +143,32 @@ export default function Chat() {
       setMessages([...messages, message]);
       setNewMessage('');
       
-      // Create notification for employer
+      // Create notification and send email to employer (not the sender)
       if (match?.company_user_id) {
+        // Create in-app notification
         await base44.entities.Notification.create({
           user_id: match.company_user_id,
           type: 'message',
           title: 'New Message from Candidate',
           message: `You have a new message about ${job?.title || 'a position'}`,
           match_id: matchId,
-          job_id: job?.id
+          job_id: job?.id,
+          navigate_to: 'EmployerChat'
         });
+
+        // Get employer email and send notification
+        try {
+          const [employerUser] = await base44.entities.User.filter({ id: match.company_user_id });
+          if (employerUser?.email) {
+            await base44.integrations.Core.SendEmail({
+              to: employerUser.email,
+              subject: `New message from ${user.full_name || 'a candidate'} - SwipeHire`,
+              body: `Hi,\n\nYou have a new message from ${user.full_name || 'a candidate'} about the ${job?.title || 'position'}.\n\nMessage: "${newMessage.substring(0, 100)}${newMessage.length > 100 ? '...' : ''}"\n\nLog in to SwipeHire to respond.\n\nBest,\nSwipeHire Team`
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+        }
       }
     } catch (error) {
       console.error('Failed to send message:', error);
