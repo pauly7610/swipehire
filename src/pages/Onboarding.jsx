@@ -31,6 +31,14 @@ export default function Onboarding() {
   const [newSkill, setNewSkill] = useState('');
   const [uploadingResume, setUploadingResume] = useState(false);
 
+  // Recruiter fields
+  const [recruiterData, setRecruiterData] = useState({
+    recruiter_name: '',
+    title: '',
+    phone: '',
+    photo_url: ''
+  });
+
   // Company fields
   const [companyData, setCompanyData] = useState({
     name: '',
@@ -70,6 +78,8 @@ export default function Onboarding() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       if (type === 'candidate') {
         setCandidateData({ ...candidateData, photo_url: file_url });
+      } else if (type === 'recruiter') {
+        setRecruiterData({ ...recruiterData, photo_url: file_url });
       } else {
         setCompanyData({ ...companyData, logo_url: file_url });
       }
@@ -119,6 +129,14 @@ export default function Onboarding() {
         });
         navigate(createPageUrl('SwipeJobs'));
       } else {
+        // Save recruiter info to user profile
+        await base44.auth.updateMe({
+          recruiter_name: recruiterData.recruiter_name,
+          recruiter_title: recruiterData.title,
+          recruiter_photo: recruiterData.photo_url
+        });
+        
+        // Create company
         await base44.entities.Company.create({
           user_id: user.id,
           ...companyData
@@ -163,7 +181,7 @@ export default function Onboarding() {
                 <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Building2 className="w-10 h-10 text-orange-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm Hiring</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">I'm a Recruiter</h3>
                 <p className="text-gray-500">Post jobs, discover talent, and build your team</p>
               </button>
             </div>
@@ -336,82 +354,129 @@ export default function Onboarding() {
               exit={{ opacity: 0, x: -20 }}
               className="max-w-lg mx-auto"
             >
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Set Up Your Company</h2>
-              <p className="text-gray-600 mb-8">Tell candidates about your organization</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Set Up Your Recruiter Profile</h2>
+              <p className="text-gray-600 mb-8">Tell candidates about yourself and your company</p>
 
               <div className="space-y-6">
-                {/* Logo Upload */}
+                {/* Recruiter Photo Upload */}
                 <div className="flex justify-center">
                   <div className="relative">
-                    {companyData.logo_url ? (
+                    {recruiterData.photo_url ? (
                       <img
-                        src={companyData.logo_url}
-                        alt="Company Logo"
-                        className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-lg"
+                        src={recruiterData.photo_url}
+                        alt="Recruiter"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                       />
                     ) : (
-                      <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
-                        <Building2 className="w-12 h-12 text-orange-400" />
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <User className="w-12 h-12 text-orange-400" />
                       </div>
                     )}
                     <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
                       <Upload className="w-5 h-5 text-white" />
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'recruiter')} />
                     </label>
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-gray-700">Company Name</Label>
-                  <Input
-                    placeholder="Your company name"
-                    value={companyData.name}
-                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
-                    className="mt-2 h-12 rounded-xl"
-                  />
-                </div>
+                {/* Recruiter Info Section */}
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-2xl space-y-4">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <User className="w-5 h-5 text-orange-500" /> Your Information
+                  </h3>
+                  
+                  <div>
+                    <Label className="text-gray-700">Your Name</Label>
+                    <Input
+                      placeholder="Your full name"
+                      value={recruiterData.recruiter_name}
+                      onChange={(e) => setRecruiterData({ ...recruiterData, recruiter_name: e.target.value })}
+                      className="mt-2 h-12 rounded-xl"
+                    />
+                  </div>
 
-                <div>
-                  <Label className="text-gray-700">Industry</Label>
-                  <div className="mt-2">
-                    <IndustrySelect
-                      value={companyData.industry}
-                      onChange={(v) => setCompanyData({ ...companyData, industry: v })}
-                      placeholder="Select your industry"
+                  <div>
+                    <Label className="text-gray-700">Your Title</Label>
+                    <Input
+                      placeholder="e.g., Senior Recruiter, HR Manager"
+                      value={recruiterData.title}
+                      onChange={(e) => setRecruiterData({ ...recruiterData, title: e.target.value })}
+                      className="mt-2 h-12 rounded-xl"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-gray-700">Description</Label>
-                  <Textarea
-                    placeholder="Tell candidates about your company..."
-                    value={companyData.description}
-                    onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
-                    className="mt-2 rounded-xl resize-none"
-                    rows={3}
-                  />
-                </div>
+                {/* Company Info Section */}
+                <div className="p-4 bg-gray-50 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-gray-500" /> Company Information
+                    </h3>
+                    {companyData.logo_url && (
+                      <img src={companyData.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    )}
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Label className="text-gray-700">Company Name</Label>
+                      <Input
+                        placeholder="Your company name"
+                        value={companyData.name}
+                        onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
+                        className="mt-2 h-12 rounded-xl"
+                      />
+                    </div>
+                    <div className="pt-7">
+                      <label className="flex items-center justify-center w-12 h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-400 transition-colors">
+                        <Upload className="w-5 h-5 text-gray-400" />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
+                      </label>
+                    </div>
+                  </div>
+
                   <div>
-                    <Label className="text-gray-700">Location</Label>
+                    <Label className="text-gray-700">Industry</Label>
                     <div className="mt-2">
-                      <LocationSelect
-                        value={companyData.location}
-                        onChange={(v) => setCompanyData({ ...companyData, location: v })}
-                        placeholder="Select location"
+                      <IndustrySelect
+                        value={companyData.industry}
+                        onChange={(v) => setCompanyData({ ...companyData, industry: v })}
+                        placeholder="Select your industry"
                       />
                     </div>
                   </div>
+
                   <div>
-                    <Label className="text-gray-700">Website</Label>
-                    <Input
-                      placeholder="https://..."
-                      value={companyData.website}
-                      onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
-                      className="mt-2 h-12 rounded-xl"
+                    <Label className="text-gray-700">Company Description</Label>
+                    <Textarea
+                      placeholder="Tell candidates about your company..."
+                      value={companyData.description}
+                      onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
+                      className="mt-2 rounded-xl resize-none"
+                      rows={3}
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-gray-700">Location</Label>
+                      <div className="mt-2">
+                        <LocationSelect
+                          value={companyData.location}
+                          onChange={(v) => setCompanyData({ ...companyData, location: v })}
+                          placeholder="Select location"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-gray-700">Website</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={companyData.website}
+                        onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
+                        className="mt-2 h-12 rounded-xl"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -476,7 +541,7 @@ export default function Onboarding() {
           <div className="max-w-lg mx-auto">
             <Button
               onClick={handleComplete}
-              disabled={loading || (userType === 'candidate' ? !candidateData.headline : !companyData.name)}
+              disabled={loading || (userType === 'candidate' ? !candidateData.headline : (!recruiterData.recruiter_name || !companyData.name))}
               className="w-full swipe-gradient text-white h-14 rounded-2xl text-lg font-semibold shadow-lg shadow-pink-500/25 disabled:opacity-50"
             >
               {loading ? 'Setting up...' : 'Complete Setup'}
