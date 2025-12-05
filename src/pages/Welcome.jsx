@@ -15,11 +15,13 @@ export default function Welcome() {
     const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
     return !hasSeenSplash;
   });
+  const [showWelcomeContent, setShowWelcomeContent] = useState(false);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    // Go directly to login/signup after splash
-    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+    setShowSplash(false);
+    // Delay showing welcome content for smooth transition
+    setTimeout(() => setShowWelcomeContent(true), 300);
   };
 
   useEffect(() => {
@@ -93,7 +95,8 @@ export default function Welcome() {
         <header className="relative z-10 p-6 md:p-8">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : -20 }}
+            transition={{ duration: 0.5 }}
             className="text-3xl md:text-4xl font-bold swipe-gradient-text"
           >
             SwipeHire
@@ -104,8 +107,8 @@ export default function Welcome() {
         <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, scale: showWelcomeContent ? 1 : 0.9 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
             className="mb-8"
           >
             {/* Animated Card Stack */}
@@ -133,8 +136,8 @@ export default function Welcome() {
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
             className="text-4xl md:text-6xl font-bold text-gray-900 mb-4"
           >
             Swipe Into Your
@@ -144,8 +147,8 @@ export default function Welcome() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
             className="text-xl text-gray-600 mb-8 max-w-md"
           >
             Jobs, People, Growth.
@@ -155,8 +158,8 @@ export default function Welcome() {
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 20 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
           >
             <Button
               onClick={handleGetStarted}
@@ -170,8 +173,8 @@ export default function Welcome() {
           {/* Features */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
+            animate={{ opacity: showWelcomeContent ? 1 : 0, y: showWelcomeContent ? 0 : 40 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
             className="grid grid-cols-3 gap-8 mt-16 max-w-2xl"
           >
             {[
