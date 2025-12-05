@@ -147,7 +147,25 @@ export default function CandidateProfile() {
       `}</style>
 
       {/* Header Banner */}
-      <div className="swipe-gradient h-32 relative" />
+      <div className="swipe-gradient h-32 relative">
+        {/* Edit/Save Button - Top Right */}
+        <div className="absolute top-4 right-4">
+          <Button
+            variant={editing ? "default" : "outline"}
+            onClick={() => editing ? handleSave() : setEditing(true)}
+            className={editing ? "bg-white text-pink-600 shadow-lg" : "bg-white border-white text-gray-900 shadow-lg"}
+          >
+            {editing ? (
+              <>Save Changes</>
+            ) : (
+              <>
+                <Edit2 className="w-4 h-4 mr-2" /> 
+                Edit Profile
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">
         {/* Profile Card */}
@@ -188,14 +206,6 @@ export default function CandidateProfile() {
                   )
                 )}
               </div>
-
-              <Button
-                variant={editing ? "default" : "outline"}
-                onClick={() => editing ? handleSave() : setEditing(true)}
-                className={editing ? "swipe-gradient text-white mt-4" : "mt-4"}
-              >
-                {editing ? 'Save Changes' : <><Edit2 className="w-4 h-4 mr-2" /> Edit Profile</>}
-              </Button>
             </div>
 
             {/* Stats Row */}
