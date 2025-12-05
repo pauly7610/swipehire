@@ -25,14 +25,18 @@ const TIME_SLOTS = [
 export default function AutoScheduler({ matches, candidates, users, jobs, company }) {
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({
-    autoSendSlots: true,
+    autoSendSlots: false,
+    autoScheduleEnabled: false,
+    autoScheduleThreshold: 80, // Match score threshold for auto-scheduling
     defaultDuration: 30,
     bufferTime: 15,
     workingHoursStart: '09:00',
     workingHoursEnd: '17:00',
     excludeWeekends: true,
     reminderEnabled: true,
-    reminderTimes: ['24h', '1h']
+    reminderTimes: ['24h', '1h'],
+    daysAhead: 3, // Auto-schedule X days ahead
+    slotsPerDay: 3 // Number of slots to offer per day
   });
   const [pendingSchedules, setPendingSchedules] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -41,6 +45,8 @@ export default function AutoScheduler({ matches, candidates, users, jobs, compan
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
+  const [autoScheduling, setAutoScheduling] = useState(false);
+  const [scheduledCount, setScheduledCount] = useState(0);
 
   useEffect(() => {
     // Find matches ready for scheduling (matched but no interview yet)
@@ -163,6 +169,127 @@ export default function AutoScheduler({ matches, candidates, users, jobs, compan
     setShowScheduleDialog(true);
   };
 
+  // Auto-generate slots for a given number of days ahead
+  const generateAutoSlots = (daysAhead, slotsPerDay) => {
+    const autoSlots = [];
+    for (let d = 1; d <= daysAhead; d++) {
+      const date = addDays(new Date(), d);
+      const daySlots = generateAvailableSlots(date);
+      
+      // Pick evenly distributed slots
+      if (daySlots.length > 0) {
+        const step = Math.max(1, Math.floor(daySlots.length / slotsPerDay));
+        for (let i = 0; i < slotsPerDay && i * step < daySlots.length; i++) {
+          const slot = daySlots[i * step];
+          const [hours, mins] = slot.split(':').map(Number);
+          const slotDate = setMinutes(setHours(date, hours), mins);
+          autoSlots.push({
+            date: format(date, 'yyyy-MM-dd'),
+            time: slot,
+            duration: settings.defaultDuration,
+            utc_datetime: slotDate.toISOString(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          });
+        }
+      }
+    }
+    return autoSlots;
+  };
+
+  // Auto-schedule interviews for high-match candidates
+  const runAutoSchedule = async () => {
+    if (!settings.autoScheduleEnabled) return;
+    
+    setAutoScheduling(true);
+    let count = 0;
+    
+    try {
+      const currentUser = await base44.auth.me();
+      
+      // Get candidates that meet the threshold and haven't been scheduled
+      const eligibleMatches = pendingSchedules.filter(m => 
+        m.status === 'matched' && 
+        (m.match_score || 0) >= settings.autoScheduleThreshold
+      );
+
+      // Check which ones already have interviews
+      const existingInterviews = await base44.entities.Interview.filter({ company_id: company.id });
+      const scheduledMatchIds = new Set(existingInterviews.map(i => i.match_id));
+      
+      const toSchedule = eligibleMatches.filter(m => !scheduledMatchIds.has(m.id));
+
+      for (const match of toSchedule.slice(0, 5)) { // Limit to 5 per run
+        const candidate = candidates[match.candidate_id];
+        const candidateUser = candidate ? users[candidate.user_id] : null;
+        const job = jobs.find(j => j.id === match.job_id);
+
+        if (!candidateUser || !job) continue;
+
+        const autoSlots = generateAutoSlots(settings.daysAhead, settings.slotsPerDay);
+        
+        if (autoSlots.length === 0) continue;
+
+        // Create interview
+        await base44.entities.Interview.create({
+          match_id: match.id,
+          candidate_id: match.candidate_id,
+          company_id: company.id,
+          job_id: match.job_id,
+          interview_type: 'live',
+          status: 'pending',
+          available_slots: autoSlots
+        });
+
+        // Send notification
+        await base44.entities.Notification.create({
+          user_id: candidateUser.id,
+          type: 'interview',
+          title: '📅 Interview Invitation',
+          message: `${company.name} wants to schedule an interview for ${job.title}! Select your preferred time.`,
+          match_id: match.id,
+          navigate_to: 'ApplicationTracker'
+        });
+
+        // Send email
+        const slotsList = autoSlots.map(s => 
+          `• ${format(new Date(s.utc_datetime), 'EEEE, MMMM d')} at ${s.time}`
+        ).join('\n');
+
+        await base44.integrations.Core.SendEmail({
+          to: candidateUser.email,
+          subject: `Interview Invitation from ${company.name}`,
+          body: `Hi ${candidateUser.full_name},\n\nGreat news! Based on your strong match (${match.match_score}%), ${company.name} would like to schedule an interview with you for the ${job.title} position.\n\nAvailable times:\n${slotsList}\n\nLog in to SwipeHire to confirm your preferred time.\n\nBest,\nSwipeHire Team`
+        });
+
+        // Update match status
+        await base44.entities.Match.update(match.id, { status: 'interviewing' });
+
+        // Send chat message
+        await base44.entities.Message.create({
+          match_id: match.id,
+          sender_id: currentUser.id,
+          sender_type: 'employer',
+          content: `📅 Auto-scheduled interview! Your ${match.match_score}% match score qualified you for automatic scheduling. Please select a time that works for you.`,
+          message_type: 'interview_invite'
+        });
+
+        count++;
+      }
+
+      setScheduledCount(count);
+    } catch (error) {
+      console.error('Auto-schedule failed:', error);
+    }
+    setAutoScheduling(false);
+  };
+
+  // Run auto-schedule when enabled and matches change
+  useEffect(() => {
+    if (settings.autoScheduleEnabled && pendingSchedules.length > 0) {
+      runAutoSchedule();
+    }
+  }, [settings.autoScheduleEnabled, pendingSchedules.length]);
+
   const availableSlots = generateAvailableSlots(selectedDate);
 
   return (
@@ -180,11 +307,54 @@ export default function AutoScheduler({ matches, candidates, users, jobs, compan
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-            <Settings className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {settings.autoScheduleEnabled && (
+              <Badge className="bg-green-100 text-green-700">
+                <Zap className="w-3 h-3 mr-1" /> Auto
+              </Badge>
+            )}
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
+          {/* Auto-schedule status */}
+          {autoScheduling && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-xl flex items-center gap-3">
+              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+              <span className="text-blue-700">Auto-scheduling high-match candidates...</span>
+            </div>
+          )}
+          
+          {scheduledCount > 0 && !autoScheduling && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 bg-green-50 rounded-xl flex items-center gap-3"
+            >
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="text-green-700">Auto-scheduled {scheduledCount} interviews!</span>
+              <Button variant="ghost" size="sm" onClick={() => setScheduledCount(0)}>Dismiss</Button>
+            </motion.div>
+          )}
+
+          {/* Manual scheduling button for bulk */}
+          {pendingSchedules.length > 0 && !settings.autoScheduleEnabled && (
+            <Button 
+              onClick={runAutoSchedule}
+              disabled={autoScheduling}
+              className="w-full mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+            >
+              {autoScheduling ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              Auto-Schedule Top Matches ({'>'}={settings.autoScheduleThreshold}% score)
+            </Button>
+          )}
+
           {pendingSchedules.length === 0 ? (
             <div className="text-center py-6">
               <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-3" />
@@ -346,11 +516,83 @@ export default function AutoScheduler({ matches, candidates, users, jobs, compan
 
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Scheduling Settings</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Auto-Schedule Section */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-semibold">Auto-Schedule</Label>
+                  <p className="text-xs text-gray-500">Automatically send interview slots to high-match candidates</p>
+                </div>
+                <Switch
+                  checked={settings.autoScheduleEnabled}
+                  onCheckedChange={(v) => setSettings({...settings, autoScheduleEnabled: v})}
+                />
+              </div>
+              
+              {settings.autoScheduleEnabled && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Min Match Score</Label>
+                    <Select 
+                      value={String(settings.autoScheduleThreshold)} 
+                      onValueChange={(v) => setSettings({...settings, autoScheduleThreshold: Number(v)})}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="70">70%+</SelectItem>
+                        <SelectItem value="80">80%+</SelectItem>
+                        <SelectItem value="85">85%+</SelectItem>
+                        <SelectItem value="90">90%+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Days Ahead</Label>
+                    <Select 
+                      value={String(settings.daysAhead)} 
+                      onValueChange={(v) => setSettings({...settings, daysAhead: Number(v)})}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2 days</SelectItem>
+                        <SelectItem value="3">3 days</SelectItem>
+                        <SelectItem value="5">5 days</SelectItem>
+                        <SelectItem value="7">7 days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Slots per Day</Label>
+                    <Select 
+                      value={String(settings.slotsPerDay)} 
+                      onValueChange={(v) => setSettings({...settings, slotsPerDay: Number(v)})}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2 slots</SelectItem>
+                        <SelectItem value="3">3 slots</SelectItem>
+                        <SelectItem value="4">4 slots</SelectItem>
+                        <SelectItem value="5">5 slots</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="flex items-center justify-between">
               <Label>Default Interview Duration</Label>
               <Select 
@@ -420,7 +662,9 @@ export default function AutoScheduler({ matches, candidates, users, jobs, compan
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowSettings(false)}>Save Settings</Button>
+            <Button onClick={() => setShowSettings(false)} className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+              Save Settings
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
