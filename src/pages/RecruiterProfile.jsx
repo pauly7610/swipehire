@@ -73,6 +73,7 @@ export default function RecruiterProfile() {
       setEditData({
         full_name: currentUser.full_name,
         title: currentUser.title || '',
+        workplace: currentUser.workplace || '',
         bio: currentUser.bio || '',
         phone: currentUser.phone || '',
         linkedin_url: currentUser.linkedin_url || '',
@@ -191,6 +192,10 @@ export default function RecruiterProfile() {
                     <Input placeholder="e.g., Senior Technical Recruiter" value={editData.title || ''} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="mt-1" />
                   </div>
                   <div>
+                    <Label>Current Workplace</Label>
+                    <Input placeholder="Where do you work?" value={editData.workplace || ''} onChange={(e) => setEditData({ ...editData, workplace: e.target.value })} className="mt-1" />
+                  </div>
+                  <div>
                     <Label>Bio</Label>
                     <Textarea placeholder="Tell candidates about yourself..." value={editData.bio || ''} onChange={(e) => setEditData({ ...editData, bio: e.target.value })} className="mt-1" rows={3} />
                   </div>
@@ -212,7 +217,10 @@ export default function RecruiterProfile() {
               ) : (
                 <>
                   <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
-                  <p className="text-gray-600">{user?.title || 'Recruiter'}</p>
+                  <p className="text-gray-600">
+                    {user?.title || 'Recruiter'}
+                    {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
+                  </p>
                   {user?.bio && <p className="text-gray-500 text-sm mt-2">{user.bio}</p>}
                   
                   <div className="flex items-center gap-4 mt-3 text-gray-500 text-sm">
