@@ -237,10 +237,10 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-black border-0">
         <div className="relative">
           {mode === 'tips' && (
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 bg-white rounded-lg">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Video className="w-5 h-5 text-pink-500" />
