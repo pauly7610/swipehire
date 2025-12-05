@@ -18,8 +18,8 @@ export default function Welcome() {
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    // Show the welcome content after splash, user clicks Get Started to login
-    setShowWelcomeContent(true);
+    // Go to login, then onboarding for role selection
+    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function Welcome() {
   };
 
   // Show splash FIRST if not seen yet
-  if (!hasSeenSplash && !showWelcomeContent) {
+  if (!hasSeenSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
