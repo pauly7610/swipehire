@@ -23,6 +23,7 @@ import {
 import SendInterviewSlots from '@/components/interview/SendInterviewSlots';
 import LiveVideoRoom from '@/components/interview/LiveVideoRoom';
 import InterviewInviteCard from '@/components/interview/InterviewInviteCard';
+import CandidateProfileCard from '@/components/recruiter/CandidateProfileCard';
 
 export default function EmployerChat() {
   const [searchParams] = useSearchParams();
@@ -45,6 +46,7 @@ export default function EmployerChat() {
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showProfile, setShowProfile] = useState(true);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -240,29 +242,28 @@ export default function EmployerChat() {
         </div>
       </div>
 
-      {/* Candidate Info Card */}
-      <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50">
+      {/* Candidate Profile Card */}
+      <div className="px-4 py-3 bg-white border-b">
         <div className="max-w-2xl mx-auto">
-          <Card className="p-4 border-0 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                  <Briefcase className="w-4 h-4" />
-                  <span>Applying for: {job?.title}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {candidate?.skills?.slice(0, 3).map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-xs bg-white">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <Badge className="bg-green-100 text-green-700">
-                {match?.match_score || 85}% Match
-              </Badge>
-            </div>
-          </Card>
+          <CandidateProfileCard 
+            candidate={candidate}
+            user={candidateUser}
+            expanded={showProfile}
+            onToggle={() => setShowProfile(!showProfile)}
+          />
+        </div>
+      </div>
+
+      {/* Job Info Bar */}
+      <div className="px-4 py-2 bg-gradient-to-r from-pink-50 to-orange-50 border-b">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Briefcase className="w-4 h-4" />
+            <span>Applying for: <span className="font-medium text-gray-900">{job?.title}</span></span>
+          </div>
+          <Badge className="bg-green-100 text-green-700">
+            {match?.match_score || 85}% Match
+          </Badge>
         </div>
       </div>
 
