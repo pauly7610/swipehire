@@ -20,6 +20,7 @@ import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
 import ResumeParser from '@/components/profile/ResumeParser';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
+import VideoTranscript from '@/components/candidate/VideoTranscript';
 import CredentialsSection from '@/components/profile/CredentialsSection';
 
 export default function CandidateProfile() {
@@ -36,6 +37,8 @@ export default function CandidateProfile() {
   const [userVideos, setUserVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [videoTranscript, setVideoTranscript] = useState(null);
+  const [isGeneratingTranscript, setIsGeneratingTranscript] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -502,11 +505,25 @@ export default function CandidateProfile() {
               </CardHeader>
               <CardContent>
                 {candidate?.video_intro_url ? (
-                  <div className="relative rounded-xl overflow-hidden">
-                    <video src={candidate.video_intro_url} controls className="w-full max-h-64 rounded-xl object-contain bg-black" />
-                    <Badge className="absolute top-2 left-2 bg-green-100 text-green-700">
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Video Added
-                    </Badge>
+                  <div className="space-y-4">
+                    <div className="relative rounded-xl overflow-hidden">
+                      <video src={candidate.video_intro_url} controls className="w-full max-h-64 rounded-xl object-contain bg-black" />
+                      <Badge className="absolute top-2 left-2 bg-green-100 text-green-700">
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Video Added
+                      </Badge>
+                    </div>
+                    <VideoTranscript 
+                      videoUrl={candidate.video_intro_url}
+                      transcript={candidate.video_transcript || videoTranscript}
+                      onTranscriptUpdate={async (transcript) => {
+                        setVideoTranscript(transcript);
+                        if (candidate?.id) {
+                          await base44.entities.Candidate.update(candidate.id, { video_transcript: transcript });
+                          setCandidate({ ...candidate, video_transcript: transcript });
+                        }
+                      }}
+                      isGenerating={isGeneratingTranscript}
+                    />
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl">
@@ -694,10 +711,20 @@ export default function CandidateProfile() {
         onOpenChange={setShowVideoRecorder}
         existingVideo={candidate?.video_intro_url}
         onVideoSaved={async (videoUrl) => {
-          const updated = { ...candidate, video_intro_url: videoUrl };
-          await base44.entities.Candidate.update(candidate.id, { video_intro_url: videoUrl });
+          const updated = { ...candidate, video_intro_url: videoUrl, video_transcript: null };
+          await base44.entities.Candidate.update(candidate.id, { video_intro_url: videoUrl, video_transcript: null });
           setCandidate(updated);
           setEditData(updated);
+          setVideoTranscript(null);
+          setIsGeneratingTranscript(true);
+        }}
+        onTranscriptGenerated={async (transcript) => {
+          setIsGeneratingTranscript(false);
+          setVideoTranscript(transcript);
+          if (candidate?.id) {
+            await base44.entities.Candidate.update(candidate.id, { video_transcript: transcript });
+            setCandidate(prev => ({ ...prev, video_transcript: transcript }));
+          }
         }}
       />
 
