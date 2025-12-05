@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
-  const candidateId = searchParams.get('id');
+  const candidateId = searchParams.get('candidateId');
   
   const [candidate, setCandidate] = useState(null);
   const [candidateUser, setCandidateUser] = useState(null);
@@ -24,7 +24,10 @@ export default function ViewCandidateProfile() {
   }, [candidateId]);
 
   const loadCandidate = async () => {
-    if (!candidateId) return;
+    if (!candidateId) {
+      setLoading(false);
+      return;
+    }
     try {
       const candidates = await base44.entities.Candidate.filter({ id: candidateId });
       if (candidates.length > 0) {
