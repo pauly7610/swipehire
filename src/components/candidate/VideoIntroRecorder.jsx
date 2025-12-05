@@ -287,7 +287,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'recording' && (
-            <div className="relative aspect-[9/16] bg-black">
+            <div className="relative aspect-[3/4] max-h-[60vh] bg-black">
               <video 
                 ref={videoRef} 
                 autoPlay 
@@ -340,7 +340,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           )}
 
           {mode === 'preview' && recordedUrl && (
-            <div className="relative aspect-[9/16] bg-black">
+            <div className="relative aspect-[3/4] max-h-[60vh] bg-black">
               <video 
                 src={recordedUrl} 
                 controls 
@@ -382,7 +382,7 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
           {mode === 'editing' && recordedUrl && (
             <div className="bg-black">
               {/* Video Preview */}
-              <div className="relative aspect-[9/16]">
+              <div className="relative aspect-[3/4] max-h-[50vh]">
                 <video 
                   ref={previewVideoRef}
                   src={recordedUrl} 
