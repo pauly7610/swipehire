@@ -18,7 +18,8 @@ export default function Welcome() {
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    setShowSplash(false);
+    // Go directly to login/signup after splash
+    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
   useEffect(() => {
