@@ -270,21 +270,45 @@ export default function CandidateProfile() {
             <div className="mt-4">
               <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
               {editing ? (
-                <div className="space-y-2 mt-2">
-                  <Label className="text-sm text-gray-600">Industry</Label>
-                  <IndustrySelect
-                    value={editData.industry || ''}
-                    onChange={(v) => setEditData({ ...editData, industry: v, headline: '' })}
-                    placeholder="Select your industry"
-                  />
-                  <Label className="text-sm text-gray-600 mt-2">Job Title</Label>
-                  <JobTitleSelect
-                    value={editData.headline || ''}
-                    onChange={(v) => setEditData({ ...editData, headline: v })}
-                    placeholder={editData.industry ? "Select your job title" : "Select industry first"}
-                    industry={editData.industry}
-                    allowCustom
-                  />
+                <div className="space-y-3 mt-2">
+                  <div>
+                    <Label className="text-sm text-gray-600">Industry</Label>
+                    <div className="flex gap-2 mt-1">
+                      <IndustrySelect
+                        value={editData.industry || ''}
+                        onChange={(v) => {
+                          if (v === 'other') {
+                            setEditData({ ...editData, industry: '', headline: '' });
+                          } else {
+                            setEditData({ ...editData, industry: v, headline: '' });
+                          }
+                        }}
+                        placeholder="Select or type custom"
+                      />
+                    </div>
+                    <Input
+                      value={editData.industry || ''}
+                      onChange={(e) => setEditData({ ...editData, industry: e.target.value })}
+                      placeholder="Or type your own industry"
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Job Title</Label>
+                    <JobTitleSelect
+                      value={editData.headline || ''}
+                      onChange={(v) => setEditData({ ...editData, headline: v })}
+                      placeholder="Select or type your job title"
+                      industry={editData.industry}
+                      allowCustom
+                    />
+                    <Input
+                      value={editData.headline || ''}
+                      onChange={(e) => setEditData({ ...editData, headline: e.target.value })}
+                      placeholder="Or type your own job title"
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-600">{candidate?.headline || 'Add your job title'}</p>
