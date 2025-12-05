@@ -13,17 +13,25 @@ export default function Welcome() {
   const [loading, setLoading] = useState(true);
   const [showWelcomeContent, setShowWelcomeContent] = useState(false);
 
-  // Check if splash was already seen this session
-  const hasSeenSplash = sessionStorage.getItem('swipehire_splash_seen');
+  const [hasSeenSplash, setHasSeenSplash] = useState(false);
 
   const handleSplashComplete = () => {
+    setHasSeenSplash(true);
     sessionStorage.setItem('swipehire_splash_seen', 'true');
     // Go to login, then onboarding for role selection
     base44.auth.redirectToLogin(createPageUrl('Onboarding'));
   };
 
   useEffect(() => {
-    // If splash hasn't been seen, don't run auth check yet
+    // Check if splash was seen in this session
+    const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+    if (splashSeen) {
+      setHasSeenSplash(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Only check auth after splash is seen
     if (!hasSeenSplash) {
       setLoading(false);
       return;
