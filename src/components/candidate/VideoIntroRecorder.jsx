@@ -20,7 +20,7 @@ const TIPS = [
   "Smile and show your personality!"
 ];
 
-export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, existingVideo }) {
+export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, existingVideo, onTranscriptGenerated }) {
   const [mode, setMode] = useState(existingVideo ? 'preview' : 'tips'); // tips, recording, preview, editing, uploading
   const [recording, setRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState(null);
@@ -135,6 +135,28 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
     startCamera();
   };
 
+  const generateTranscript = async (videoUrl) => {
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Please transcribe the audio from this video introduction. Provide a clean, accurate transcript of what the person is saying. If there's no audio or speech, respond with "No speech detected."`,
+        file_urls: [videoUrl],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            transcript: { type: "string", description: "The transcribed text from the video" },
+            has_speech: { type: "boolean", description: "Whether speech was detected" }
+          }
+        }
+      });
+      
+      if (onTranscriptGenerated && result.has_speech) {
+        onTranscriptGenerated(result.transcript);
+      }
+    } catch (err) {
+      console.error('Transcript generation failed:', err);
+    }
+  };
+
   const handleUpload = async () => {
     if (!recordedBlob) return;
     
@@ -143,6 +165,10 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
       const file = new File([recordedBlob], 'video_intro.webm', { type: 'video/webm' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       onVideoSaved(file_url);
+      
+      // Generate transcript in background
+      generateTranscript(file_url);
+      
       onOpenChange(false);
     } catch (err) {
       console.error('Upload failed:', err);
@@ -344,6 +370,10 @@ export default function VideoIntroRecorder({ open, onOpenChange, onVideoSaved, e
       
       const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
       onVideoSaved(file_url);
+      
+      // Generate transcript in background
+      generateTranscript(file_url);
+      
       onOpenChange(false);
     } catch (err) {
       console.error('Upload failed:', err);
