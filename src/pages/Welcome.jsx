@@ -14,28 +14,40 @@ export default function Welcome() {
 
   // Check splash and auth on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const init = async () => {
       // Check if splash was already seen this session
       const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
       
       if (!splashSeen) {
         // Show splash first - always
-        setShowSplash(true);
-        setLoading(false);
+        if (isMounted) {
+          setShowSplash(true);
+          setLoading(false);
+        }
         return;
       }
 
       // Splash was seen, check auth status
-      setShowSplash(false);
+      if (isMounted) {
+        setShowSplash(false);
+      }
       
       try {
         const authenticated = await base44.auth.isAuthenticated();
+        if (!isMounted) return;
+        
         if (authenticated) {
           const user = await base44.auth.me();
+          if (!isMounted) return;
+          
           const [candidates, companies] = await Promise.all([
             base44.entities.Candidate.filter({ user_id: user.id }),
             base44.entities.Company.filter({ user_id: user.id })
           ]);
+          
+          if (!isMounted) return;
           
           if (companies.length > 0) {
             navigate(createPageUrl('EmployerDashboard'), { replace: true });
@@ -49,10 +61,17 @@ export default function Welcome() {
       } catch (e) {
         // Not authenticated - show landing page
       }
-      setLoading(false);
+      
+      if (isMounted) {
+        setLoading(false);
+      }
     };
     
     init();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   const handleSplashComplete = () => {
