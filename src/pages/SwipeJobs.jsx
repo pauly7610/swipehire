@@ -29,6 +29,7 @@ export default function SwipeJobs() {
   const [pendingSwipe, setPendingSwipe] = useState(null);
   const [swipeCount, setSwipeCount] = useState(0);
   const [showQuickApply, setShowQuickApply] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);

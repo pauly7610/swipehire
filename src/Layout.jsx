@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
 import { Badge } from '@/components/ui/badge';
 import InterviewNotification from '@/components/interview/InterviewNotification';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -21,6 +22,13 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     const loadUser = async () => {
             try {
+              const isAuth = await base44.auth.isAuthenticated();
+              if (!isAuth) {
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+              
               const currentUser = await base44.auth.me();
               setUser(currentUser);
               // Check if user has a candidate or company profile
@@ -56,11 +64,12 @@ export default function Layout({ children, currentPageName }) {
                 base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
               ]);
               setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
-            } catch (e) {
-              // Not logged in
-            }
-          };
-    loadUser();
+              } catch (e) {
+              setUser(null);
+              }
+              };
+              loadUser();
+              setLoading(false);
 
     // Poll for unread count every 5 seconds
     const interval = setInterval(async () => {
@@ -94,6 +103,7 @@ export default function Layout({ children, currentPageName }) {
       };
 
   const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
+  const publicPages = ['Welcome', 'Onboarding', 'BrowseJobs', 'PublicJobView', 'CompanyProfile', 'VideoFeed', 'BrowseCandidates', 'ViewCandidateProfile'];
 
   if (hideLayout) {
         return (
@@ -103,6 +113,29 @@ export default function Layout({ children, currentPageName }) {
           </>
         );
       }
+
+  // Show layout for public pages even without login
+  if (!user && !publicPages.includes(currentPageName)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 mx-auto mb-4 flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+            <p className="text-gray-600 mb-6">Please login to access this feature</p>
+            <Button 
+              onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+              className="w-full swipe-gradient text-white"
+            >
+              Login to Continue
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const candidateNav = [
             { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs' },

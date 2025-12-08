@@ -36,6 +36,14 @@ export default function BrowseJobs() {
     loadData();
   }, []);
 
+  const handleJobAction = (action) => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return false;
+    }
+    return true;
+  };
+
   const loadData = async () => {
     try {
       const [currentUser, allJobs, allCompanies] = await Promise.all([
