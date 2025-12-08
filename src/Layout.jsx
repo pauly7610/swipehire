@@ -7,6 +7,7 @@ import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
 import { Badge } from '@/components/ui/badge';
+import InterviewNotification from '@/components/interview/InterviewNotification';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -267,6 +268,9 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Role Selection Modal for new users */}
               <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />
-            </div>
-          );
-        }
+
+              {/* Interview Notifications */}
+              {!hideLayout && <InterviewNotification />}
+              </div>
+              );
+              }

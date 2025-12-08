@@ -29,7 +29,10 @@ export default function DirectMessages() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [typingUsers, setTypingUsers] = useState({});
   const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -51,6 +54,31 @@ export default function DirectMessages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Poll for new messages when active conversation
+  useEffect(() => {
+    if (activeConnection && user) {
+      pollIntervalRef.current = setInterval(async () => {
+        const otherUserId = activeConnection.requester_id === user.id ? activeConnection.receiver_id : activeConnection.requester_id;
+        const connMessages = await base44.entities.DirectMessage.filter({
+          $or: [
+            { sender_id: user.id, receiver_id: otherUserId },
+            { sender_id: otherUserId, receiver_id: user.id }
+          ]
+        });
+        const sortedMessages = connMessages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        setMessages(sortedMessages);
+
+        // Mark new unread messages as read
+        const unreadMessages = connMessages.filter(m => m.receiver_id === user.id && !m.is_read && !messages.find(msg => msg.id === m.id));
+        for (const msg of unreadMessages) {
+          await base44.entities.DirectMessage.update(msg.id, { is_read: true });
+        }
+      }, 3000);
+
+      return () => clearInterval(pollIntervalRef.current);
+    }
+  }, [activeConnection, user, messages]);
 
   const loadData = async () => {
     try {
@@ -121,14 +149,24 @@ export default function DirectMessages() {
       await base44.entities.Notification.create({
         user_id: activeUser.id,
         type: 'message',
-        title: 'New Message',
-        message: `${user.full_name} sent you a message`,
+        title: '💬 New Message',
+        message: `${user.full_name}: ${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}`,
         navigate_to: 'DirectMessages'
       });
     } catch (error) {
       console.error('Failed to send message:', error);
     }
     setSending(false);
+  };
+
+  const handleTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      // Clear typing indicator after 3 seconds of inactivity
+    }, 3000);
   };
 
   const getOtherUser = (connection) => {
@@ -267,23 +305,36 @@ export default function DirectMessages() {
                 )}
 
                 <AnimatePresence>
-                  {messages.map((message) => {
+                  {messages.map((message, idx) => {
                     const isMe = message.sender_id === user.id;
+                    const showAvatar = !isMe && (idx === messages.length - 1 || messages[idx + 1]?.sender_id !== message.sender_id);
                     return (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                        className={`flex gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
                       >
+                        {!isMe && showAvatar && (
+                          <div className="flex-shrink-0">
+                            {candidates[activeUser.id]?.photo_url ? (
+                              <img src={candidates[activeUser.id].photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center text-xs font-semibold text-pink-500">
+                                {activeUser?.full_name?.charAt(0)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {!isMe && !showAvatar && <div className="w-8" />}
                         <div
                           className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                             isMe 
                               ? 'swipe-gradient text-white rounded-br-md' 
-                              : 'bg-white text-gray-900 rounded-bl-md shadow-sm'
+                              : 'bg-white text-gray-900 rounded-bl-md shadow-sm border border-gray-100'
                           }`}
                         >
-                          <p>{message.content}</p>
+                          <p className="break-words">{message.content}</p>
                           <div className={`flex items-center gap-1 justify-end mt-1 ${isMe ? 'text-white/70' : 'text-gray-400'}`}>
                             <span className="text-xs">{formatMessageTime(message.created_date)}</span>
                             {isMe && (
@@ -310,7 +361,16 @@ export default function DirectMessages() {
                 >
                   <Input
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      handleTyping();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
                     placeholder="Type a message..."
                     className="flex-1 h-12 rounded-full border-gray-200 px-4"
                   />
