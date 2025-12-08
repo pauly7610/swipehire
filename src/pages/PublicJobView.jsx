@@ -9,6 +9,7 @@ import {
   Users, Globe, CheckCircle2, Loader2, Share2, ArrowRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import QuickApplyModal from '@/components/candidate/QuickApplyModal';
 
 export default function PublicJobView() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,9 @@ export default function PublicJobView() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [candidate, setCandidate] = useState(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
 
   useEffect(() => {
     loadJob();
@@ -28,6 +32,12 @@ export default function PublicJobView() {
     try {
       const authenticated = await base44.auth.isAuthenticated();
       setIsAuthenticated(authenticated);
+      if (authenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+        setCandidate(candidateData);
+      }
     } catch (e) {
       setIsAuthenticated(false);
     }
@@ -55,8 +65,7 @@ export default function PublicJobView() {
 
   const handleApply = () => {
     if (isAuthenticated) {
-      // Redirect to swipe jobs or application
-      window.location.href = `/SwipeJobs?applyTo=${jobId}`;
+      setShowApplyModal(true);
     } else {
       // Redirect to login with return URL
       base44.auth.redirectToLogin(`/PublicJobView?id=${jobId}`);
@@ -319,6 +328,22 @@ export default function PublicJobView() {
           </div>
         </motion.div>
       </div>
+
+      {/* Apply Modal */}
+      {showApplyModal && (
+        <QuickApplyModal
+          open={showApplyModal}
+          onOpenChange={setShowApplyModal}
+          job={job}
+          company={company}
+          candidate={candidate}
+          user={user}
+          onApply={async () => {
+            setShowApplyModal(false);
+            alert('Application submitted successfully!');
+          }}
+        />
+      )}
     </div>
   );
 }
