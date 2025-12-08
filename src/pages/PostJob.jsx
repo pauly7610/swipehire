@@ -497,18 +497,9 @@ export default function PostJob() {
 
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
-            <p className="text-gray-500">Find the perfect candidate for your team</p>
-          </div>
-          <Button
-            onClick={() => setShowAIWizard(true)}
-            className="swipe-gradient text-white shadow-lg shadow-pink-500/25"
-          >
-            <Wand2 className="w-5 h-5 mr-2" />
-            Use AI Wizard
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
+          <p className="text-gray-500">Find the perfect candidate for your team</p>
         </div>
 
         {/* Progress */}
@@ -532,7 +523,7 @@ export default function PostJob() {
           </Card>
 
           {/* Preview */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-4">
             <Card className="border-0 shadow-lg sticky top-8">
               <CardHeader className="pb-4">
                 <CardTitle className="text-sm text-gray-500 flex items-center gap-2">
@@ -581,6 +572,14 @@ export default function PostJob() {
                 </div>
               </CardContent>
             </Card>
+
+            <Button
+              onClick={() => setShowAIWizard(true)}
+              className="w-full swipe-gradient text-white shadow-lg shadow-pink-500/25"
+            >
+              <Wand2 className="w-5 h-5 mr-2" />
+              Use AI Wizard
+            </Button>
           </div>
         </div>
 
