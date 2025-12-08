@@ -103,9 +103,16 @@ export default function Welcome() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-16 h-16 rounded-2xl swipe-gradient flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">SH</span>
+              </div>
+              <h2 className="text-5xl md:text-6xl font-bold swipe-gradient bg-clip-text text-transparent">
+                SwipeHire
+              </h2>
+            </div>
             <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Find Your Dream Job<br />
-              <span className="swipe-gradient bg-clip-text text-transparent">With a Swipe</span>
+              Find Your Dream Job With a Swipe
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               The modern way to match with opportunities. Swipe right on jobs you love, get matched with companies, and land interviews faster.
