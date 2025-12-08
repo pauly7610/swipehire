@@ -64,8 +64,8 @@ export default function ManageJobs() {
 
   const [copiedJobId, setCopiedJobId] = useState(null);
 
-  const shareJob = (jobId) => {
-    const shareUrl = `${window.location.origin}/PublicJobView?id=${jobId}`;
+  const shareJob = (jobId, jobTitle) => {
+    const shareUrl = `${window.location.origin}/PublicJobView?id=${jobId}&title=${encodeURIComponent(jobTitle)}`;
     navigator.clipboard.writeText(shareUrl);
     setCopiedJobId(jobId);
     toast.success('Job link copied to clipboard!');
@@ -180,7 +180,7 @@ export default function ManageJobs() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => shareJob(job.id)}>
+                                <DropdownMenuItem onClick={() => shareJob(job.id, job.title)}>
                                   {copiedJobId === job.id ? (
                                     <Check className="w-4 h-4 mr-2 text-green-500" />
                                   ) : (
