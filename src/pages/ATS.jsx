@@ -111,6 +111,7 @@ export default function ATS() {
 
         setJobs(companyJobs);
         setMatches(allMatches);
+        setApplications(applications);
 
         const candidateMap = {};
         allCandidates.forEach(c => { candidateMap[c.id] = c; });
