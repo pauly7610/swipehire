@@ -263,6 +263,37 @@ export default function ATS() {
     setShowConfirmMove(true);
   };
 
+  const handleQuickReject = async (match) => {
+    const candidate = candidates[match.candidate_id];
+    const user = candidate ? users[candidate.user_id] : null;
+    const job = jobs.find(j => j.id === match.job_id);
+    
+    if (!user || !job) return;
+    
+    // Update match status
+    await base44.entities.Match.update(match.id, { status: 'rejected' });
+    
+    // Send rejection email
+    await base44.integrations.Core.SendEmail({
+      to: user.email,
+      subject: `Update on your application - ${company.name}`,
+      body: `Hi ${user.full_name},\n\nThank you for your interest in the ${job.title} position at ${company.name}. After careful consideration, we have decided to move forward with other candidates whose qualifications more closely match our current needs.\n\nWe appreciate the time you took to apply and interview with us. We were impressed by your background and wish you the best in your job search.\n\nBest regards,\n${company.name} Team`
+    });
+    
+    // Send notification
+    await base44.entities.Notification.create({
+      user_id: user.id,
+      type: 'status_change',
+      title: '📋 Application Update',
+      message: `Your application for ${job.title} at ${company.name} has been reviewed`,
+      job_id: job.id,
+      match_id: match.id,
+      navigate_to: 'ApplicationTracker'
+    });
+    
+    setMatches(matches.map(m => m.id === match.id ? { ...m, status: 'rejected' } : m));
+  };
+
   const executeMoveCandidate = async () => {
     if (!pendingMove) return;
     
@@ -285,9 +316,20 @@ export default function ATS() {
     const match = matches.find(m => m.id === matchId);
     const candidate = candidates[match?.candidate_id];
     const job = jobs.find(j => j.id === match?.job_id);
+    const user = candidate ? users[candidate.user_id] : null;
     
-    if (candidate && job) {
+    if (candidate && job && user) {
       const stageLabel = PIPELINE_STAGES.find(s => s.id === toStage)?.label || toStage;
+      
+      // If rejected, send rejection email
+      if (newStatus === 'rejected') {
+        await base44.integrations.Core.SendEmail({
+          to: user.email,
+          subject: `Update on your application - ${company.name}`,
+          body: `Hi ${user.full_name},\n\nThank you for your interest in the ${job.title} position at ${company.name}. After careful consideration, we have decided to move forward with other candidates whose qualifications more closely match our current needs.\n\nWe appreciate the time you took to apply and interview with us. We were impressed by your background and wish you the best in your job search.\n\nBest regards,\n${company.name} Team`
+        });
+      }
+      
       await base44.entities.Notification.create({
         user_id: candidate.user_id,
         type: 'status_change',
@@ -747,15 +789,37 @@ export default function ATS() {
                                             )}
                                           </div>
                                         </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                        {provided.placeholder}
+
+                                        {/* Quick Actions */}
+                                        <div className="flex gap-2 mt-2">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              confirmMoveCandidate(match.id, stage.id, 'screening', user?.full_name);
+                                            }}
+                                            className="flex-1 text-xs py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
+                                          >
+                                            ✓ Pass
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleQuickReject(match);
+                                            }}
+                                            className="flex-1 text-xs py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium"
+                                          >
+                                            ✕ Reject
+                                          </button>
+                                        </div>
+                                        </div>
+                                        </CardContent>
+                                        </Card>
+                                        </div>
+                                        )}
+                                        </Draggable>
+                                        );
+                                        })}
+                                        {provided.placeholder}
                         
                         {getMatchesByStage(stage.id).length === 0 && (
                           <div className="text-center py-8 text-gray-400 text-sm">
@@ -977,41 +1041,51 @@ export default function ATS() {
                         </td>
                         <td className="p-4 text-gray-500">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
                         <td className="p-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openCandidateDetails(match); }}>
-                                <Eye className="w-4 h-4 mr-2" /> View Details
-                              </DropdownMenuItem>
-                              {candidate?.resume_url && (
-                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(candidate.resume_url, '_blank'); }}>
-                                  <FileText className="w-4 h-4 mr-2" /> View Resume
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name);
+                              }}
+                              className="bg-green-100 text-green-700 hover:bg-green-200 border-0"
+                            >
+                              ✓ Pass
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuickReject(match);
+                              }}
+                              className="bg-red-100 text-red-700 hover:bg-red-200 border-0"
+                            >
+                              ✕ Reject
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openCandidateDetails(match); }}>
+                                  <Eye className="w-4 h-4 mr-2" /> View Details
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={(e) => { 
-                                e.stopPropagation(); 
-                                confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name); 
-                              }}>
-                                <ArrowUpCircle className="w-4 h-4 mr-2" /> Move to Screening
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { 
-                                e.stopPropagation(); 
-                                openEmailDialog(match);
-                              }}>
-                                <Mail className="w-4 h-4 mr-2" /> Send Email
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { 
-                                e.stopPropagation(); 
-                                confirmMoveCandidate(match.id, currentStage, 'rejected', user?.full_name); 
-                              }} className="text-red-600">
-                                <XCircle className="w-4 h-4 mr-2" /> Reject
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                {candidate?.resume_url && (
+                                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(candidate.resume_url, '_blank'); }}>
+                                    <FileText className="w-4 h-4 mr-2" /> View Resume
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  openEmailDialog(match);
+                                }}>
+                                  <Mail className="w-4 h-4 mr-2" /> Send Email
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </td>
                       </tr>
                     );
