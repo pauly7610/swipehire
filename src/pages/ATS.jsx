@@ -860,7 +860,7 @@ export default function ATS() {
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate.id}`}>
+                              <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
                                 <Button size="sm" variant="outline">
                                   <Eye className="w-4 h-4 mr-1" /> View
                                 </Button>
@@ -1381,7 +1381,7 @@ export default function ATS() {
                       <Mail className="w-4 h-4 mr-2" /> Email
                     </Button>
                     
-                    <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate?.id}`}>
+                    <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate?.id}`}>
                       <Button variant="outline">
                         <Eye className="w-4 h-4 mr-2" /> Full Profile
                       </Button>

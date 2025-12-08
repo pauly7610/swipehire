@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
-  const candidateId = searchParams.get('candidateId');
+  const candidateId = searchParams.get('candidateId') || searchParams.get('id');
   
   const [candidate, setCandidate] = useState(null);
   const [candidateUser, setCandidateUser] = useState(null);
