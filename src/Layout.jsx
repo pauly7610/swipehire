@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
   const [isRecruiter, setIsRecruiter] = useState(false); // true if user has company profile
   const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
