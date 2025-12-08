@@ -302,27 +302,57 @@ export default function PostJob() {
 
             <div>
               <Label className="text-gray-700 text-base">Benefits</Label>
-              <div className="flex gap-2 mt-2">
+              
+              {/* Quick benefit options */}
+              <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                {['Health Insurance', 'Dental Insurance', 'Vision Insurance', '401(k)', 'Paid Time Off', 'Remote Work', 'Flexible Hours', 'Stock Options', 'Gym Membership', 'Professional Development', 'Parental Leave', 'Free Lunch'].map((benefit) => (
+                  <Badge
+                    key={benefit}
+                    className={`cursor-pointer transition-all ${
+                      jobData.benefits.includes(benefit)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    onClick={() => {
+                      if (jobData.benefits.includes(benefit)) {
+                        removeFromArray('benefits', benefit);
+                      } else {
+                        addToArray('benefits', benefit, () => {});
+                      }
+                    }}
+                  >
+                    {jobData.benefits.includes(benefit) && <CheckCircle className="w-3 h-3 mr-1" />}
+                    {benefit}
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Custom benefit input */}
+              <div className="flex gap-2">
                 <Input
                   value={newBenefit}
                   onChange={(e) => setNewBenefit(e.target.value)}
-                  placeholder="Add a benefit"
+                  placeholder="Add a custom benefit"
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addToArray('benefits', newBenefit, setNewBenefit))}
                 />
                 <Button onClick={() => addToArray('benefits', newBenefit, setNewBenefit)} className="swipe-gradient">
                   <Plus className="w-5 h-5" />
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {jobData.benefits.map((benefit) => (
-                  <Badge key={benefit} variant="outline" className="border-green-200 text-green-600 bg-green-50 px-3 py-1.5">
-                    {benefit}
-                    <button onClick={() => removeFromArray('benefits', benefit)} className="ml-2">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+              
+              {/* Selected benefits */}
+              {jobData.benefits.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {jobData.benefits.map((benefit) => (
+                    <Badge key={benefit} variant="outline" className="border-green-200 text-green-600 bg-green-50 px-3 py-1.5">
+                      {benefit}
+                      <button onClick={() => removeFromArray('benefits', benefit)} className="ml-2">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         );
