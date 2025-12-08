@@ -47,12 +47,9 @@ export default function Welcome() {
           return;
         }
       } catch (e) {
-        // Not authenticated, redirect to login
-        base44.auth.redirectToLogin(createPageUrl('Onboarding'));
-        return;
+        // Not authenticated - show landing page
       }
-      // Not authenticated, redirect to login
-      base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+      setLoading(false);
     };
     
     init();
@@ -60,8 +57,8 @@ export default function Welcome() {
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
-    // Go directly to login/onboarding
-    base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+    setShowSplash(false);
+    setLoading(false);
   };
 
   // Show splash FIRST if not seen yet
@@ -77,15 +74,123 @@ export default function Welcome() {
     );
   }
 
-  // If splash was already seen, redirect to login
+  // Landing page
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
-      <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
+      
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12">
+          <h1 className="text-2xl font-bold swipe-gradient bg-clip-text text-transparent">SwipeHire</h1>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
+              Login
+            </Button>
+            <Button className="swipe-gradient text-white" onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}>
+              Sign Up
+            </Button>
+          </div>
+        </div>
+
+        {/* Hero */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Find Your Dream Job<br />
+              <span className="swipe-gradient bg-clip-text text-transparent">With a Swipe</span>
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              The modern way to match with opportunities. Swipe right on jobs you love, get matched with companies, and land interviews faster.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                className="swipe-gradient text-white px-8 py-6 text-lg"
+                onClick={() => navigate(createPageUrl('BrowseJobs'))}
+              >
+                <Briefcase className="w-5 h-5 mr-2" />
+                Browse Jobs
+              </Button>
+              <Button 
+                variant="outline"
+                className="px-8 py-6 text-lg"
+                onClick={() => navigate(createPageUrl('VideoFeed'))}
+              >
+                <Users className="w-5 h-5 mr-2" />
+                Explore Feed
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white p-6 rounded-2xl shadow-sm"
+          >
+            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Instant Matching</h3>
+            <p className="text-gray-600">Swipe right on jobs you like. When companies swipe back, it's an instant match!</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white p-6 rounded-2xl shadow-sm"
+          >
+            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
+              <Briefcase className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Thousands of Jobs</h3>
+            <p className="text-gray-600">Browse opportunities from startups to Fortune 500 companies, all in one place.</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white p-6 rounded-2xl shadow-sm"
+          >
+            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Video Profiles</h3>
+            <p className="text-gray-600">Stand out with video introductions and show your personality beyond the resume.</p>
+          </motion.div>
+        </div>
+
+        {/* CTA */}
+        <div className="text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white p-8 rounded-2xl shadow-lg max-w-2xl mx-auto"
+          >
+            <h3 className="text-2xl font-bold mb-4">Ready to get started?</h3>
+            <p className="text-gray-600 mb-6">Join thousands of job seekers finding their perfect match</p>
+            <Button 
+              className="swipe-gradient text-white px-8 py-6 text-lg"
+              onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}
+            >
+              Create Free Account <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
