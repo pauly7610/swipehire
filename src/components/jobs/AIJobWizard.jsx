@@ -159,8 +159,14 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
 
   const handleComplete = async () => {
     setLoading(true);
-    await onComplete(jobData);
-    setLoading(false);
+    try {
+      await onComplete(jobData);
+    } catch (error) {
+      console.error('Failed to complete job creation:', error);
+      alert('Failed to create job. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const canProceed = () => {
@@ -593,6 +599,18 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
                 </Card>
               )}
 
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  placeholder="Add a live interview question..."
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addItem('interview_questions_live'))}
+                />
+                <Button onClick={() => addItem('interview_questions_live')} className="bg-purple-600 hover:bg-purple-700">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 {jobData.interview_questions_live.map((q, i) => (
                   <div key={i} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
@@ -648,6 +666,18 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
                   </Button>
                 </Card>
               )}
+
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  placeholder="Add a recorded interview question..."
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addItem('interview_questions_recorded'))}
+                />
+                <Button onClick={() => addItem('interview_questions_recorded')} className="swipe-gradient">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
 
               <div className="space-y-2">
                 {jobData.interview_questions_recorded.map((q, i) => (
