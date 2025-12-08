@@ -235,7 +235,7 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
               >
                 {step === 1 && (
                   <div>
-                    <Label>Cover Letter *</Label>
+                    <Label>Cover Letter (Optional)</Label>
                     <p className="text-sm text-gray-500 mb-3">Why are you a great fit for this role?</p>
                     <Textarea
                       value={coverLetter}
@@ -386,7 +386,6 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
                 {step < 3 ? (
                   <Button
                     onClick={() => setStep(step + 1)}
-                    disabled={step === 1 && !coverLetter.trim()}
                     className="flex-1 swipe-gradient text-white"
                   >
                     Continue <ChevronRight className="w-4 h-4 ml-1" />
@@ -394,7 +393,7 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
                 ) : (
                   <Button
                     onClick={handleSubmit}
-                    disabled={applying || !coverLetter.trim() || uploadingVideo}
+                    disabled={applying || uploadingVideo}
                     className="flex-1 swipe-gradient text-white"
                   >
                     {applying || uploadingVideo ? (
