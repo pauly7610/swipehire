@@ -87,6 +87,7 @@ export default function ATS() {
   const [candidateTags, setCandidateTags] = useState({});
   const [activities, setActivities] = useState({});
   const [showActivityLog, setShowActivityLog] = useState(false);
+  const [applications, setApplications] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -100,11 +101,12 @@ export default function ATS() {
       setCompany(companyData);
 
       if (companyData) {
-        const [companyJobs, allMatches, allCandidates, allUsers] = await Promise.all([
+        const [companyJobs, allMatches, allCandidates, allUsers, applications] = await Promise.all([
           base44.entities.Job.filter({ company_id: companyData.id }),
           base44.entities.Match.filter({ company_id: companyData.id }),
           base44.entities.Candidate.list(),
-          base44.entities.User.list()
+          base44.entities.User.list(),
+          base44.entities.Application.filter({ company_id: companyData.id })
         ]);
 
         setJobs(companyJobs);
@@ -1142,34 +1144,68 @@ export default function ATS() {
                     <Badge className={stage?.color}>{stage?.label}</Badge>
                   </div>
 
-                  {/* Resume Section */}
-                  {candidate?.resume_url && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-5 h-5 text-blue-600" />
-                          <span className="font-medium text-blue-900">Resume Available</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <a 
-                            href={candidate.resume_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-                          >
-                            <Eye className="w-4 h-4" /> View
-                          </a>
-                          <a 
-                            href={candidate.resume_url} 
-                            download
-                            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-300 text-blue-600 rounded-lg text-sm hover:bg-blue-50"
-                          >
-                            <Download className="w-4 h-4" /> Download
-                          </a>
-                        </div>
+                  {/* Application Materials */}
+                  {(() => {
+                    const app = applications.find(a => 
+                      a.candidate_id === candidate?.id && a.job_id === selectedCandidate.job_id
+                    );
+                    
+                    return (
+                      <div className="space-y-3">
+                        {/* Resume */}
+                        {(app?.resume_url || candidate?.resume_url) && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                                <span className="font-medium text-blue-900">Resume</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <a 
+                                  href={app?.resume_url || candidate.resume_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                                >
+                                  <Eye className="w-4 h-4" /> View
+                                </a>
+                                <a 
+                                  href={app?.resume_url || candidate.resume_url} 
+                                  download
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-300 text-blue-600 rounded-lg text-sm hover:bg-blue-50"
+                                >
+                                  <Download className="w-4 h-4" /> Download
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Video Pitch */}
+                        {app?.video_pitch_url && (
+                          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Video className="w-5 h-5 text-purple-600" />
+                              <span className="font-medium text-purple-900">Video Elevator Pitch</span>
+                            </div>
+                            <video
+                              src={app.video_pitch_url}
+                              controls
+                              className="w-full rounded-lg"
+                            />
+                          </div>
+                        )}
+
+                        {/* Cover Letter */}
+                        {app?.cover_letter && (
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Cover Letter</h4>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{app.cover_letter}</p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* AI Resume Analysis */}
                   <ResumeAnalysis 
