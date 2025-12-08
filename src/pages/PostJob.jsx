@@ -148,11 +148,11 @@ export default function PostJob() {
             <div>
               <Label className="text-gray-700 text-base">Job Title *</Label>
               <div className="mt-2">
-                <JobTitleSelect
+                <Input
                   value={jobData.title}
-                  onChange={(v) => setJobData({ ...jobData, title: v })}
-                  placeholder={jobData.industry ? "Select job title" : "Select industry first"}
-                  industry={jobData.industry}
+                  onChange={(e) => setJobData({ ...jobData, title: e.target.value })}
+                  placeholder="e.g. Senior Software Engineer"
+                  className="h-12"
                 />
               </div>
             </div>
