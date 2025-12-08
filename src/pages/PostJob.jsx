@@ -116,13 +116,19 @@ export default function PostJob() {
     setLoading(false);
   };
 
-  const handleAIWizardComplete = async (jobData) => {
-    await base44.entities.Job.create({
-      ...jobData,
-      company_id: company.id,
-      is_active: true
-    });
-    navigate(createPageUrl('ManageJobs'));
+  const handleAIWizardComplete = async (wizardJobData) => {
+    try {
+      await base44.entities.Job.create({
+        ...wizardJobData,
+        company_id: company.id,
+        is_active: true
+      });
+      setShowAIWizard(false);
+      navigate(createPageUrl('ManageJobs'));
+    } catch (error) {
+      console.error('Failed to create job:', error);
+      alert('Failed to create job. Please try again.');
+    }
   };
 
   const renderStep = () => {
