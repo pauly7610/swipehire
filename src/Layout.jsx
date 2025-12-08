@@ -22,58 +22,71 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+    
     const loadUser = async () => {
-            try {
-              const isAuth = await base44.auth.isAuthenticated();
-              if (!isAuth) {
-                setUser(null);
-                setLoading(false);
-                return;
-              }
-              
-              const currentUser = await base44.auth.me();
-              setUser(currentUser);
-              // Check if user has a candidate or company profile
-              const candidates = await base44.entities.Candidate.filter({ user_id: currentUser.id });
-              const companies = await base44.entities.Company.filter({ user_id: currentUser.id });
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isMounted) return;
+        
+        if (!isAuth) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        const currentUser = await base44.auth.me();
+        if (!isMounted) return;
+        
+        setUser(currentUser);
+        
+        const [candidates, companies] = await Promise.all([
+          base44.entities.Candidate.filter({ user_id: currentUser.id }),
+          base44.entities.Company.filter({ user_id: currentUser.id })
+        ]);
+        
+        if (!isMounted) return;
 
-              const hasCompany = companies.length > 0 || currentUser.role === 'admin';
-              const hasCandidate = candidates.length > 0;
+        const hasCompany = companies.length > 0 || currentUser.role === 'admin';
+        const hasCandidate = candidates.length > 0;
 
-              setIsRecruiter(hasCompany);
+        setIsRecruiter(hasCompany);
 
-              // If user has no profile yet, show role selection
-              if (!hasCompany && !hasCandidate) {
-                setShowRoleSelection(true);
-                return;
-              }
+        if (!hasCompany && !hasCandidate) {
+          setShowRoleSelection(true);
+          setLoading(false);
+          return;
+        }
 
-              // Load saved view mode or default
-              const savedViewMode = localStorage.getItem('swipehire_view_mode');
-              if (hasCompany) {
-                // Recruiters can toggle, default to employer view
-                setUserType(savedViewMode || 'employer');
-                setViewMode(savedViewMode || 'employer');
-              } else if (hasCandidate) {
-                // Candidates can only see candidate view
-                setUserType('candidate');
-                setViewMode('candidate');
-              }
+        const savedViewMode = localStorage.getItem('swipehire_view_mode');
+        if (hasCompany) {
+          setUserType(savedViewMode || 'employer');
+          setViewMode(savedViewMode || 'employer');
+        } else if (hasCandidate) {
+          setUserType('candidate');
+          setViewMode('candidate');
+        }
 
-              // Load unread counts for inbox badge
-              const [unreadNotifs, unreadMessages] = await Promise.all([
-                base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
-                base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
-              ]);
-              setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
-              } catch (e) {
-              setUser(null);
-              }
-              };
-              loadUser();
-              setLoading(false);
+        const [unreadNotifs, unreadMessages] = await Promise.all([
+          base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
+          base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
+        ]);
+        
+        if (!isMounted) return;
+        setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+      } catch (e) {
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadUser();
 
-    // Poll for unread count every 5 seconds
     const interval = setInterval(async () => {
       try {
         const currentUser = await base44.auth.me();
@@ -81,11 +94,16 @@ export default function Layout({ children, currentPageName }) {
           base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
           base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
         ]);
-        setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+        if (isMounted) {
+          setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+        }
       } catch (e) {}
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const toggleViewMode = () => {
