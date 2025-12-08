@@ -111,10 +111,16 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
           break;
       }
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
+
+      const llmPromise = base44.integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: schema
       });
+
+      const result = await Promise.race([llmPromise, timeoutPromise]);
 
       setSuggestions(prev => ({ ...prev, [type]: result }));
 
@@ -129,6 +135,9 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
 
     } catch (error) {
       console.error('AI suggestion error:', error);
+      alert(error.message === 'Request timeout' 
+        ? 'Request took too long. Please try again.' 
+        : 'Failed to generate suggestions. Please try again.');
     }
     setLoading(false);
   };
