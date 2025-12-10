@@ -15,12 +15,8 @@ export default function Welcome() {
   // Check splash and auth on mount - ONCE ONLY
   useEffect(() => {
     let isMounted = true;
-    let hasRun = false;
     
     const init = async () => {
-      if (hasRun) return;
-      hasRun = true;
-      
       // Check splash first
       const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
       
@@ -77,7 +73,7 @@ export default function Welcome() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigate]);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
