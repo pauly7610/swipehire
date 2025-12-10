@@ -17,23 +17,7 @@ export default function Welcome() {
     let isMounted = true;
     
     const init = async () => {
-      // Check if splash was already seen this session
-      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
-      
-      if (!splashSeen) {
-        // Show splash first
-        if (isMounted) {
-          setShowSplash(true);
-          setLoading(false);
-        }
-        return;
-      }
-
-      // Splash was seen, check if user is logged in
-      if (isMounted) {
-        setShowSplash(false);
-      }
-      
+      // Always check auth first
       try {
         const authenticated = await base44.auth.isAuthenticated();
         if (!isMounted) return;
@@ -62,10 +46,21 @@ export default function Welcome() {
           }
         }
       } catch (e) {
-        // Not authenticated - show landing page for guests
+        // Not authenticated - continue to splash/landing
       }
       
+      // Only show splash if not authenticated and not seen
+      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+      
+      if (!splashSeen && isMounted) {
+        setShowSplash(true);
+        setLoading(false);
+        return;
+      }
+
+      // Skip splash, show landing
       if (isMounted) {
+        setShowSplash(false);
         setLoading(false);
       }
     };
