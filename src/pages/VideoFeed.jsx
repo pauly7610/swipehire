@@ -441,8 +441,13 @@ export default function VideoFeed() {
     if (isLoadMore) setLoadingMore(true);
     
     try {
-      const currentUser = await base44.auth.me();
-      if (!isLoadMore) setUser(currentUser);
+      let currentUser = null;
+      try {
+        currentUser = await base44.auth.me();
+        if (!isLoadMore) setUser(currentUser);
+      } catch (e) {
+        // User not logged in - continue as guest
+      }
 
       const currentPage = isLoadMore ? page + 1 : 0;
       
