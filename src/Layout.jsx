@@ -54,10 +54,13 @@ export default function Layout({ children, currentPageName }) {
 
         // Check if user just completed onboarding - prevent redirect loop
         const justCompletedOnboarding = localStorage.getItem('swipehire_onboarding_complete');
-        if (justCompletedOnboarding) {
+        
+        // If user has profile, clear the onboarding flag
+        if (justCompletedOnboarding && (hasCompany || hasCandidate)) {
           localStorage.removeItem('swipehire_onboarding_complete');
         }
 
+        // Only redirect to onboarding if no profile AND not just completed onboarding
         if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !justCompletedOnboarding) {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
