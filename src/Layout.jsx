@@ -25,7 +25,7 @@ export default function Layout({ children, currentPageName }) {
     let isMounted = true;
     let pollTimeout = null;
     
-    const loadUser = async (pollAttempt = 0) => {
+    const loadUser = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isMounted) return;
@@ -53,12 +53,6 @@ export default function Layout({ children, currentPageName }) {
 
         setIsRecruiter(hasCompany);
 
-        // If no profile found and not on onboarding page - redirect
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
-          navigate(createPageUrl('Onboarding'), { replace: true });
-          return;
-        }
-
         const savedViewMode = localStorage.getItem('swipehire_view_mode');
         if (hasCompany) {
           setUserType(savedViewMode || 'employer');
@@ -66,6 +60,13 @@ export default function Layout({ children, currentPageName }) {
         } else if (hasCandidate) {
           setUserType('candidate');
           setViewMode('candidate');
+        }
+
+        // Only redirect if no profile and not already on onboarding
+        // And only on initial load, not on page changes
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && loading) {
+          navigate(createPageUrl('Onboarding'), { replace: true });
+          return;
         }
 
         const [unreadNotifs, unreadMessages] = await Promise.all([
@@ -86,7 +87,10 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     
-    loadUser();
+    // Only run on mount, not on currentPageName changes
+    if (loading) {
+      loadUser();
+    }
 
     const interval = setInterval(async () => {
       try {
@@ -106,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       clearInterval(interval);
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [currentPageName, navigate]);
+  }, [loading, navigate]);
 
   const toggleViewMode = () => {
         const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
