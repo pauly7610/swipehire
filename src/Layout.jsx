@@ -19,6 +19,7 @@ export default function Layout({ children, currentPageName }) {
   const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
+  const [profileChecked, setProfileChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,11 +64,13 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Only redirect if no profile and not already on onboarding
-        // And only on initial load, not on page changes
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && loading) {
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !profileChecked) {
+          setProfileChecked(true);
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
+        
+        setProfileChecked(true);
 
         const [unreadNotifs, unreadMessages] = await Promise.all([
           base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
@@ -87,10 +90,7 @@ export default function Layout({ children, currentPageName }) {
       }
     };
     
-    // Only run on mount, not on currentPageName changes
-    if (loading) {
-      loadUser();
-    }
+    loadUser();
 
     const interval = setInterval(async () => {
       try {
@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       clearInterval(interval);
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [loading, navigate]);
+  }, [currentPageName, navigate]);
 
   const toggleViewMode = () => {
         const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
