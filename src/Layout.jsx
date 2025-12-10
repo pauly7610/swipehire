@@ -55,17 +55,20 @@ export default function Layout({ children, currentPageName }) {
         // Check if user just completed onboarding - give grace period for DB to sync
         const justCompletedOnboarding = localStorage.getItem('swipehire_onboarding_complete');
         
-        // If user has profile, clear the onboarding flag
+        // If user has profile, clear the onboarding flag and proceed normally
         if (hasCompany || hasCandidate) {
           if (justCompletedOnboarding) {
             localStorage.removeItem('swipehire_onboarding_complete');
           }
+          // Profiles found - continue with normal flow
         } else if (justCompletedOnboarding) {
-          // Profile not found yet, but onboarding was completed
-          // Skip the redirect check - allow the current page to render
-          console.log('Onboarding just completed, waiting for profile sync...');
-        } else if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
-          // Only redirect to onboarding if no profile AND not in onboarding flow
+          // Profile not found YET, but onboarding was just completed
+          // Skip all checks and rendering - just finish loading
+          // The profile should appear on next useEffect cycle
+          return;
+        } else if (currentPageName !== 'Onboarding') {
+          // No profile, no onboarding flag, and not on onboarding page
+          // Redirect to onboarding
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
