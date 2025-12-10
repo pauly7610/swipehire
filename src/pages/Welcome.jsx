@@ -9,12 +9,55 @@ import SplashScreen from '@/components/splash/SplashScreen';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const [showSplash, setShowSplash] = useState(!sessionStorage.getItem('swipehire_splash_seen'));
+  const [showSplash, setShowSplash] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const user = await base44.auth.me();
+          const [candidates, companies] = await Promise.all([
+            base44.entities.Candidate.filter({ user_id: user.id }),
+            base44.entities.Company.filter({ user_id: user.id })
+          ]);
+          
+          const hasProfile = candidates.length > 0 || companies.length > 0;
+          if (hasProfile) {
+            const viewMode = companies.length > 0 ? 'employer' : 'candidate';
+            navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
+            return;
+          } else {
+            navigate(createPageUrl('Onboarding'), { replace: true });
+            return;
+          }
+        }
+      } catch (e) {
+        // Not logged in, continue to welcome
+      }
+      
+      // Check if splash was already seen
+      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+      setShowSplash(!splashSeen);
+      setLoading(false);
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
     setShowSplash(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 animate-pulse" />
+      </div>
+    );
+  }
 
   if (showSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;

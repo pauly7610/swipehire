@@ -8,20 +8,23 @@ export default function SplashScreen({ onComplete }) {
   const [swipeCount, setSwipeCount] = useState(0);
 
   useEffect(() => {
-    // Logo swipes across 4 times, then content appears
-    const swipeInterval = setInterval(() => {
-      setSwipeCount(prev => {
-        if (prev >= 4) {
-          clearInterval(swipeInterval);
-          setShowContent(true);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 350);
+    // Show content immediately after logo swipes
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 1500);
 
-    return () => clearInterval(swipeInterval);
+    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Logo swipes animation
+    if (swipeCount < 3) {
+      const timer = setTimeout(() => {
+        setSwipeCount(prev => prev + 1);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [swipeCount]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
@@ -45,31 +48,27 @@ export default function SplashScreen({ onComplete }) {
         }}
       />
 
-      {/* Swiping Logo Animation */}
-      <div className="relative z-10 h-28 md:h-36 w-full flex items-center justify-center mb-4 overflow-hidden">
-        {swipeCount < 4 ? (
-          <motion.img
+      {/* Logo Animation */}
+      <div className="relative z-10 mb-8">
+        {swipeCount < 3 ? (
+          <motion.div
             key={swipeCount}
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/2157521a9_ChatGPTImageDec5202507_24_55AM.png"
-            alt="SwipeHire"
-            className="w-40 md:w-52 h-auto object-contain absolute"
-            initial={{ x: swipeCount % 2 === 0 ? -400 : 400, opacity: 0, rotate: swipeCount % 2 === 0 ? -10 : 10 }}
+            className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl"
+            initial={{ x: swipeCount % 2 === 0 ? -200 : 200, opacity: 0, rotate: swipeCount % 2 === 0 ? -15 : 15 }}
             animate={{ x: 0, opacity: 1, rotate: 0 }}
-            exit={{ x: swipeCount % 2 === 0 ? 400 : -400, opacity: 0 }}
-            transition={{ 
-              duration: 0.25,
-              ease: "easeOut"
-            }}
-          />
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
+          </motion.div>
         ) : (
-          <motion.img
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/2157521a9_ChatGPTImageDec5202507_24_55AM.png"
-            alt="SwipeHire"
-            className="w-40 md:w-52 h-auto object-contain"
-            initial={{ scale: 1.3, opacity: 0 }}
+          <motion.div
+            className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl"
+            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          />
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
+          </motion.div>
         )}
       </div>
 

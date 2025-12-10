@@ -24,7 +24,6 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     let isMounted = true;
-    let pollTimeout = null;
     
     const loadUser = async () => {
       try {
@@ -63,14 +62,14 @@ export default function Layout({ children, currentPageName }) {
           setViewMode('candidate');
         }
 
-        // Only redirect if no profile and not already on onboarding
+        // Only redirect to onboarding once if no profile exists
         if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !profileChecked) {
           setProfileChecked(true);
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
         
-        setProfileChecked(true);
+        if (!profileChecked) setProfileChecked(true);
 
         const [unreadNotifs, unreadMessages] = await Promise.all([
           base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
@@ -108,9 +107,8 @@ export default function Layout({ children, currentPageName }) {
     return () => {
       isMounted = false;
       clearInterval(interval);
-      if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [currentPageName, navigate]);
+  }, [currentPageName, navigate, profileChecked]);
 
   const toggleViewMode = () => {
         const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
