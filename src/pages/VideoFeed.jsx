@@ -425,7 +425,16 @@ export default function VideoFeed() {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    loadData();
+    const init = async () => {
+      try {
+        await base44.auth.me();
+        loadData();
+      } catch (e) {
+        // Not authenticated - show videos anyway for public browsing
+        loadData();
+      }
+    };
+    init();
   }, []);
 
   const loadData = async (isLoadMore = false) => {
