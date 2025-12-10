@@ -56,6 +56,23 @@ export default function Onboarding() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
+        // Check if user already completed onboarding and has a profile
+        const [candidateCheck, companyCheck] = await Promise.all([
+          base44.entities.Candidate.filter({ user_id: currentUser.id }),
+          base44.entities.Company.filter({ user_id: currentUser.id })
+        ]);
+        
+        const hasProfile = candidateCheck.length > 0 || companyCheck.length > 0;
+        
+        // If user already has a profile, redirect them away from onboarding
+        if (hasProfile) {
+          const viewMode = localStorage.getItem('swipehire_view_mode') || 
+                          (companyCheck.length > 0 ? 'employer' : 'candidate');
+          localStorage.setItem('swipehire_view_mode', viewMode);
+          navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
+          return;
+        }
+        
         // Check if role was pre-selected
         const selectedRole = localStorage.getItem('swipehire_selected_role');
         if (selectedRole) {
@@ -69,7 +86,7 @@ export default function Onboarding() {
       }
     };
     loadUser();
-  }, []);
+  }, [navigate]);
 
   const handlePhotoUpload = async (e, type) => {
     const file = e.target.files[0];

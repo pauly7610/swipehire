@@ -52,15 +52,21 @@ export default function Layout({ children, currentPageName }) {
 
         setIsRecruiter(hasCompany);
 
-        // Check if user just completed onboarding - prevent redirect loop
+        // Check if user just completed onboarding - give grace period for DB to sync
         const justCompletedOnboarding = localStorage.getItem('swipehire_onboarding_complete');
         
         // If user has profile, clear the onboarding flag
-        if (justCompletedOnboarding && (hasCompany || hasCandidate)) {
-          localStorage.removeItem('swipehire_onboarding_complete');
+        if (hasCompany || hasCandidate) {
+          if (justCompletedOnboarding) {
+            localStorage.removeItem('swipehire_onboarding_complete');
+          }
+        } else if (justCompletedOnboarding) {
+          // Profile not found yet, but onboarding was completed - wait for DB sync
+          // Don't redirect to onboarding
+          return;
         }
 
-        // Only redirect to onboarding if no profile AND not just completed onboarding
+        // Only redirect to onboarding if no profile AND not in onboarding flow
         if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !justCompletedOnboarding) {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
