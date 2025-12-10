@@ -20,6 +20,7 @@ import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 import FeedFilters from '@/components/video/FeedFilters';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
+import AIVideoAssistant from '@/components/video/AIVideoAssistant';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
@@ -1422,7 +1423,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
 
       {/* Upload Dialog */}
       <Dialog open={showUpload} onOpenChange={setShowUpload}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Video Post</DialogTitle>
           </DialogHeader>
@@ -1448,6 +1449,23 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                           )}
                 </SelectContent>
               </Select>
+
+            {/* AI Assistant */}
+            {user && (
+              <AIVideoAssistant
+                videoType={newPost.type}
+                userType={viewerType}
+                jobTitle={candidates[user.id]?.headline}
+                companyName={companies[Object.keys(companies).find(id => companies[id].user_id === user.id)]?.name}
+                onApplySuggestions={(suggestions) => {
+                  setNewPost(prev => ({
+                    ...prev,
+                    caption: suggestions.caption || prev.caption,
+                    tags: suggestions.tags || prev.tags
+                  }));
+                }}
+              />
+            )}
 
             <Textarea
               placeholder="Write a caption..."
