@@ -177,8 +177,8 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // Show login prompt for protected pages (but not while loading or on public pages)
-  if (!user && !publicPages.includes(currentPageName) && !loading) {
+  // Show login prompt for protected pages
+  if (!user && !publicPages.includes(currentPageName)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="max-w-md w-full">
