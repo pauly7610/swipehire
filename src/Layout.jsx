@@ -23,8 +23,12 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     let isMounted = true;
+    let hasExecuted = false;
     
     const loadUser = async () => {
+      if (hasExecuted) return;
+      hasExecuted = true;
+      
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isMounted) return;
