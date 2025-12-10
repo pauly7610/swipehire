@@ -9,90 +9,15 @@ import SplashScreen from '@/components/splash/SplashScreen';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
-
-  // Check splash and auth on mount - ONCE ONLY
-  useEffect(() => {
-    let isMounted = true;
-    
-    const init = async () => {
-      
-      // Check splash first
-      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
-      
-      // If splash not seen, show it (skip auth check for now)
-      if (!splashSeen) {
-        if (isMounted) {
-          setShowSplash(true);
-          setLoading(false);
-        }
-        return;
-      }
-      
-      // Splash was seen, now check auth
-      try {
-        const authenticated = await base44.auth.isAuthenticated();
-        if (!isMounted) return;
-        
-        if (authenticated) {
-          const user = await base44.auth.me();
-          if (!isMounted) return;
-          
-          const [candidates, companies] = await Promise.all([
-            base44.entities.Candidate.filter({ user_id: user.id }),
-            base44.entities.Company.filter({ user_id: user.id })
-          ]);
-          
-          if (!isMounted) return;
-          
-          // Redirect logged-in users to their dashboard
-          if (companies.length > 0) {
-            navigate(createPageUrl('EmployerDashboard'), { replace: true });
-            return;
-          } else if (candidates.length > 0) {
-            navigate(createPageUrl('SwipeJobs'), { replace: true });
-            return;
-          } else {
-            navigate(createPageUrl('Onboarding'), { replace: true });
-            return;
-          }
-        }
-      } catch (e) {
-        // Not authenticated - continue to landing
-      }
-      
-      // Show landing page
-      if (isMounted) {
-        setShowSplash(false);
-        setLoading(false);
-      }
-    };
-    
-    init();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate]);
+  const [showSplash, setShowSplash] = useState(!sessionStorage.getItem('swipehire_splash_seen'));
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
     setShowSplash(false);
-    setLoading(false);
   };
 
-  // Show splash FIRST if not seen yet
   if (showSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse" />
-      </div>
-    );
   }
 
   // Landing page
