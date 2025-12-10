@@ -456,11 +456,11 @@ export default function VideoFeed() {
                     base44.entities.User.list(),
                     base44.entities.Candidate.list(),
                     base44.entities.Company.list(),
-                    base44.entities.Follow.filter({ follower_id: currentUser.id }),
-                    base44.entities.Swipe.filter({ swiper_id: currentUser.id }),
-                    base44.entities.Connection.filter({
+                    currentUser ? base44.entities.Follow.filter({ follower_id: currentUser.id }) : Promise.resolve([]),
+                    currentUser ? base44.entities.Swipe.filter({ swiper_id: currentUser.id }) : Promise.resolve([]),
+                    currentUser ? base44.entities.Connection.filter({
                       $or: [{ requester_id: currentUser.id }, { receiver_id: currentUser.id }]
-                    })
+                    }) : Promise.resolve([])
                   ]);
 
                   if (!isLoadMore) setConnections(userConnections);
