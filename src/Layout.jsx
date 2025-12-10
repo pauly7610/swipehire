@@ -23,8 +23,9 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     let isMounted = true;
+    let pollTimeout = null;
     
-    const loadUser = async () => {
+    const loadUser = async (pollAttempt = 0) => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isMounted) return;
@@ -61,10 +62,19 @@ export default function Layout({ children, currentPageName }) {
             localStorage.removeItem('swipehire_onboarding_complete');
           }
           // Profiles found - continue with normal flow
-        } else if (justCompletedOnboarding) {
+        } else if (justCompletedOnboarding && pollAttempt < 10) {
           // Profile not found YET, but onboarding was just completed
-          // Skip all checks and rendering - just finish loading
-          // The profile should appear on next useEffect cycle
+          // Poll for profile (up to 10 times = 5 seconds)
+          console.log(`Waiting for profile sync... attempt ${pollAttempt + 1}/10`);
+          pollTimeout = setTimeout(() => {
+            if (isMounted) loadUser(pollAttempt + 1);
+          }, 500);
+          return;
+        } else if (justCompletedOnboarding && pollAttempt >= 10) {
+          // Gave up waiting - clear flag and redirect to onboarding
+          console.error('Profile sync timeout - redirecting to onboarding');
+          localStorage.removeItem('swipehire_onboarding_complete');
+          navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         } else if (currentPageName !== 'Onboarding') {
           // No profile, no onboarding flag, and not on onboarding page
@@ -118,6 +128,7 @@ export default function Layout({ children, currentPageName }) {
     return () => {
       isMounted = false;
       clearInterval(interval);
+      if (pollTimeout) clearTimeout(pollTimeout);
     };
   }, [currentPageName, navigate]);
 
