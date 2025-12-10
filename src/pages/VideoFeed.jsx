@@ -1001,69 +1001,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
           </div>
         ) : (
                         <>
-                        {(() => {
-                                      // Filter posts based on active tab
-                                      let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
-
-                                      if (activeTab === 'following') {
-                                        filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
-                                      } else if (activeTab === 'jobs') {
-                                        filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
-                                      } else if (activeTab === 'people') {
-                                        filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
-                                      }
-
-                                      // Apply search query
-                                      if (searchQuery.trim()) {
-                                        const query = searchQuery.toLowerCase();
-                                        filteredPosts = filteredPosts.filter(p => {
-                                          const author = users[p.author_id];
-                                          const authorCandidate = candidates[p.author_id];
-                                          const authorCompany = companies[p.author_id];
-                                          const searchText = [
-                                            p.caption,
-                                            author?.full_name,
-                                            authorCandidate?.headline,
-                                            authorCandidate?.location,
-                                            authorCompany?.name,
-                                            authorCompany?.location,
-                                            ...(p.tags || []),
-                                            ...(authorCandidate?.skills || [])
-                                          ].join(' ').toLowerCase();
-                                          return searchText.includes(query);
-                                        });
-                                      }
-
-                                      // Apply advanced filters
-                                      if (advancedFilters.contentTypes.length > 0) {
-                                        filteredPosts = filteredPosts.filter(p => advancedFilters.contentTypes.includes(p.type));
-                                      }
-                                      if (advancedFilters.userTypes.length > 0) {
-                                        filteredPosts = filteredPosts.filter(p => advancedFilters.userTypes.includes(p.author_type));
-                                      }
-                                      if (advancedFilters.location) {
-                                        const locQuery = advancedFilters.location.toLowerCase();
-                                        filteredPosts = filteredPosts.filter(p => {
-                                          const authorCandidate = candidates[p.author_id];
-                                          const authorCompany = companies[p.author_id];
-                                          const location = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
-                                          return location.includes(locQuery) || locQuery === 'remote';
-                                        });
-                                      }
-                                      if (advancedFilters.skills.length > 0) {
-                                        filteredPosts = filteredPosts.filter(p => {
-                                          const authorCandidate = candidates[p.author_id];
-                                          const postTags = (p.tags || []).map(t => t.toLowerCase());
-                                          const authorSkills = (authorCandidate?.skills || []).map(s => s.toLowerCase());
-                                          const allSkills = [...postTags, ...authorSkills];
-                                          return advancedFilters.skills.some(skill => 
-                                            allSkills.some(s => s.includes(skill.toLowerCase()) || skill.toLowerCase().includes(s))
-                                          );
-                                        });
-                                      }
-
-                                      return filteredPosts;
-                                    })().map((post, index) => {
+                        {posts.map((post, index) => {
               // Determine if viewer can swipe on this content
                 // Candidates CAN swipe on other candidates' intro videos to connect
                 const canSwipe = true;
