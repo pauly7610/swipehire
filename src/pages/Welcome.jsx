@@ -12,12 +12,28 @@ export default function Welcome() {
   const [loading, setLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
-  // Check splash and auth on mount
+  // Check splash and auth on mount - ONCE ONLY
   useEffect(() => {
     let isMounted = true;
+    let hasRun = false;
     
     const init = async () => {
-      // Always check auth first
+      if (hasRun) return;
+      hasRun = true;
+      
+      // Check splash first
+      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+      
+      // If splash not seen, show it (skip auth check for now)
+      if (!splashSeen) {
+        if (isMounted) {
+          setShowSplash(true);
+          setLoading(false);
+        }
+        return;
+      }
+      
+      // Splash was seen, now check auth
       try {
         const authenticated = await base44.auth.isAuthenticated();
         if (!isMounted) return;
@@ -46,19 +62,10 @@ export default function Welcome() {
           }
         }
       } catch (e) {
-        // Not authenticated - continue to splash/landing
+        // Not authenticated - continue to landing
       }
       
-      // Only show splash if not authenticated and not seen
-      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
-      
-      if (!splashSeen && isMounted) {
-        setShowSplash(true);
-        setLoading(false);
-        return;
-      }
-
-      // Skip splash, show landing
+      // Show landing page
       if (isMounted) {
         setShowSplash(false);
         setLoading(false);
@@ -70,7 +77,7 @@ export default function Welcome() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
