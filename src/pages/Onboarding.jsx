@@ -56,21 +56,6 @@ export default function Onboarding() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        // Check if user already has a profile - redirect them
-        const [candidates, companies] = await Promise.all([
-          base44.entities.Candidate.filter({ user_id: currentUser.id }),
-          base44.entities.Company.filter({ user_id: currentUser.id })
-        ]);
-        
-        if (companies.length > 0) {
-          navigate(createPageUrl('EmployerDashboard'), { replace: true });
-          return;
-        }
-        if (candidates.length > 0) {
-          navigate(createPageUrl('SwipeJobs'), { replace: true });
-          return;
-        }
-        
         // Check if role was pre-selected
         const selectedRole = localStorage.getItem('swipehire_selected_role');
         if (selectedRole) {
@@ -79,12 +64,12 @@ export default function Onboarding() {
           localStorage.removeItem('swipehire_selected_role');
         }
       } catch (e) {
-        // Not authenticated - don't redirect, let Layout handle it
+        // Not authenticated - will be handled by Layout
         console.error('Auth check failed:', e);
       }
     };
     loadUser();
-  }, [navigate]);
+  }, []);
 
   const handlePhotoUpload = async (e, type) => {
     const file = e.target.files[0];
