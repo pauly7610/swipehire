@@ -128,7 +128,11 @@ export default function Onboarding() {
           user_id: user.id,
           ...candidateData
         });
-        navigate(createPageUrl('SwipeJobs'));
+        // Set flags to prevent redirect loop
+        localStorage.setItem('swipehire_onboarding_complete', 'true');
+        localStorage.setItem('swipehire_view_mode', 'candidate');
+        localStorage.removeItem('swipehire_selected_role');
+        navigate(createPageUrl('SwipeJobs'), { replace: true });
       } else {
         // Save recruiter info to user profile
         await base44.auth.updateMe({
@@ -142,7 +146,11 @@ export default function Onboarding() {
           user_id: user.id,
           ...companyData
         });
-        navigate(createPageUrl('EmployerDashboard'));
+        // Set flags to prevent redirect loop
+        localStorage.setItem('swipehire_onboarding_complete', 'true');
+        localStorage.setItem('swipehire_view_mode', 'employer');
+        localStorage.removeItem('swipehire_selected_role');
+        navigate(createPageUrl('EmployerDashboard'), { replace: true });
       }
     } catch (error) {
       console.error('Failed to create profile:', error);

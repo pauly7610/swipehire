@@ -52,7 +52,13 @@ export default function Layout({ children, currentPageName }) {
 
         setIsRecruiter(hasCompany);
 
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
+        // Check if user just completed onboarding - prevent redirect loop
+        const justCompletedOnboarding = localStorage.getItem('swipehire_onboarding_complete');
+        if (justCompletedOnboarding) {
+          localStorage.removeItem('swipehire_onboarding_complete');
+        }
+
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !justCompletedOnboarding) {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
