@@ -421,6 +421,7 @@ export default function VideoFeed() {
   const [allPostsData, setAllPostsData] = useState([]);
   const [connections, setConnections] = useState([]);
   const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
   const PAGE_SIZE = 20;
 
   useEffect(() => {
