@@ -1284,9 +1284,10 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                       }
                     }
                     // Move to next video
-                    if (index < posts.length - 1) {
-                      setCurrentIndex(index + 1);
-                      containerRef.current?.scrollTo({ top: (index + 1) * containerRef.current.clientHeight, behavior: 'smooth' });
+                    const totalPosts = posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+                    if (currentIndex < totalPosts.length - 1) {
+                      setCurrentIndex(currentIndex + 1);
+                      containerRef.current?.scrollTo({ top: (currentIndex + 1) * containerRef.current.clientHeight, behavior: 'smooth' });
                     }
                   }}
                 />
