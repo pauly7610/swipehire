@@ -692,7 +692,12 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         
         return { ...p, score: Math.max(0, score), reasons };
       })
-      .filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0)
+      .filter(p => {
+        // Show approved posts, or pending posts from the current user
+        const isApproved = !p.moderation_status || p.moderation_status === 'approved' || p.moderation_status === 'pending';
+        const hasVideo = p.video_url && p.video_url.trim().length > 0;
+        return isApproved && hasVideo;
+      })
       .filter(p => {
         // Apply search filter if query exists
         if (!searchQuery) return true;
@@ -971,7 +976,11 @@ const scoredPosts = allScoredPosts.map((p, index) => {
       >
         {(() => {
               // Filter posts based on active tab
-              let filteredPosts = posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+              let filteredPosts = posts.filter(p => {
+                const isApproved = !p.moderation_status || p.moderation_status === 'approved' || p.moderation_status === 'pending';
+                const hasVideo = p.video_url && p.video_url.trim().length > 0;
+                return isApproved && hasVideo;
+              });
               
               if (activeTab === 'following') {
                 filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
@@ -1043,65 +1052,29 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         ) : (
                         <>
                         {(() => {
-              // Filter posts based on active tab
-              let filteredPosts = posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+              // Apply same filtering logic as above
+              let filteredPosts = posts.filter(p => {
+                const isApproved = !p.moderation_status || p.moderation_status === 'approved' || p.moderation_status === 'pending';
+                const hasVideo = p.video_url && p.video_url.trim().length > 0;
+                return isApproved && hasVideo;
+              });
               
-              if (activeTab === 'following') {
-                filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
-              } else if (activeTab === 'jobs') {
-                filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
-              } else if (activeTab === 'people') {
-                filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
-              }
+              if (activeTab === 'following') filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
+              else if (activeTab === 'jobs') filteredPosts = filteredPosts.filter(p => p.type === 'job_post');
+              else if (activeTab === 'people') filteredPosts = filteredPosts.filter(p => p.type === 'intro' || p.author_type === 'candidate');
 
-              // Apply search query
               if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 filteredPosts = filteredPosts.filter(p => {
-                  const author = users[p.author_id];
-                  const authorCandidate = candidates[p.author_id];
-                  const authorCompany = companies[p.author_id];
-                  const searchText = [
-                    p.caption,
-                    author?.full_name,
-                    authorCandidate?.headline,
-                    authorCandidate?.location,
-                    authorCompany?.name,
-                    authorCompany?.location,
-                    ...(p.tags || []),
-                    ...(authorCandidate?.skills || [])
-                  ].join(' ').toLowerCase();
+                  const searchText = [p.caption, users[p.author_id]?.full_name, candidates[p.author_id]?.headline, companies[p.author_id]?.name, ...(p.tags || [])].join(' ').toLowerCase();
                   return searchText.includes(query);
                 });
               }
 
-              // Apply advanced filters
-              if (advancedFilters.contentTypes.length > 0) {
-                filteredPosts = filteredPosts.filter(p => advancedFilters.contentTypes.includes(p.type));
-              }
-              if (advancedFilters.userTypes.length > 0) {
-                filteredPosts = filteredPosts.filter(p => advancedFilters.userTypes.includes(p.author_type));
-              }
-              if (advancedFilters.location) {
-                const locQuery = advancedFilters.location.toLowerCase();
-                filteredPosts = filteredPosts.filter(p => {
-                  const authorCandidate = candidates[p.author_id];
-                  const authorCompany = companies[p.author_id];
-                  const location = (authorCandidate?.location || authorCompany?.location || '').toLowerCase();
-                  return location.includes(locQuery) || locQuery === 'remote';
-                });
-              }
-              if (advancedFilters.skills.length > 0) {
-                filteredPosts = filteredPosts.filter(p => {
-                  const authorCandidate = candidates[p.author_id];
-                  const postTags = (p.tags || []).map(t => t.toLowerCase());
-                  const authorSkills = (authorCandidate?.skills || []).map(s => s.toLowerCase());
-                  const allSkills = [...postTags, ...authorSkills];
-                  return advancedFilters.skills.some(skill => 
-                    allSkills.some(s => s.includes(skill.toLowerCase()) || skill.toLowerCase().includes(s))
-                  );
-                });
-              }
+              if (advancedFilters.contentTypes.length > 0) filteredPosts = filteredPosts.filter(p => advancedFilters.contentTypes.includes(p.type));
+              if (advancedFilters.userTypes.length > 0) filteredPosts = filteredPosts.filter(p => advancedFilters.userTypes.includes(p.author_type));
+              if (advancedFilters.location) filteredPosts = filteredPosts.filter(p => (candidates[p.author_id]?.location || companies[p.author_id]?.location || '').toLowerCase().includes(advancedFilters.location.toLowerCase()));
+              if (advancedFilters.skills.length > 0) filteredPosts = filteredPosts.filter(p => advancedFilters.skills.some(skill => [...(p.tags || []), ...(candidates[p.author_id]?.skills || [])].some(s => s.toLowerCase().includes(skill.toLowerCase()))));
               
               return filteredPosts;
             })().map((post, index) => {
@@ -1310,8 +1283,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                       }
                     }
                     // Move to next video
-                    const totalPosts = posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
-                    if (currentIndex < totalPosts.length - 1) {
+                    if (currentIndex < posts.length - 1) {
                       setCurrentIndex(currentIndex + 1);
                       containerRef.current?.scrollTo({ top: (currentIndex + 1) * containerRef.current.clientHeight, behavior: 'smooth' });
                     }
