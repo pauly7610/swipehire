@@ -25,7 +25,6 @@ export default function Layout({ children, currentPageName }) {
     let isMounted = true;
     
     const loadUser = async () => {
-      
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isMounted) return;
@@ -104,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [navigate]);
+  }, [currentPageName, navigate]);
 
   const toggleViewMode = () => {
         const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
