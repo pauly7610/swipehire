@@ -425,16 +425,30 @@ export default function VideoFeed() {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
+    let isMounted = true;
+    
     const init = async () => {
       try {
-        await base44.auth.me();
-        loadData();
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          await base44.auth.me();
+        }
+        if (isMounted) {
+          loadData();
+        }
       } catch (e) {
         // Not authenticated - show videos anyway for public browsing
-        loadData();
+        if (isMounted) {
+          loadData();
+        }
       }
     };
+    
     init();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const loadData = async (isLoadMore = false) => {
@@ -755,7 +769,11 @@ const scoredPosts = allScoredPosts.map((p, index) => {
   }, [currentIndex, hasMore, loadingMore]);
 
     const handleFollow = async (authorId) => {
-      if (!user || !authorId) return;
+      if (!user || !authorId) {
+        // Redirect to login if not authenticated
+        base44.auth.redirectToLogin(window.location.pathname);
+        return;
+      }
 
       if (followedUserIds.has(authorId)) {
         const [follow] = await base44.entities.Follow.filter({ follower_id: user.id, followed_id: authorId });
@@ -774,6 +792,10 @@ const scoredPosts = allScoredPosts.map((p, index) => {
     };
 
   const handleLike = async (post) => {
+    if (!user) {
+      base44.auth.redirectToLogin(window.location.pathname);
+      return;
+    }
     await base44.entities.VideoPost.update(post.id, { likes: (post.likes || 0) + 1 });
     // Track liked posts for algorithm
     setLikedPostIds(prev => new Set(prev).add(post.id));
@@ -852,6 +874,10 @@ const scoredPosts = allScoredPosts.map((p, index) => {
   };
 
   const submitComment = async () => {
+    if (!user) {
+      base44.auth.redirectToLogin(window.location.pathname);
+      return;
+    }
     if (!commentText.trim() || !activePostId) return;
     
     await base44.entities.ForumComment.create({
@@ -1411,14 +1437,16 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         </div>
       </div>
 
-      {/* Create button */}
-      <button
-        onClick={() => setShowUpload(true)}
-        className="absolute bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center z-10"
-        style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
-      >
-        <Plus className="w-6 h-6 text-white" />
-      </button>
+      {/* Create button - only show when logged in */}
+      {user && (
+        <button
+          onClick={() => setShowUpload(true)}
+          className="absolute bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center z-10"
+          style={{ background: 'linear-gradient(135deg, #FF005C 0%, #FF7B00 100%)' }}
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </button>
+      )}
 
       {/* Upload Dialog */}
       <Dialog open={showUpload} onOpenChange={setShowUpload}>
