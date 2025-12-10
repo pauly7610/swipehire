@@ -930,7 +930,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
       >
         {(() => {
               // Filter posts based on active tab
-              let filteredPosts = allPostsData.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
+              let filteredPosts = posts.filter(p => p.moderation_status !== 'rejected' && p.video_url && p.video_url.length > 0);
               
               if (activeTab === 'following') {
                 filteredPosts = filteredPosts.filter(p => followedUserIds.has(p.author_id));
