@@ -53,9 +53,8 @@ export default function Layout({ children, currentPageName }) {
 
         setIsRecruiter(hasCompany);
 
-        if (!hasCompany && !hasCandidate) {
-          setShowRoleSelection(true);
-          setLoading(false);
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
+          navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
 
