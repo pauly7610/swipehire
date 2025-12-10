@@ -939,7 +939,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         views: 0,
         shares: 0,
         comments_count: 0,
-        moderation_status: 'pending'
+        moderation_status: 'approved'
       });
 
       // Refresh the feed to show the new post
