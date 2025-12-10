@@ -34,9 +34,6 @@ export default function Welcome() {
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-2xl font-bold swipe-gradient bg-clip-text text-transparent">SwipeHire</h1>
           <div className="flex gap-3">
-            <Button variant="ghost" onClick={() => navigate(createPageUrl('BrowseJobs'))}>
-              Continue as Guest
-            </Button>
             <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
               Login
             </Button>
@@ -69,18 +66,9 @@ export default function Welcome() {
             <div className="flex gap-4 justify-center">
               <Button 
                 className="swipe-gradient text-white px-8 py-6 text-lg"
-                onClick={() => navigate(createPageUrl('BrowseJobs'))}
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}
               >
-                <Briefcase className="w-5 h-5 mr-2" />
-                Browse Jobs
-              </Button>
-              <Button 
-                variant="outline"
-                className="px-8 py-6 text-lg"
-                onClick={() => navigate(createPageUrl('VideoFeed'))}
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Explore Feed
+                Get Started
               </Button>
             </div>
           </motion.div>
