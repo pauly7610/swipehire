@@ -63,23 +63,24 @@ export default function Onboarding() {
         ]);
         
         if (companies.length > 0) {
-          navigate(createPageUrl('EmployerDashboard'));
+          navigate(createPageUrl('EmployerDashboard'), { replace: true });
           return;
         }
         if (candidates.length > 0) {
-          navigate(createPageUrl('SwipeJobs'));
+          navigate(createPageUrl('SwipeJobs'), { replace: true });
           return;
         }
         
-        // Check if role was pre-selected from the modal
+        // Check if role was pre-selected
         const selectedRole = localStorage.getItem('swipehire_selected_role');
         if (selectedRole) {
           setUserType(selectedRole);
-          setStep(2); // Skip to profile creation
+          setStep(2);
           localStorage.removeItem('swipehire_selected_role');
         }
       } catch (e) {
-        navigate(createPageUrl('Welcome'));
+        // Not authenticated - don't redirect, let Layout handle it
+        console.error('Auth check failed:', e);
       }
     };
     loadUser();
