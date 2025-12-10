@@ -12,7 +12,7 @@ export default function Welcome() {
   const [loading, setLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
-  // Check splash and auth on mount
+  // Check splash on mount only
   useEffect(() => {
     let isMounted = true;
     
@@ -21,7 +21,7 @@ export default function Welcome() {
       const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
       
       if (!splashSeen) {
-        // Show splash first - always
+        // Show splash first
         if (isMounted) {
           setShowSplash(true);
           setLoading(false);
@@ -29,40 +29,9 @@ export default function Welcome() {
         return;
       }
 
-      // Splash was seen, check auth status
+      // Splash was seen, just show the landing page
       if (isMounted) {
         setShowSplash(false);
-      }
-      
-      try {
-        const authenticated = await base44.auth.isAuthenticated();
-        if (!isMounted) return;
-        
-        if (authenticated) {
-          const user = await base44.auth.me();
-          if (!isMounted) return;
-          
-          const [candidates, companies] = await Promise.all([
-            base44.entities.Candidate.filter({ user_id: user.id }),
-            base44.entities.Company.filter({ user_id: user.id })
-          ]);
-          
-          if (!isMounted) return;
-          
-          if (companies.length > 0) {
-            navigate(createPageUrl('EmployerDashboard'), { replace: true });
-          } else if (candidates.length > 0) {
-            navigate(createPageUrl('SwipeJobs'), { replace: true });
-          } else {
-            navigate(createPageUrl('Onboarding'), { replace: true });
-          }
-          return;
-        }
-      } catch (e) {
-        // Not authenticated - show landing page
-      }
-      
-      if (isMounted) {
         setLoading(false);
       }
     };
@@ -72,7 +41,7 @@ export default function Welcome() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('swipehire_splash_seen', 'true');
