@@ -1397,22 +1397,28 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                 Record Video
               </Button>
               
-              <label className="block">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4 mr-2" />
-                  )}
-                  Upload Video
-                </Button>
-                <input type="file" accept="video/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
-              </label>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
+                Upload Video
+              </Button>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="video/*" 
+                className="hidden" 
+                onChange={handleFileSelect} 
+                disabled={uploading} 
+              />
             </div>
           </div>
         </DialogContent>
