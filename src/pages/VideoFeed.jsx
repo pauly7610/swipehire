@@ -343,7 +343,23 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
                           </span>
                         </button>
                       )}
-                    </div>
+
+                      {/* Report - only show for other users */}
+                      {!isOwner && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onReport?.();
+                          }} 
+                          className="flex flex-col items-center"
+                        >
+                          <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                            <Flag className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="text-white text-xs mt-1">Report</span>
+                        </button>
+                      )}
+                      </div>
 
       {/* Bottom info */}
       <div className="absolute bottom-4 left-3 right-16 text-white z-10">
