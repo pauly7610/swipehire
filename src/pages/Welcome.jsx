@@ -76,6 +76,9 @@ export default function Welcome() {
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-2xl font-bold swipe-gradient bg-clip-text text-transparent">SwipeHire</h1>
           <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => navigate(createPageUrl('BrowseJobs'))}>
+              Continue as Guest
+            </Button>
             <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
               Login
             </Button>
