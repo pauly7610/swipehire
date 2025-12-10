@@ -145,11 +145,26 @@ export default function Onboarding() {
           user_id: user.id,
           ...candidateData
         });
-        // Set flags to prevent redirect loop
-        localStorage.setItem('swipehire_onboarding_complete', 'true');
-        localStorage.setItem('swipehire_view_mode', 'candidate');
-        localStorage.removeItem('swipehire_selected_role');
-        navigate(createPageUrl('SwipeJobs'), { replace: true });
+        
+        // Wait and verify profile exists before navigating
+        let profileFound = false;
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
+          if (candidates.length > 0) {
+            profileFound = true;
+            break;
+          }
+        }
+        
+        if (profileFound) {
+          localStorage.setItem('swipehire_view_mode', 'candidate');
+          localStorage.removeItem('swipehire_selected_role');
+          navigate(createPageUrl('SwipeJobs'), { replace: true });
+        } else {
+          console.error('Profile creation timeout');
+          alert('Profile creation is taking longer than expected. Please refresh the page.');
+        }
       } else {
         // Save recruiter info to user profile
         await base44.auth.updateMe({
@@ -163,14 +178,30 @@ export default function Onboarding() {
           user_id: user.id,
           ...companyData
         });
-        // Set flags to prevent redirect loop
-        localStorage.setItem('swipehire_onboarding_complete', 'true');
-        localStorage.setItem('swipehire_view_mode', 'employer');
-        localStorage.removeItem('swipehire_selected_role');
-        navigate(createPageUrl('EmployerDashboard'), { replace: true });
+        
+        // Wait and verify company exists before navigating
+        let companyFound = false;
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const companies = await base44.entities.Company.filter({ user_id: user.id });
+          if (companies.length > 0) {
+            companyFound = true;
+            break;
+          }
+        }
+        
+        if (companyFound) {
+          localStorage.setItem('swipehire_view_mode', 'employer');
+          localStorage.removeItem('swipehire_selected_role');
+          navigate(createPageUrl('EmployerDashboard'), { replace: true });
+        } else {
+          console.error('Company creation timeout');
+          alert('Company creation is taking longer than expected. Please refresh the page.');
+        }
       }
     } catch (error) {
       console.error('Failed to create profile:', error);
+      alert('Failed to create profile. Please try again.');
     }
     setLoading(false);
   };

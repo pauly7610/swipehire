@@ -53,32 +53,8 @@ export default function Layout({ children, currentPageName }) {
 
         setIsRecruiter(hasCompany);
 
-        // Check if user just completed onboarding - give grace period for DB to sync
-        const justCompletedOnboarding = localStorage.getItem('swipehire_onboarding_complete');
-        
-        // If user has profile, clear the onboarding flag and proceed normally
-        if (hasCompany || hasCandidate) {
-          if (justCompletedOnboarding) {
-            localStorage.removeItem('swipehire_onboarding_complete');
-          }
-          // Profiles found - continue with normal flow
-        } else if (justCompletedOnboarding && pollAttempt < 10) {
-          // Profile not found YET, but onboarding was just completed
-          // Poll for profile (up to 10 times = 5 seconds)
-          console.log(`Waiting for profile sync... attempt ${pollAttempt + 1}/10`);
-          pollTimeout = setTimeout(() => {
-            if (isMounted) loadUser(pollAttempt + 1);
-          }, 500);
-          return;
-        } else if (justCompletedOnboarding && pollAttempt >= 10) {
-          // Gave up waiting - clear flag and redirect to onboarding
-          console.error('Profile sync timeout - redirecting to onboarding');
-          localStorage.removeItem('swipehire_onboarding_complete');
-          navigate(createPageUrl('Onboarding'), { replace: true });
-          return;
-        } else if (currentPageName !== 'Onboarding') {
-          // No profile, no onboarding flag, and not on onboarding page
-          // Redirect to onboarding
+        // If no profile found and not on onboarding page - redirect
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
