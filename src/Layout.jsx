@@ -125,6 +125,15 @@ export default function Layout({ children, currentPageName }) {
   const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
   const publicPages = ['Welcome', 'Onboarding', 'BrowseJobs', 'PublicJobView', 'CompanyProfile', 'VideoFeed', 'BrowseCandidates', 'ViewCandidateProfile'];
 
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 animate-pulse" />
+      </div>
+    );
+  }
+
   if (hideLayout) {
           return (
             <>
@@ -135,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
         }
 
   // For public pages, show simplified navigation without login
-  if (!user && publicPages.includes(currentPageName) && !loading) {
+  if (!user && publicPages.includes(currentPageName)) {
     return (
       <div className="min-h-screen bg-gray-50">
         <style>{`
