@@ -61,13 +61,11 @@ export default function Layout({ children, currentPageName }) {
             localStorage.removeItem('swipehire_onboarding_complete');
           }
         } else if (justCompletedOnboarding) {
-          // Profile not found yet, but onboarding was completed - wait for DB sync
-          // Don't redirect to onboarding
-          return;
-        }
-
-        // Only redirect to onboarding if no profile AND not in onboarding flow
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !justCompletedOnboarding) {
+          // Profile not found yet, but onboarding was completed
+          // Skip the redirect check - allow the current page to render
+          console.log('Onboarding just completed, waiting for profile sync...');
+        } else if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
+          // Only redirect to onboarding if no profile AND not in onboarding flow
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
