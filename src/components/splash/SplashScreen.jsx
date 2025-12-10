@@ -4,30 +4,20 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, Briefcase, Users, Zap } from 'lucide-react';
 
 export default function SplashScreen({ onComplete }) {
-  const [showContent, setShowContent] = useState(false);
-  const [swipeCount, setSwipeCount] = useState(0);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    // Show content immediately after logo swipes
-    const timer = setTimeout(() => {
-      setShowContent(true);
-    }, 1500);
+    const timers = [
+      setTimeout(() => setStep(1), 800),
+      setTimeout(() => setStep(2), 2500),
+      setTimeout(() => setStep(3), 4200)
+    ];
 
-    return () => clearTimeout(timer);
+    return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
-  useEffect(() => {
-    // Logo swipes animation
-    if (swipeCount < 3) {
-      const timer = setTimeout(() => {
-        setSwipeCount(prev => prev + 1);
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-  }, [swipeCount]);
-
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-white to-orange-50 overflow-hidden">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -39,88 +29,77 @@ export default function SplashScreen({ onComplete }) {
           background-clip: text;
         }
       `}</style>
-      
-      {/* Background gradient */}
-      <div
-        className="absolute inset-0 opacity-15"
-        style={{
-          background: 'radial-gradient(circle at 30% 20%, #FF005C 0%, transparent 40%), radial-gradient(circle at 70% 80%, #FF7B00 0%, transparent 40%)'
-        }}
-      />
 
-      {/* Logo Animation */}
-      <div className="relative z-10 mb-8">
-        {swipeCount < 3 ? (
-          <motion.div
-            key={swipeCount}
-            className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl"
-            initial={{ x: swipeCount % 2 === 0 ? -200 : 200, opacity: 0, rotate: swipeCount % 2 === 0 ? -15 : 15 }}
-            animate={{ x: 0, opacity: 1, rotate: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
-          </motion.div>
-        ) : (
-          <motion.div
-            className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Content - appears after swipes */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center gap-3 text-center px-6 max-w-md md:max-w-lg"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ 
-          opacity: showContent ? 1 : 0, 
-          y: showContent ? 0 : 30 
-        }}
-        transition={{ duration: 0.6 }}
-      >
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2">
-          Swipe Into Your
-          <br />
-          <span className="swipe-gradient-text">Next Opportunity</span>
-        </h1>
-
-        <p className="text-gray-600 leading-relaxed text-sm md:text-base mb-2">
-          SwipeHire is where jobs meet social energy. Matching talent with companies feels as easy as swiping through your favorite apps.
-        </p>
-
-        <p className="text-xl md:text-2xl font-bold swipe-gradient-text">
-          Swipe. Match. Hire.
-        </p>
-
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-4 mt-4 w-full max-w-sm">
-          {[
-            { icon: Briefcase, label: 'Find Jobs' },
-            { icon: Users, label: 'Connect' },
-            { icon: Zap, label: 'Get Hired' },
-          ].map((feature, i) => (
-            <div key={i} className="text-center">
-              <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-2">
-                <feature.icon className="w-6 h-6 text-pink-500" />
-              </div>
-              <p className="text-xs font-medium text-gray-700">{feature.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA Button */}
-        <Button
-          onClick={onComplete}
-          className="mt-6 text-white text-lg px-10 py-6 rounded-2xl shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all hover:scale-105 font-semibold swipe-gradient"
+      <div className="max-w-2xl mx-auto px-6 text-center">
+        {/* Step 1: Logo */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ 
+            scale: step >= 1 ? 1 : 0, 
+            opacity: step >= 1 ? 1 : 0 
+          }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="mb-8"
         >
-          Get Started
-          <ChevronRight className="w-5 h-5 ml-2" />
-        </Button>
-      </motion.div>
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl mx-auto">
+            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
+          </div>
+        </motion.div>
+
+        {/* Step 2: Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ 
+            opacity: step >= 2 ? 1 : 0,
+            y: step >= 2 ? 0 : 20
+          }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <span className="swipe-gradient-text">SwipeHire</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-700 mb-8">
+            The dating app for jobs
+          </p>
+          <p className="text-gray-600 text-lg leading-relaxed mb-8">
+            Swipe right on jobs you love. Match with companies that want you. 
+            Land interviews faster than ever.
+          </p>
+        </motion.div>
+
+        {/* Step 3: Features & CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ 
+            opacity: step >= 3 ? 1 : 0,
+            y: step >= 3 ? 0 : 20
+          }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="grid grid-cols-3 gap-6 mb-10 max-w-md mx-auto">
+            {[
+              { icon: Briefcase, label: 'Swipe Jobs' },
+              { icon: Zap, label: 'Instant Match' },
+              { icon: Users, label: 'Get Hired' },
+            ].map((feature, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-white shadow-lg flex items-center justify-center mb-3">
+                  <feature.icon className="w-8 h-8 text-pink-500" />
+                </div>
+                <p className="text-sm font-semibold text-gray-700">{feature.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            onClick={onComplete}
+            className="swipe-gradient text-white text-lg px-12 py-7 rounded-2xl shadow-2xl hover:shadow-pink-500/50 transition-all hover:scale-105 font-bold"
+          >
+            Continue
+            <ChevronRight className="w-6 h-6 ml-2" />
+          </Button>
+        </motion.div>
+      </div>
     </div>
   );
 }

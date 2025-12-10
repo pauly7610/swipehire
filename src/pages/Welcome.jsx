@@ -63,121 +63,87 @@ export default function Welcome() {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
-  // Landing page
+  // Sign In page
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 flex items-center justify-center p-4">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
+        .swipe-gradient-text {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
       `}</style>
-      
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <h1 className="text-2xl font-bold swipe-gradient bg-clip-text text-transparent">SwipeHire</h1>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
-              Login
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full"
+      >
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 rounded-2xl swipe-gradient flex items-center justify-center shadow-xl mx-auto mb-4">
+            <span className="text-white font-bold text-3xl">SH</span>
+          </div>
+          <h1 className="text-4xl font-bold swipe-gradient-text mb-2">SwipeHire</h1>
+          <p className="text-gray-600">Welcome back! Let's find your next opportunity.</p>
+        </div>
+
+        {/* Sign In Card */}
+        <div className="bg-white rounded-3xl shadow-2xl p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
+          
+          <div className="space-y-4">
+            <Button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="w-full swipe-gradient text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              Continue with Email
             </Button>
-            <Button className="swipe-gradient text-white" onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}>
-              Sign Up
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => base44.auth.redirectToLogin()}
+              variant="outline"
+              className="w-full py-6 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50"
+            >
+              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
             </Button>
           </div>
-        </div>
 
-        {/* Hero */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-16 h-16 rounded-2xl swipe-gradient flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">SH</span>
-              </div>
-              <h2 className="text-5xl md:text-6xl font-bold swipe-gradient bg-clip-text text-transparent">
-                SwipeHire
-              </h2>
-            </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Find Your Dream Job With a Swipe
-            </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              The modern way to match with opportunities. Swipe right on jobs you love, get matched with companies, and land interviews faster.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button 
-                className="swipe-gradient text-white px-8 py-6 text-lg"
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}
-              >
-                Get Started
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white p-6 rounded-2xl shadow-sm"
-          >
-            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Instant Matching</h3>
-            <p className="text-gray-600">Swipe right on jobs you like. When companies swipe back, it's an instant match!</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white p-6 rounded-2xl shadow-sm"
-          >
-            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
-              <Briefcase className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Thousands of Jobs</h3>
-            <p className="text-gray-600">Browse opportunities from startups to Fortune 500 companies, all in one place.</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white p-6 rounded-2xl shadow-sm"
-          >
-            <div className="w-12 h-12 rounded-xl swipe-gradient flex items-center justify-center mb-4">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Video Profiles</h3>
-            <p className="text-gray-600">Stand out with video introductions and show your personality beyond the resume.</p>
-          </motion.div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white p-8 rounded-2xl shadow-lg max-w-2xl mx-auto"
-          >
-            <h3 className="text-2xl font-bold mb-4">Ready to get started?</h3>
-            <p className="text-gray-600 mb-6">Join thousands of job seekers finding their perfect match</p>
-            <Button 
-              className="swipe-gradient text-white px-8 py-6 text-lg"
+          <p className="text-center text-sm text-gray-500 mt-6">
+            New to SwipeHire?{' '}
+            <button
               onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}
+              className="font-semibold swipe-gradient-text hover:underline"
             >
-              Create Free Account <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </motion.div>
+              Create an account
+            </button>
+          </p>
         </div>
-      </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-500 mt-6">
+          By continuing, you agree to SwipeHire's Terms of Service and Privacy Policy
+        </p>
+      </motion.div>
     </div>
   );
 }
