@@ -44,10 +44,20 @@ export default function SwipeJobs() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+      if (!candidateData) {
+        window.location.href = createPageUrl('Onboarding');
+        return;
+      }
       setCandidate(candidateData);
 
       // Get already swiped jobs

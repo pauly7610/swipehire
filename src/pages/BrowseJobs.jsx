@@ -46,18 +46,27 @@ export default function BrowseJobs() {
 
   const loadData = async () => {
     try {
-      const [currentUser, allJobs, allCompanies] = await Promise.all([
-        base44.auth.me(),
+      const isAuth = await base44.auth.isAuthenticated();
+      
+      const [allJobs, allCompanies] = await Promise.all([
         base44.entities.Job.filter({ is_active: true }),
         base44.entities.Company.list()
       ]);
       
-      setUser(currentUser);
       setJobs(allJobs);
       
       const companyMap = {};
       allCompanies.forEach(c => { companyMap[c.id] = c; });
       setCompanies(companyMap);
+
+      if (!isAuth) {
+        setLoading(false);
+        return;
+      }
+
+      const currentUser = await base44.auth.me();
+      
+      setUser(currentUser);
 
       // Get candidate profile for match scoring
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
