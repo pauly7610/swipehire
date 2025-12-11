@@ -161,7 +161,14 @@ export default function Welcome() {
           <p className="text-center text-sm text-gray-500 mt-6">
             New to SwipeHire?{' '}
             <button
-              onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}
+              onClick={() => {
+                try {
+                  base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+                } catch (err) {
+                  console.error('Signup redirect failed:', err);
+                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(createPageUrl('Onboarding'));
+                }
+              }}
               className="font-semibold swipe-gradient-text hover:underline"
             >
               Create an account

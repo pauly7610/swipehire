@@ -29,17 +29,20 @@ export default function Layout({ children, currentPageName }) {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (!isMounted) return;
-        
+
         if (!isAuth) {
           setUser(null);
           setLoading(false);
           return;
         }
-        
+
         const currentUser = await base44.auth.me();
         if (!isMounted) return;
-        
+
         setUser(currentUser);
+
+        // Store user in localStorage for faster subsequent loads
+        localStorage.setItem('swipehire_user', JSON.stringify(currentUser));
         
         const [candidates, companies] = await Promise.all([
           base44.entities.Candidate.filter({ user_id: currentUser.id }),
@@ -79,8 +82,10 @@ export default function Layout({ children, currentPageName }) {
         if (!isMounted) return;
         setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
       } catch (e) {
+        console.error('Auth error:', e);
         if (isMounted) {
           setUser(null);
+          localStorage.removeItem('swipehire_user');
         }
       } finally {
         if (isMounted) {
@@ -175,10 +180,22 @@ export default function Layout({ children, currentPageName }) {
               SwipeHire
             </Link>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => base44.auth.redirectToLogin()}>
+              <Button variant="outline" onClick={() => {
+                try {
+                  base44.auth.redirectToLogin(window.location.pathname);
+                } catch (err) {
+                  window.location.href = '/api/auth/login';
+                }
+              }}>
                 Login
               </Button>
-              <Button className="swipe-gradient text-white" onClick={() => base44.auth.redirectToLogin(createPageUrl('Onboarding'))}>
+              <Button className="swipe-gradient text-white" onClick={() => {
+                try {
+                  base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+                } catch (err) {
+                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(createPageUrl('Onboarding'));
+                }
+              }}>
                 Sign Up
               </Button>
             </div>
@@ -204,7 +221,15 @@ export default function Layout({ children, currentPageName }) {
             <h2 className="text-2xl font-bold mb-2">Login Required</h2>
             <p className="text-gray-600 mb-6">Please login to access this feature</p>
             <Button 
-              onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+              onClick={() => {
+                try {
+                  const nextUrl = window.location.pathname + window.location.search;
+                  base44.auth.redirectToLogin(nextUrl);
+                } catch (err) {
+                  console.error('Login redirect failed:', err);
+                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
+                }
+              }}
               className="w-full swipe-gradient text-white"
             >
               Login to Continue
@@ -368,7 +393,17 @@ export default function Layout({ children, currentPageName }) {
             </div>
           )}
           <button
-            onClick={() => base44.auth.logout()}
+            onClick={() => {
+              try {
+                localStorage.removeItem('swipehire_user');
+                localStorage.removeItem('swipehire_view_mode');
+                base44.auth.logout(createPageUrl('Welcome'));
+              } catch (err) {
+                console.error('Logout failed:', err);
+                localStorage.clear();
+                window.location.href = '/';
+              }
+            }}
             className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
           >
             <LogOut className="w-5 h-5" />
