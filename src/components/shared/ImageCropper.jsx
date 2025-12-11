@@ -22,6 +22,10 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
         img.onload = () => {
           setImage(img);
           imageRef.current = img;
+          // Center the image initially
+          setCrop({ x: 0, y: 0 });
+          setZoom(1);
+          setRotation(0);
         };
         img.src = e.target.result;
       };
@@ -63,33 +67,45 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const size = 400;
-    canvas.width = size;
-    canvas.height = size;
+    const outputSize = 400;
+    canvas.width = outputSize;
+    canvas.height = outputSize;
 
-    const containerWidth = 300;
-    const containerHeight = 300;
-    const scale = image.width / containerWidth;
+    const containerSize = 300;
+    
+    // Calculate scale to fit image in container
+    const scale = Math.max(
+      containerSize / image.width,
+      containerSize / image.height
+    );
 
+    // Apply circular clipping
     ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
 
-    ctx.translate(size / 2, size / 2);
+    // Calculate center point
+    const centerX = outputSize / 2;
+    const centerY = outputSize / 2;
+
+    // Apply transformations
+    ctx.translate(centerX, centerY);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(zoom, zoom);
-    ctx.translate(-size / 2, -size / 2);
 
-    const offsetX = (crop.x * scale) / zoom;
-    const offsetY = (crop.y * scale) / zoom;
+    // Calculate image position based on crop offset
+    const scaledWidth = image.width * scale;
+    const scaledHeight = image.height * scale;
+    const imgX = -scaledWidth / 2 - (crop.x * scale);
+    const imgY = -scaledHeight / 2 - (crop.y * scale);
 
     ctx.drawImage(
       image,
-      -offsetX,
-      -offsetY,
-      (image.width / zoom),
-      (image.height / zoom)
+      imgX,
+      imgY,
+      scaledWidth,
+      scaledHeight
     );
 
     return new Promise((resolve) => {
@@ -120,16 +136,24 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
           <div className="relative bg-gray-100 rounded-xl overflow-hidden" style={{ width: 300, height: 300, margin: '0 auto' }}>
             {image && (
               <div
-                className="absolute inset-0 cursor-move"
+                className="absolute inset-0 cursor-move flex items-center justify-center"
                 onMouseDown={handleMouseDown}
-                style={{
-                  backgroundImage: `url(${image.src})`,
-                  backgroundSize: `${image.width * zoom}px ${image.height * zoom}px`,
-                  backgroundPosition: `${crop.x}px ${crop.y}px`,
-                  backgroundRepeat: 'no-repeat',
-                  transform: `rotate(${rotation}deg)`
-                }}
-              />
+              >
+                <img 
+                  src={image.src}
+                  alt="Crop preview"
+                  className="absolute"
+                  style={{
+                    maxWidth: 'none',
+                    width: `${Math.max(300 / image.width, 300 / image.height) * image.width * zoom}px`,
+                    height: 'auto',
+                    left: `${150 + crop.x}px`,
+                    top: `${150 + crop.y}px`,
+                    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                    transformOrigin: 'center'
+                  }}
+                />
+              </div>
             )}
             {/* Circle Overlay */}
             <div className="absolute inset-0 pointer-events-none">
