@@ -110,14 +110,25 @@ export default function Layout({ children, currentPageName }) {
     };
   }, [currentPageName, navigate, profileChecked]);
 
-  const toggleViewMode = () => {
-        const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
-        setViewMode(newMode);
-        setUserType(newMode);
-        localStorage.setItem('swipehire_view_mode', newMode);
-        // Navigate to appropriate home page
-        navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'));
-      };
+  const toggleViewMode = async () => {
+      const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
+
+      // Check if user has the required profile for the new mode
+      if (newMode === 'candidate') {
+        const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
+        if (candidates.length === 0) {
+          // User doesn't have a candidate profile, redirect to onboarding
+          localStorage.setItem('swipehire_selected_role', 'candidate');
+          navigate(createPageUrl('Onboarding'));
+          return;
+        }
+      }
+
+      setViewMode(newMode);
+      setUserType(newMode);
+      localStorage.setItem('swipehire_view_mode', newMode);
+      navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'));
+    };
 
       const handleRoleSelect = (role) => {
         setShowRoleSelection(false);
