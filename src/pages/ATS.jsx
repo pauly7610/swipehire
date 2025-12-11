@@ -628,10 +628,27 @@ export default function ATS() {
             </Select>
 
             {selectedMatches.size > 0 && (
-              <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white">
-                Move {selectedMatches.size} Selected
-              </Button>
+              <>
+                <Badge className="bg-pink-500 text-white">{selectedMatches.size} selected</Badge>
+                <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white">
+                  Move {selectedMatches.size} Selected
+                </Button>
+              </>
             )}
+
+            <Button 
+              variant="outline"
+              onClick={() => {
+                if (selectedMatches.size === filteredMatches.length) {
+                  setSelectedMatches(new Set());
+                } else {
+                  setSelectedMatches(new Set(filteredMatches.map(m => m.id)));
+                }
+              }}
+            >
+              {selectedMatches.size === filteredMatches.length ? 'Deselect All' : 'Select All'}
+            </Button>
+
             <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50">
               <Trophy className="w-4 h-4 mr-2" /> Compare Candidates
             </Button>
