@@ -11,7 +11,6 @@ import {
   Loader2, MessageSquare, Mail, Clock, MapPin, Briefcase, Building2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -18,7 +18,6 @@ import {
 import RecruiterFeedbackSection from '@/components/recruiter/RecruiterFeedbackSection';
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import ImageCropper from '@/components/shared/ImageCropper';
 import ImageViewer from '@/components/shared/ImageViewer';
 
