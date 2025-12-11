@@ -7,6 +7,20 @@ export default function ResumeViewer({ resumeUrl, open, onOpenChange }) {
   if (!resumeUrl) return null;
 
   const isPDF = resumeUrl.toLowerCase().endsWith('.pdf');
+  const isDoc = resumeUrl.toLowerCase().endsWith('.doc') || resumeUrl.toLowerCase().endsWith('.docx');
+
+  // Use Google Docs Viewer for better compatibility
+  const getViewerUrl = () => {
+    if (isPDF) {
+      return `https://docs.google.com/viewer?url=${encodeURIComponent(resumeUrl)}&embedded=true`;
+    }
+    if (isDoc) {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resumeUrl)}`;
+    }
+    return null;
+  };
+
+  const viewerUrl = getViewerUrl();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,9 +45,9 @@ export default function ResumeViewer({ resumeUrl, open, onOpenChange }) {
         </DialogHeader>
         
         <div className="flex-1 overflow-hidden rounded-lg border border-gray-200">
-          {isPDF ? (
+          {viewerUrl ? (
             <iframe
-              src={resumeUrl}
+              src={viewerUrl}
               className="w-full h-full"
               title="Resume"
             />

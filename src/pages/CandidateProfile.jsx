@@ -27,6 +27,7 @@ import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
 import AIProfileAssistant from '@/components/profile/AIProfileAssistant';
 import ResumeViewer from '@/components/profile/ResumeViewer';
+import ResumeBuilder from '@/components/profile/ResumeBuilder';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -46,6 +47,7 @@ export default function CandidateProfile() {
   const [isGeneratingTranscript, setIsGeneratingTranscript] = useState(false);
   const [suggestedSkills, setSuggestedSkills] = useState([]);
   const [showResume, setShowResume] = useState(false);
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -430,6 +432,9 @@ export default function CandidateProfile() {
             <TabsTrigger value="credentials" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Credentials
             </TabsTrigger>
+            <TabsTrigger value="resume" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Resume Builder
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
@@ -808,6 +813,103 @@ export default function CandidateProfile() {
               setEditData={setEditData}
             />
           </TabsContent>
+
+          <TabsContent value="resume" className="space-y-4">
+            <Card className="bg-gradient-to-br from-pink-50 to-orange-50 border-pink-200">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-gray-900">Build Your Professional Resume</h3>
+                    <p className="text-gray-600 text-sm mt-1">
+                      Create a beautiful, ATS-friendly resume with AI assistance. Your profile data will be automatically imported.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowResumeBuilder(true)}>
+                <CardContent className="py-8 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-4">
+                    <Zap className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">AI Resume Builder</h3>
+                  <p className="text-sm text-gray-500">Create a professional resume with AI-powered content suggestions</p>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="py-8 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto mb-4">
+                    <Upload className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Upload Resume</h3>
+                  <p className="text-sm text-gray-500 mb-4">Already have a resume? Upload it here</p>
+                  <label>
+                    <Button variant="outline" size="sm" className="cursor-pointer">
+                      <Upload className="w-4 h-4 mr-2" /> Choose File
+                    </Button>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        try {
+                          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                          await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
+                          setCandidate({ ...candidate, resume_url: file_url });
+                          setEditData({ ...editData, resume_url: file_url });
+                        } catch (error) {
+                          console.error('Upload failed:', error);
+                        }
+                      }}
+                    />
+                  </label>
+                </CardContent>
+              </Card>
+            </div>
+
+            {candidate?.resume_url && (
+              <Card>
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-10 h-10 text-green-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">Current Resume</p>
+                        <p className="text-sm text-gray-500">Resume uploaded and ready</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setShowResume(true)}>
+                        <Eye className="w-4 h-4 mr-2" /> View
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          if (confirm('Remove current resume?')) {
+                            await base44.entities.Candidate.update(candidate.id, { resume_url: null });
+                            setCandidate({ ...candidate, resume_url: null });
+                            setEditData({ ...editData, resume_url: null });
+                          }
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
         </Tabs>
 
         {/* Job Suggestions */}
@@ -947,6 +1049,18 @@ export default function CandidateProfile() {
         resumeUrl={candidate?.resume_url}
         open={showResume}
         onOpenChange={setShowResume}
+      />
+
+      {/* Resume Builder */}
+      <ResumeBuilder
+        open={showResumeBuilder}
+        onOpenChange={setShowResumeBuilder}
+        candidate={{ ...candidate, user }}
+        onResumeSaved={async (resumeUrl) => {
+          await base44.entities.Candidate.update(candidate.id, { resume_url: resumeUrl });
+          setCandidate({ ...candidate, resume_url: resumeUrl });
+          setEditData({ ...editData, resume_url: resumeUrl });
+        }}
       />
     </div>
   );
