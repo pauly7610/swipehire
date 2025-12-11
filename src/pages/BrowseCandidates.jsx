@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Filter, MapPin, Briefcase, Star, X, Loader2, Heart, User } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Search, Filter, MapPin, Briefcase, Star, X, Loader2, Heart, User, MessageCircle, GitBranch, Send } from 'lucide-react';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
 
 export default function BrowseCandidates() {
@@ -31,6 +32,13 @@ export default function BrowseCandidates() {
   const [maxExperience, setMaxExperience] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [showBulkMessage, setShowBulkMessage] = useState(false);
+  const [showBulkPipeline, setShowBulkPipeline] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState('');
+  const [selectedJob, setSelectedJob] = useState('');
+  const [selectedPipeline, setSelectedPipeline] = useState('matched');
+  const [jobs, setJobs] = useState([]);
+  const [sending, setSending] = useState(false);
 
   // Get unique values for filters
   const [industries, setIndustries] = useState([]);
@@ -54,13 +62,15 @@ export default function BrowseCandidates() {
       setCompany(companyData);
 
       // Load all data in parallel for better performance
-      const [allCandidates, favs] = await Promise.all([
+      const [allCandidates, favs, companyJobs] = await Promise.all([
         base44.entities.Candidate.list(),
-        companyData ? base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }) : Promise.resolve([])
+        companyData ? base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }) : Promise.resolve([]),
+        companyData ? base44.entities.Job.filter({ company_id: companyData.id, is_active: true }) : Promise.resolve([])
       ]);
 
       setCandidates(allCandidates);
       setFavorites(favs);
+      setJobs(companyJobs);
 
       // Extract unique values for filters
       const uniqueIndustries = [...new Set(allCandidates.map(c => c.industry).filter(Boolean))];
@@ -173,6 +183,75 @@ export default function BrowseCandidates() {
     );
     setFavorites([...favorites, ...newFavs]);
     setSelectedCandidates([]);
+  };
+
+  const sendBulkMessage = async () => {
+    if (!bulkMessage.trim()) return;
+    
+    setSending(true);
+    try {
+      const candidatesList = filteredCandidates.filter(c => selectedCandidates.includes(c.id));
+      
+      await Promise.all(
+        candidatesList.map(async (candidate) => {
+          // Create notification for each candidate
+          await base44.entities.Notification.create({
+            user_id: candidate.user_id,
+            type: 'message',
+            title: `Message from ${company.name}`,
+            message: bulkMessage,
+            navigate_to: 'CommunicationHub'
+          });
+
+          // Send email
+          const users = await base44.entities.User.list();
+          const candidateUser = users.find(u => u.id === candidate.user_id);
+          if (candidateUser?.email) {
+            await base44.integrations.Core.SendEmail({
+              to: candidateUser.email,
+              subject: `Message from ${company.name} on SwipeHire`,
+              body: bulkMessage
+            });
+          }
+        })
+      );
+
+      setShowBulkMessage(false);
+      setBulkMessage('');
+      setSelectedCandidates([]);
+    } catch (error) {
+      console.error('Failed to send messages:', error);
+    }
+    setSending(false);
+  };
+
+  const addToPipeline = async () => {
+    if (!selectedJob) return;
+    
+    setSending(true);
+    try {
+      const candidatesList = filteredCandidates.filter(c => selectedCandidates.includes(c.id));
+      
+      await Promise.all(
+        candidatesList.map(candidate => 
+          base44.entities.Match.create({
+            candidate_id: candidate.id,
+            company_id: company.id,
+            job_id: selectedJob,
+            status: selectedPipeline,
+            candidate_user_id: candidate.user_id,
+            company_user_id: user.id
+          })
+        )
+      );
+
+      setShowBulkPipeline(false);
+      setSelectedJob('');
+      setSelectedCandidates([]);
+    } catch (error) {
+      console.error('Failed to add to pipeline:', error);
+    }
+    setSending(false);
   };
 
   const isFavorited = (candidateId) => {
@@ -364,10 +443,20 @@ export default function BrowseCandidates() {
 
             {/* Bulk Actions */}
             {selectedCandidates.length > 0 && (
-              <Button onClick={bulkFavorite} variant="outline" className="border-pink-500 text-pink-500">
-                <Heart className="w-4 h-4 mr-2" />
-                Favorite Selected
-              </Button>
+              <>
+                <Button onClick={() => setShowBulkMessage(true)} variant="outline" className="border-blue-500 text-blue-500">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Message
+                </Button>
+                <Button onClick={() => setShowBulkPipeline(true)} variant="outline" className="border-purple-500 text-purple-500">
+                  <GitBranch className="w-4 h-4 mr-2" />
+                  Add to Pipeline
+                </Button>
+                <Button onClick={bulkFavorite} variant="outline" className="border-pink-500 text-pink-500">
+                  <Heart className="w-4 h-4 mr-2" />
+                  Favorite
+                </Button>
+              </>
             )}
 
             {/* Select All */}
@@ -517,6 +606,99 @@ export default function BrowseCandidates() {
           </Card>
         )}
       </div>
+
+      {/* Bulk Message Dialog */}
+      <Dialog open={showBulkMessage} onOpenChange={setShowBulkMessage}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Message to {selectedCandidates.length} Candidates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Type your message here..."
+              value={bulkMessage}
+              onChange={(e) => setBulkMessage(e.target.value)}
+              rows={6}
+              className="resize-none"
+            />
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowBulkMessage(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={sendBulkMessage} 
+                disabled={!bulkMessage.trim() || sending}
+                className="swipe-gradient text-white"
+              >
+                {sending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Send to All
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Pipeline Dialog */}
+      <Dialog open={showBulkPipeline} onOpenChange={setShowBulkPipeline}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add {selectedCandidates.length} Candidates to Pipeline</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Select Job</label>
+              <Select value={selectedJob} onValueChange={setSelectedJob}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a job..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobs.map(job => (
+                    <SelectItem key={job.id} value={job.id}>
+                      {job.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Pipeline Stage</label>
+              <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="matched">Matched</SelectItem>
+                  <SelectItem value="interviewing">Interviewing</SelectItem>
+                  <SelectItem value="offered">Offered</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowBulkPipeline(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={addToPipeline} 
+                disabled={!selectedJob || sending}
+                className="swipe-gradient text-white"
+              >
+                {sending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <GitBranch className="w-4 h-4 mr-2" />
+                )}
+                Add to Pipeline
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

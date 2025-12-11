@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   User, MapPin, Briefcase, Mail, Video, FileText, 
-  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink, Download, UserPlus, Check
+  ArrowLeft, Loader2, Github, Linkedin, Globe, ExternalLink, Download, UserPlus, Check, MessageCircle, Maximize2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ResumeViewer from '@/components/profile/ResumeViewer';
+import QuickMessageDialog from '@/components/networking/QuickMessageDialog';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const candidateId = searchParams.get('candidateId') || searchParams.get('id');
   
   const [candidate, setCandidate] = useState(null);
@@ -21,6 +24,9 @@ export default function ViewCandidateProfile() {
   const [currentUser, setCurrentUser] = useState(null);
   const [connection, setConnection] = useState(null);
   const [sendingConnection, setSendingConnection] = useState(false);
+  const [showResumeViewer, setShowResumeViewer] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     loadCandidate();
@@ -34,6 +40,14 @@ export default function ViewCandidateProfile() {
     try {
       const user = await base44.auth.me();
       setCurrentUser(user);
+      
+      const [companies] = await Promise.all([
+        base44.entities.Company.filter({ user_id: user.id })
+      ]);
+      
+      if (companies.length > 0) {
+        setCompany(companies[0]);
+      }
       
       const candidates = await base44.entities.Candidate.filter({ id: candidateId });
       if (candidates.length > 0) {
@@ -147,9 +161,16 @@ export default function ViewCandidateProfile() {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Connect Button */}
+        {/* Action Buttons */}
         {currentUser && candidateUser && currentUser.id !== candidateUser.id && (
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button 
+              onClick={() => setShowMessageDialog(true)}
+              className="bg-white text-pink-600 hover:bg-gray-50"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Message
+            </Button>
             {connection ? (
               <Button disabled className="bg-white text-gray-600">
                 {connection.status === 'accepted' ? (
@@ -549,21 +570,19 @@ export default function ViewCandidateProfile() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <a 
-                      href={candidate.resume_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl hover:opacity-90 transition-opacity font-medium"
+                    <Button
+                      onClick={() => setShowResumeViewer(true)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white hover:opacity-90"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      View Resume
-                    </a>
+                      <Maximize2 className="w-4 h-4" />
+                      View Full Screen
+                    </Button>
                     <a 
                       href={candidate.resume_url} 
                       download
                       className="flex items-center justify-center gap-2 px-4 py-3 border border-pink-200 text-pink-600 rounded-xl hover:bg-pink-50 transition-colors"
                     >
-                      <FileText className="w-4 h-4" />
+                      <Download className="w-4 h-4" />
                       Download
                     </a>
                   </div>
@@ -573,6 +592,25 @@ export default function ViewCandidateProfile() {
           </motion.div>
         )}
       </div>
+
+      {/* Resume Full Screen Viewer */}
+      <ResumeViewer 
+        resumeUrl={candidate?.resume_url}
+        open={showResumeViewer}
+        onOpenChange={setShowResumeViewer}
+      />
+
+      {/* Message Dialog */}
+      <QuickMessageDialog
+        open={showMessageDialog}
+        onOpenChange={setShowMessageDialog}
+        recipientId={candidateUser?.id}
+        recipientName={candidateUser?.full_name}
+        context={{
+          type: 'candidate_profile',
+          candidate_id: candidate?.id
+        }}
+      />
     </div>
   );
 }
