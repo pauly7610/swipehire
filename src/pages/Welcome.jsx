@@ -13,20 +13,29 @@ export default function Welcome() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
+        if (!mounted) return;
+        
         if (isAuth) {
           const user = await base44.auth.me();
+          if (!mounted) return;
+          
           const [candidates, companies] = await Promise.all([
             base44.entities.Candidate.filter({ user_id: user.id }),
             base44.entities.Company.filter({ user_id: user.id })
           ]);
           
+          if (!mounted) return;
+          
           const hasProfile = candidates.length > 0 || companies.length > 0;
           if (hasProfile) {
             const viewMode = companies.length > 0 ? 'employer' : 'candidate';
+            localStorage.setItem('swipehire_view_mode', viewMode);
             navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
             return;
           } else {
@@ -35,15 +44,22 @@ export default function Welcome() {
           }
         }
       } catch (e) {
-        // Not logged in, continue to welcome
+        console.error('Auth check error:', e);
       }
       
-      // Check if splash was already seen
-      const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
-      setShowSplash(!splashSeen);
-      setLoading(false);
+      if (mounted) {
+        // Check if splash was already seen
+        const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
+        setShowSplash(!splashSeen);
+        setLoading(false);
+      }
     };
+    
     checkAuth();
+    
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   const handleSplashComplete = () => {
@@ -98,7 +114,14 @@ export default function Welcome() {
           
           <div className="space-y-4">
             <Button
-              onClick={() => base44.auth.redirectToLogin()}
+              onClick={() => {
+                try {
+                  base44.auth.redirectToLogin(window.location.origin);
+                } catch (err) {
+                  console.error('Login redirect failed:', err);
+                  window.location.href = '/api/auth/login';
+                }
+              }}
               className="w-full swipe-gradient text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               Continue with Email
@@ -114,7 +137,14 @@ export default function Welcome() {
             </div>
 
             <Button
-              onClick={() => base44.auth.redirectToLogin()}
+              onClick={() => {
+                try {
+                  base44.auth.redirectToLogin(window.location.origin);
+                } catch (err) {
+                  console.error('Login redirect failed:', err);
+                  window.location.href = '/api/auth/login';
+                }
+              }}
               variant="outline"
               className="w-full py-6 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50"
             >
