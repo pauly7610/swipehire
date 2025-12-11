@@ -29,6 +29,8 @@ export default function BrowseCandidates() {
   const [showFilters, setShowFilters] = useState(false);
   const [minExperience, setMinExperience] = useState('');
   const [maxExperience, setMaxExperience] = useState('');
+  const [sortBy, setSortBy] = useState('recent');
+  const [selectedCandidates, setSelectedCandidates] = useState([]);
 
   // Get unique values for filters
   const [industries, setIndustries] = useState([]);
@@ -41,7 +43,7 @@ export default function BrowseCandidates() {
 
   useEffect(() => {
     applyFilters();
-  }, [candidates, searchQuery, experienceLevel, industryFilter, locationFilter, skillFilter, minExperience, maxExperience]);
+  }, [candidates, searchQuery, experienceLevel, industryFilter, locationFilter, skillFilter, minExperience, maxExperience, sortBy]);
 
   const loadData = async () => {
     try {
@@ -119,6 +121,15 @@ export default function BrowseCandidates() {
       filtered = filtered.filter(c => (c.experience_years || 0) <= parseInt(maxExperience));
     }
 
+    // Sorting
+    if (sortBy === 'recent') {
+      filtered.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    } else if (sortBy === 'experience') {
+      filtered.sort((a, b) => (b.experience_years || 0) - (a.experience_years || 0));
+    } else if (sortBy === 'name') {
+      filtered.sort((a, b) => (a.headline || '').localeCompare(b.headline || ''));
+    }
+
     setFilteredCandidates(filtered);
   };
 
@@ -130,6 +141,38 @@ export default function BrowseCandidates() {
     setSkillFilter('');
     setMinExperience('');
     setMaxExperience('');
+    setSortBy('recent');
+  };
+
+  const toggleSelectCandidate = (candidateId) => {
+    setSelectedCandidates(prev => 
+      prev.includes(candidateId) 
+        ? prev.filter(id => id !== candidateId)
+        : [...prev, candidateId]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedCandidates.length === filteredCandidates.length) {
+      setSelectedCandidates([]);
+    } else {
+      setSelectedCandidates(filteredCandidates.map(c => c.id));
+    }
+  };
+
+  const bulkFavorite = async () => {
+    const toFavorite = selectedCandidates.filter(id => !isFavorited(id));
+    const newFavs = await Promise.all(
+      toFavorite.map(candidateId => 
+        base44.entities.FavoriteCandidate.create({
+          company_id: company.id,
+          candidate_id: candidateId,
+          recruiter_user_id: user.id
+        })
+      )
+    );
+    setFavorites([...favorites, ...newFavs]);
+    setSelectedCandidates([]);
   };
 
   const isFavorited = (candidateId) => {
@@ -295,25 +338,75 @@ export default function BrowseCandidates() {
           </CardContent>
         </Card>
 
-        {/* Results Count */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-gray-600">
-            {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''} found
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => navigate(createPageUrl('FavoriteCandidates'))}
-          >
-            <Heart className="w-4 h-4 mr-2 text-pink-500" />
-            View Favorites ({favorites.length})
-          </Button>
+        {/* Results Count and Actions */}
+        <div className="mb-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">
+              {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''} found
+            </p>
+            {selectedCandidates.length > 0 && (
+              <Badge className="bg-pink-500">{selectedCandidates.length} selected</Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Sort */}
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Most Recent</SelectItem>
+                <SelectItem value="experience">Most Experience</SelectItem>
+                <SelectItem value="name">Alphabetical</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Bulk Actions */}
+            {selectedCandidates.length > 0 && (
+              <Button onClick={bulkFavorite} variant="outline" className="border-pink-500 text-pink-500">
+                <Heart className="w-4 h-4 mr-2" />
+                Favorite Selected
+              </Button>
+            )}
+
+            {/* Select All */}
+            <Button variant="outline" onClick={selectAll}>
+              {selectedCandidates.length === filteredCandidates.length ? 'Deselect All' : 'Select All'}
+            </Button>
+
+            {/* View Favorites */}
+            <Button
+              variant="outline"
+              onClick={() => navigate(createPageUrl('FavoriteCandidates'))}
+            >
+              <Heart className="w-4 h-4 mr-2 text-pink-500" />
+              Favorites ({favorites.length})
+            </Button>
+          </div>
         </div>
 
         {/* Candidates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCandidates.map((candidate) => (
-            <Card key={candidate.id} className="hover:shadow-lg transition-shadow group relative">
+            <Card 
+              key={candidate.id} 
+              className={`hover:shadow-lg transition-all group relative ${selectedCandidates.includes(candidate.id) ? 'ring-2 ring-pink-500' : ''}`}
+            >
               <CardContent className="pt-6">
+                {/* Select Checkbox */}
+                <div className="absolute top-4 left-4 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedCandidates.includes(candidate.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleSelectCandidate(candidate.id);
+                    }}
+                    className="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500 cursor-pointer"
+                  />
+                </div>
+
                 {/* Favorite Button */}
                 <div className="absolute top-4 right-4 z-10">
                   <button
