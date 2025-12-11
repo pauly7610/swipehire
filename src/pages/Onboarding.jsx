@@ -62,23 +62,52 @@ export default function Onboarding() {
           base44.entities.Company.filter({ user_id: currentUser.id })
         ]);
         
-        const hasProfile = candidateCheck.length > 0 || companyCheck.length > 0;
+        const hasCandidate = candidateCheck.length > 0;
+        const hasCompany = companyCheck.length > 0;
         
-        // If user already has a profile, redirect them away from onboarding
-        if (hasProfile) {
-          const viewMode = localStorage.getItem('swipehire_view_mode') || 
-                          (companyCheck.length > 0 ? 'employer' : 'candidate');
+        // Check if role was pre-selected (user wants to add a second profile)
+        const selectedRole = localStorage.getItem('swipehire_selected_role');
+        
+        // If user wants to add candidate profile and doesn't have one, allow it
+        if (selectedRole === 'candidate' && !hasCandidate) {
+          setUserType('candidate');
+          setStep(2);
+          localStorage.removeItem('swipehire_selected_role');
+          return;
+        }
+        
+        // If user wants to add employer profile and doesn't have one, allow it
+        if (selectedRole === 'employer' && !hasCompany) {
+          setUserType('employer');
+          setStep(2);
+          localStorage.removeItem('swipehire_selected_role');
+          return;
+        }
+        
+        // If trying to add a profile they already have, redirect to dashboard
+        if (selectedRole && ((selectedRole === 'candidate' && hasCandidate) || (selectedRole === 'employer' && hasCompany))) {
+          localStorage.removeItem('swipehire_selected_role');
+          const viewMode = selectedRole === 'employer' ? 'employer' : 'candidate';
           localStorage.setItem('swipehire_view_mode', viewMode);
           navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
           return;
         }
         
-        // Check if role was pre-selected
-        const selectedRole = localStorage.getItem('swipehire_selected_role');
-        if (selectedRole) {
-          setUserType(selectedRole);
-          setStep(2);
-          localStorage.removeItem('swipehire_selected_role');
+        // If user already has both profiles, redirect them
+        if (hasCandidate && hasCompany) {
+          const viewMode = localStorage.getItem('swipehire_view_mode') || 'employer';
+          localStorage.setItem('swipehire_view_mode', viewMode);
+          navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
+          return;
+        }
+        
+        // If user has at least one profile and no role selected, redirect
+        if ((hasCandidate || hasCompany) && !selectedRole) {
+          const viewMode = localStorage.getItem('swipehire_view_mode') || 
+                          (hasCompany ? 'employer' : 'candidate');
+          localStorage.setItem('swipehire_view_mode', viewMode);
+          navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
+          return;
         }
       } catch (e) {
         // Not authenticated - will be handled by Layout
