@@ -104,6 +104,8 @@ export default function RecruiterProfile() {
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
+      await base44.auth.updateMe({ photo_url: file_url });
+      setUser({ ...user, photo_url: file_url });
       setEditData({ ...editData, photo_url: file_url });
     } catch (err) {
       console.error('Upload failed:', err);
