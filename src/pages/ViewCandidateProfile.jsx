@@ -38,8 +38,14 @@ export default function ViewCandidateProfile() {
       return;
     }
     try {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        const user = null;
+        setCurrentUser(user);
+      } else {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+      }
       
       const [companies] = await Promise.all([
         base44.entities.Company.filter({ user_id: user.id })

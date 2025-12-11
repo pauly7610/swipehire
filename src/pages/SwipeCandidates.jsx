@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import CandidateCard from '@/components/swipe/CandidateCard';
@@ -49,6 +50,12 @@ export default function SwipeCandidates() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        window.location.href = createPageUrl('Welcome');
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
@@ -60,6 +67,12 @@ export default function SwipeCandidates() {
       ]);
 
       const [companyData] = companyResults;
+      
+      if (!companyData) {
+        window.location.href = createPageUrl('Onboarding');
+        return;
+      }
+
       setCompany(companyData);
 
       const userMap = {};

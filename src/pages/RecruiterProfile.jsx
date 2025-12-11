@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +23,7 @@ import ImageCropper from '@/components/shared/ImageCropper';
 import ImageViewer from '@/components/shared/ImageViewer';
 
 export default function RecruiterProfile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -46,7 +49,7 @@ export default function RecruiterProfile() {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
+        window.location.href = createPageUrl('Welcome');
         return;
       }
 
