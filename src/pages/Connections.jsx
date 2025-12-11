@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,12 @@ export default function Connections() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        window.location.href = createPageUrl('Welcome');
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 

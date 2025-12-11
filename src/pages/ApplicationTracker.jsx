@@ -35,10 +35,22 @@ export default function ApplicationTracker() {
 
   const loadApplications = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        navigate(createPageUrl('Welcome'), { replace: true });
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+      
+      if (!candidateData) {
+        navigate(createPageUrl('Onboarding'), { replace: true });
+        return;
+      }
+
       setCandidate(candidateData);
 
       if (candidateData) {
@@ -96,6 +108,7 @@ export default function ApplicationTracker() {
       }
     } catch (error) {
       console.error('Failed to load applications:', error);
+      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };
