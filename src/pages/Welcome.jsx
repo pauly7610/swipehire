@@ -15,7 +15,6 @@ export default function Welcome() {
   useEffect(() => {
     let mounted = true;
     
-    // Check if user is already logged in
     const checkAuth = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
@@ -32,23 +31,20 @@ export default function Welcome() {
           
           if (!mounted) return;
           
-          const hasProfile = candidates.length > 0 || companies.length > 0;
-          if (hasProfile) {
+          if (candidates.length > 0 || companies.length > 0) {
             const viewMode = companies.length > 0 ? 'employer' : 'candidate';
             localStorage.setItem('swipehire_view_mode', viewMode);
             navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
-            return;
           } else {
             navigate(createPageUrl('Onboarding'), { replace: true });
-            return;
           }
+          return;
         }
       } catch (e) {
         console.error('Auth check error:', e);
       }
       
       if (mounted) {
-        // Check if splash was already seen
         const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
         setShowSplash(!splashSeen);
         setLoading(false);

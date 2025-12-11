@@ -51,24 +51,27 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
+    let mounted = true;
+    
     const loadUser = async () => {
       try {
         const currentUser = await base44.auth.me();
+        if (!mounted) return;
+        
         setUser(currentUser);
         
-        // Check if user already completed onboarding and has a profile
         const [candidateCheck, companyCheck] = await Promise.all([
           base44.entities.Candidate.filter({ user_id: currentUser.id }),
           base44.entities.Company.filter({ user_id: currentUser.id })
         ]);
         
+        if (!mounted) return;
+        
         const hasCandidate = candidateCheck.length > 0;
         const hasCompany = companyCheck.length > 0;
-        
-        // Check if role was pre-selected (user wants to add a second profile)
         const selectedRole = localStorage.getItem('swipehire_selected_role');
         
-        // If user wants to add candidate profile and doesn't have one, allow it
+        // If user wants to add candidate profile and doesn't have one
         if (selectedRole === 'candidate' && !hasCandidate) {
           setUserType('candidate');
           setStep(2);
@@ -76,7 +79,7 @@ export default function Onboarding() {
           return;
         }
         
-        // If user wants to add employer profile and doesn't have one, allow it
+        // If user wants to add employer profile and doesn't have one
         if (selectedRole === 'employer' && !hasCompany) {
           setUserType('employer');
           setStep(2);
@@ -84,7 +87,7 @@ export default function Onboarding() {
           return;
         }
         
-        // If trying to add a profile they already have, redirect to dashboard
+        // If trying to add a profile they already have, redirect
         if (selectedRole && ((selectedRole === 'candidate' && hasCandidate) || (selectedRole === 'employer' && hasCompany))) {
           localStorage.removeItem('swipehire_selected_role');
           const viewMode = selectedRole === 'employer' ? 'employer' : 'candidate';
@@ -93,28 +96,26 @@ export default function Onboarding() {
           return;
         }
         
-        // If user already has both profiles, redirect them
-        if (hasCandidate && hasCompany) {
-          const viewMode = localStorage.getItem('swipehire_view_mode') || 'employer';
-          localStorage.setItem('swipehire_view_mode', viewMode);
-          navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
-          return;
-        }
-        
-        // If user has at least one profile and no role selected, redirect
+        // If user has any profile and no role selected, redirect
         if ((hasCandidate || hasCompany) && !selectedRole) {
-          const viewMode = localStorage.getItem('swipehire_view_mode') || 
-                          (hasCompany ? 'employer' : 'candidate');
+          const viewMode = localStorage.getItem('swipehire_view_mode') || (hasCompany ? 'employer' : 'candidate');
           localStorage.setItem('swipehire_view_mode', viewMode);
           navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
           return;
         }
       } catch (e) {
-        // Not authenticated - will be handled by Layout
         console.error('Auth check failed:', e);
+        if (mounted) {
+          navigate(createPageUrl('Welcome'), { replace: true });
+        }
       }
     };
+    
     loadUser();
+    
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   const handlePhotoUpload = async (e, type) => {
