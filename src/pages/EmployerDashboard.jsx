@@ -51,7 +51,7 @@ export default function EmployerDashboard() {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
+        navigate(createPageUrl('Welcome'), { replace: true });
         return;
       }
 
@@ -62,6 +62,11 @@ export default function EmployerDashboard() {
       // Also load all companies for linking
       const companiesList = await base44.entities.Company.list();
       setAllCompanies(companiesList);
+
+      if (!companyData) {
+        navigate(createPageUrl('Onboarding'), { replace: true });
+        return;
+      }
 
       if (companyData) {
         setCompany(companyData);

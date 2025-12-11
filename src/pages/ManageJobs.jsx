@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CandidateSuggestions from '@/components/matching/CandidateSuggestions';
 
 export default function ManageJobs() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [matches, setMatches] = useState([]);
   const [company, setCompany] = useState(null);
@@ -33,8 +34,20 @@ export default function ManageJobs() {
 
   const loadJobs = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        navigate(createPageUrl('Welcome'), { replace: true });
+        return;
+      }
+
       const user = await base44.auth.me();
       const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
+      
+      if (!companyData) {
+        navigate(createPageUrl('Onboarding'), { replace: true });
+        return;
+      }
+
       setCompany(companyData);
 
       if (companyData) {
@@ -46,6 +59,7 @@ export default function ManageJobs() {
       }
     } catch (error) {
       console.error('Failed to load jobs:', error);
+      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };

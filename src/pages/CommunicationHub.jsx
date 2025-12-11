@@ -39,10 +39,22 @@ export default function CommunicationHub() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        navigate(createPageUrl('Welcome'), { replace: true });
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+      
+      if (!candidateData) {
+        navigate(createPageUrl('Onboarding'), { replace: true });
+        return;
+      }
+
       setCandidate(candidateData);
 
       if (candidateData) {
@@ -78,6 +90,7 @@ export default function CommunicationHub() {
       }
     } catch (error) {
       console.error('Failed to load data:', error);
+      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };

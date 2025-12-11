@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import JobCard from '@/components/swipe/JobCard';
 import SwipeControls from '@/components/swipe/SwipeControls';
@@ -12,6 +14,7 @@ import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import QuickApplyModal from '@/components/candidate/QuickApplyModal';
 
 export default function SwipeJobs() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -46,7 +49,7 @@ export default function SwipeJobs() {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
+        navigate(createPageUrl('Welcome'), { replace: true });
         return;
       }
 
@@ -55,7 +58,7 @@ export default function SwipeJobs() {
 
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
       if (!candidateData) {
-        window.location.href = createPageUrl('Onboarding');
+        navigate(createPageUrl('Onboarding'), { replace: true });
         return;
       }
       setCandidate(candidateData);
