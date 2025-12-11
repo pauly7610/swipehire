@@ -19,12 +19,11 @@ export default function Layout({ children, currentPageName }) {
   const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
-  const [profileChecked, setProfileChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadUser = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
@@ -41,14 +40,11 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
 
-        // Store user in localStorage for faster subsequent loads
-        localStorage.setItem('swipehire_user', JSON.stringify(currentUser));
-        
         const [candidates, companies] = await Promise.all([
           base44.entities.Candidate.filter({ user_id: currentUser.id }),
           base44.entities.Company.filter({ user_id: currentUser.id })
         ]);
-        
+
         if (!isMounted) return;
 
         const hasCompany = companies.length > 0 || currentUser.role === 'admin';
@@ -65,27 +61,23 @@ export default function Layout({ children, currentPageName }) {
           setViewMode('candidate');
         }
 
-        // Only redirect to onboarding once if no profile exists
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding' && !profileChecked) {
-          setProfileChecked(true);
+        // Only redirect if no profile exists and not already on onboarding
+        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
-        
-        if (!profileChecked) setProfileChecked(true);
 
         const [unreadNotifs, unreadMessages] = await Promise.all([
           base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
           base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
         ]);
-        
+
         if (!isMounted) return;
         setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
       } catch (e) {
         console.error('Auth error:', e);
         if (isMounted) {
           setUser(null);
-          localStorage.removeItem('swipehire_user');
         }
       } finally {
         if (isMounted) {
@@ -93,7 +85,7 @@ export default function Layout({ children, currentPageName }) {
         }
       }
     };
-    
+
     loadUser();
 
     const interval = setInterval(async () => {
@@ -113,7 +105,7 @@ export default function Layout({ children, currentPageName }) {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [currentPageName, navigate, profileChecked]);
+  }, [currentPageName, navigate]);
 
   const toggleViewMode = async () => {
       const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
