@@ -17,6 +17,8 @@ import RecruiterFeedbackSection from '@/components/recruiter/RecruiterFeedbackSe
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ImageCropper from '@/components/shared/ImageCropper';
+import ImageViewer from '@/components/shared/ImageViewer';
 
 export default function RecruiterProfile() {
   const [user, setUser] = useState(null);
@@ -31,6 +33,10 @@ export default function RecruiterProfile() {
   const [reviewCount, setReviewCount] = useState(0);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -87,15 +93,22 @@ export default function RecruiterProfile() {
     setLoading(false);
   };
 
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setSelectedFile(file);
+    setShowImageCropper(true);
+  };
+
+  const handleCropComplete = async (croppedFile) => {
+    setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
       setEditData({ ...editData, photo_url: file_url });
     } catch (err) {
       console.error('Upload failed:', err);
     }
+    setUploading(false);
   };
 
   const handleSave = async () => {
@@ -146,9 +159,13 @@ export default function RecruiterProfile() {
             <div className="flex justify-between items-start">
               <div className="relative -mt-12">
                 {editing ? (
-                  <label className="cursor-pointer">
-                    {editData.photo_url ? (
-                      <img src={editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg" />
+                  <label className="cursor-pointer relative group">
+                    {uploading ? (
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+                      </div>
+                    ) : editData.photo_url ? (
+                      <img src={editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg group-hover:opacity-80 transition-opacity" />
                     ) : (
                       <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
                         <User className="w-12 h-12 text-pink-400" />
@@ -157,11 +174,16 @@ export default function RecruiterProfile() {
                     <div className="absolute bottom-0 right-0 w-8 h-8 swipe-gradient rounded-full flex items-center justify-center">
                       <Upload className="w-4 h-4 text-white" />
                     </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                   </label>
                 ) : (
                   (user?.photo_url || editData.photo_url) ? (
-                    <img src={user?.photo_url || editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg" />
+                    <img 
+                      src={user?.photo_url || editData.photo_url} 
+                      alt="" 
+                      className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setShowImageViewer(true)}
+                    />
                   ) : (
                     <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
                       <User className="w-12 h-12 text-pink-400" />
@@ -529,6 +551,22 @@ export default function RecruiterProfile() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Image Cropper */}
+      <ImageCropper
+        file={selectedFile}
+        open={showImageCropper}
+        onOpenChange={setShowImageCropper}
+        onCropComplete={handleCropComplete}
+      />
+
+      {/* Image Viewer */}
+      <ImageViewer
+        imageUrl={user?.photo_url || editData.photo_url}
+        open={showImageViewer}
+        onOpenChange={setShowImageViewer}
+        title={user?.full_name}
+      />
     </div>
   );
 }
