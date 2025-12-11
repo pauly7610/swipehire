@@ -511,9 +511,9 @@ export default function BrowseCandidates() {
                   </button>
                 </div>
 
-                <div className="cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                <div>
                   {/* Profile Photo */}
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                     {candidate.photo_url ? (
                       <img
                         src={candidate.photo_url}
@@ -528,7 +528,7 @@ export default function BrowseCandidates() {
                   </div>
 
                   {/* Info */}
-                  <div className="text-center mb-4">
+                  <div className="text-center mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                     <h3 className="font-bold text-lg text-gray-900 mb-1">{candidate.headline || 'Professional'}</h3>
                     {candidate.industry && (
                       <p className="text-sm text-gray-600 mb-2">{candidate.industry}</p>
@@ -543,7 +543,7 @@ export default function BrowseCandidates() {
 
                   {/* Experience */}
                   {(candidate.experience_level || candidate.experience_years) && (
-                    <div className="flex items-center justify-center gap-2 mb-4">
+                    <div className="flex items-center justify-center gap-2 mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                       <Briefcase className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
                         {candidate.experience_level && <span className="capitalize">{candidate.experience_level}</span>}
@@ -555,14 +555,14 @@ export default function BrowseCandidates() {
 
                   {/* Bio */}
                   {candidate.bio && (
-                    <p className="text-sm text-gray-600 text-center mb-4 line-clamp-2">
+                    <p className="text-sm text-gray-600 text-center mb-4 line-clamp-2 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                       {candidate.bio}
                     </p>
                   )}
 
                   {/* Skills */}
                   {candidate.skills && candidate.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center">
+                    <div className="flex flex-wrap gap-2 justify-center cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                       {candidate.skills.slice(0, 5).map((skill) => (
                         <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
