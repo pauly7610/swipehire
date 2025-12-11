@@ -73,6 +73,7 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
 
     const containerSize = 300;
     const cropRadius = 140;
+    const cropDiameter = cropRadius * 2;
     
     // Calculate base scale to fit image
     const baseScale = Math.max(
@@ -98,16 +99,18 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
     // Apply zoom
     ctx.scale(zoom, zoom);
     
-    // Calculate final dimensions with base scale
-    const displayWidth = image.width * baseScale;
-    const displayHeight = image.height * baseScale;
+    // Calculate scale factor to fill the output canvas from the crop area
+    const cropScale = outputSize / cropDiameter;
     
-    // Apply crop offset (scale it to output size)
-    const scaleToOutput = outputSize / containerSize;
-    const offsetX = crop.x * scaleToOutput;
-    const offsetY = crop.y * scaleToOutput;
+    // Calculate final dimensions
+    const displayWidth = image.width * baseScale * cropScale;
+    const displayHeight = image.height * baseScale * cropScale;
     
-    // Draw image centered with offsets
+    // Apply crop offset
+    const offsetX = crop.x * cropScale;
+    const offsetY = crop.y * cropScale;
+    
+    // Draw image to fill canvas
     ctx.drawImage(
       image,
       -displayWidth / 2 + offsetX,
