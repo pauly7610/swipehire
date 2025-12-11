@@ -158,26 +158,12 @@ export default function RecruiterProfile() {
           <CardContent className="pt-0">
             <div className="flex justify-between items-start">
               <div className="relative -mt-12">
-                {editing ? (
-                  <label className="cursor-pointer relative group">
-                    {uploading ? (
-                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
-                        <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
-                      </div>
-                    ) : editData.photo_url ? (
-                      <img src={editData.photo_url} alt="" className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg group-hover:opacity-80 transition-opacity" />
-                    ) : (
-                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
-                        <User className="w-12 h-12 text-pink-400" />
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 right-0 w-8 h-8 swipe-gradient rounded-full flex items-center justify-center">
-                      <Upload className="w-4 h-4 text-white" />
+                <div className="relative group">
+                  {uploading ? (
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                      <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
                     </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-                  </label>
-                ) : (
-                  (user?.photo_url || editData.photo_url) ? (
+                  ) : (user?.photo_url || editData.photo_url) ? (
                     <img 
                       src={user?.photo_url || editData.photo_url} 
                       alt="" 
@@ -188,8 +174,14 @@ export default function RecruiterProfile() {
                     <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
                       <User className="w-12 h-12 text-pink-400" />
                     </div>
-                  )
-                )}
+                  )}
+                  
+                  {/* Upload button - always visible */}
+                  <label className="absolute bottom-0 right-0 w-8 h-8 swipe-gradient rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                    <Upload className="w-4 h-4 text-white" />
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                  </label>
+                </div>
               </div>
 
               <Button 
