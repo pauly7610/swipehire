@@ -55,17 +55,30 @@ export default function BrowseCandidates() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        navigate(createPageUrl('Welcome'), { replace: true });
+        return;
+      }
+
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
       const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
+      
+      if (!companyData) {
+        console.error('No company profile found');
+        navigate(createPageUrl('Onboarding'), { replace: true });
+        return;
+      }
+
       setCompany(companyData);
 
       // Load all data in parallel for better performance
       const [allCandidates, favs, companyJobs] = await Promise.all([
         base44.entities.Candidate.list(),
-        companyData ? base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }) : Promise.resolve([]),
-        companyData ? base44.entities.Job.filter({ company_id: companyData.id, is_active: true }) : Promise.resolve([])
+        base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }),
+        base44.entities.Job.filter({ company_id: companyData.id, is_active: true })
       ]);
 
       setCandidates(allCandidates);
@@ -83,6 +96,7 @@ export default function BrowseCandidates() {
 
     } catch (error) {
       console.error('Failed to load data:', error);
+      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };

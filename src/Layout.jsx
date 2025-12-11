@@ -61,19 +61,23 @@ export default function Layout({ children, currentPageName }) {
           setViewMode('candidate');
         }
 
-        // Only redirect if no profile exists and not already on onboarding
-        if (!hasCompany && !hasCandidate && currentPageName !== 'Onboarding') {
+        // Only redirect if no profile exists and not already on onboarding or welcome
+        if (!hasCompany && !hasCandidate && !['Onboarding', 'Welcome'].includes(currentPageName)) {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
 
-        const [unreadNotifs, unreadMessages] = await Promise.all([
-          base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
-          base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
-        ]);
+        try {
+          const [unreadNotifs, unreadMessages] = await Promise.all([
+            base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
+            base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
+          ]);
 
-        if (!isMounted) return;
-        setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+          if (!isMounted) return;
+          setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+        } catch (notifError) {
+          console.error('Error loading notifications:', notifError);
+        }
       } catch (e) {
         console.error('Auth error:', e);
         if (isMounted) {
