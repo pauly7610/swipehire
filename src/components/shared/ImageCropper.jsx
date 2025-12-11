@@ -72,9 +72,10 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
     canvas.height = outputSize;
 
     const containerSize = 300;
+    const cropRadius = 140;
     
-    // Calculate scale to fit image in container
-    const scale = Math.max(
+    // Calculate base scale to fit image
+    const baseScale = Math.max(
       containerSize / image.width,
       containerSize / image.height
     );
@@ -85,28 +86,37 @@ export default function ImageCropper({ file, open, onOpenChange, onCropComplete,
     ctx.closePath();
     ctx.clip();
 
-    // Calculate center point
-    const centerX = outputSize / 2;
-    const centerY = outputSize / 2;
+    // Save context
+    ctx.save();
 
-    // Apply transformations
-    ctx.translate(centerX, centerY);
+    // Move to center of canvas
+    ctx.translate(outputSize / 2, outputSize / 2);
+    
+    // Apply rotation
     ctx.rotate((rotation * Math.PI) / 180);
+    
+    // Apply zoom
     ctx.scale(zoom, zoom);
-
-    // Calculate image position based on crop offset
-    const scaledWidth = image.width * scale;
-    const scaledHeight = image.height * scale;
-    const imgX = -scaledWidth / 2 - (crop.x * scale);
-    const imgY = -scaledHeight / 2 - (crop.y * scale);
-
+    
+    // Calculate final dimensions with base scale
+    const displayWidth = image.width * baseScale;
+    const displayHeight = image.height * baseScale;
+    
+    // Apply crop offset (scale it to output size)
+    const scaleToOutput = outputSize / containerSize;
+    const offsetX = crop.x * scaleToOutput;
+    const offsetY = crop.y * scaleToOutput;
+    
+    // Draw image centered with offsets
     ctx.drawImage(
       image,
-      imgX,
-      imgY,
-      scaledWidth,
-      scaledHeight
+      -displayWidth / 2 + offsetX,
+      -displayHeight / 2 + offsetY,
+      displayWidth,
+      displayHeight
     );
+
+    ctx.restore();
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
