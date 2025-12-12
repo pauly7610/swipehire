@@ -41,9 +41,11 @@ export default function SplashScreen({ onComplete }) {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="mb-8"
         >
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl swipe-gradient flex items-center justify-center shadow-2xl mx-auto">
-            <span className="text-white font-bold text-4xl md:text-5xl">SH</span>
-          </div>
+          <img 
+            src="https://cdn.prod.website-files.com/67543ad139c45da0c6e49d32/67556f5fa0def75a36c32485_Logo%20Black.svg" 
+            alt="SwipeHire" 
+            className="w-48 h-48 md:w-64 md:h-64 mx-auto"
+          />
         </motion.div>
 
         {/* Step 2: Title */}
@@ -58,9 +60,6 @@ export default function SplashScreen({ onComplete }) {
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             <span className="swipe-gradient-text">SwipeHire</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-700 mb-8">
-            The dating app for jobs
-          </p>
           <p className="text-gray-600 text-lg leading-relaxed mb-8">
             Swipe right on jobs you love. Match with companies that want you. 
             Land interviews faster than ever.
