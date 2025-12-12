@@ -98,6 +98,7 @@ export default function EmployerDashboard() {
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
+      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };
