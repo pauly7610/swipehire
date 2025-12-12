@@ -788,18 +788,18 @@ export default function ATS() {
                                     }`}
                                   >
                                     <CardContent className="p-3">
-                                      <div className="flex items-start gap-2">
+                                      <div className="flex items-start gap-2 mb-3">
                                         <input
                                           type="checkbox"
                                           checked={selectedMatches.has(match.id)}
                                           onChange={() => toggleSelectMatch(match.id)}
-                                          className="mt-1 w-4 h-4 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                                          className="mt-1 w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors flex-shrink-0"
                                           onClick={(e) => e.stopPropagation()}
                                         />
-                                        <div {...provided.dragHandleProps} className="pt-1 cursor-grab">
+                                        <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
                                           <GripVertical className="w-4 h-4 text-gray-400" />
                                         </div>
-                                        <div className="flex-1" onClick={() => openCandidateDetails(match)}>
+                                        <div className="flex-1 min-w-0" onClick={() => openCandidateDetails(match)}>
                                           <div className="flex items-center gap-2">
                                             {candidate?.photo_url ? (
                                               <img src={candidate.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -850,30 +850,30 @@ export default function ATS() {
                                             )}
                                           </div>
                                         </div>
+                                      </div>
 
-                                        {/* Quick Actions */}
-                                        <div className="flex gap-2 mt-2">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              confirmMoveCandidate(match.id, stage.id, 'screening', user?.full_name);
-                                            }}
-                                            className="flex-1 text-xs py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
-                                          >
-                                            ✓ Pass
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleQuickReject(match);
-                                            }}
-                                            className="flex-1 text-xs py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium"
-                                          >
-                                            ✕ Reject
-                                          </button>
-                                        </div>
-                                        </div>
-                                        </CardContent>
+                                      {/* Quick Actions */}
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            confirmMoveCandidate(match.id, stage.id, 'screening', user?.full_name);
+                                          }}
+                                          className="flex-1 text-xs py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
+                                        >
+                                          ✓ Pass
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickReject(match);
+                                          }}
+                                          className="flex-1 text-xs py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium"
+                                        >
+                                          ✕ Reject
+                                        </button>
+                                      </div>
+                                    </CardContent>
                                         </Card>
                                         </div>
                                         )}
