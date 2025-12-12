@@ -234,26 +234,38 @@ export default function RecruiterProfile() {
                 </div>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
-                  <p className="text-gray-600">
-                    {user?.title || 'Recruiter'}
-                    {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
-                  </p>
-                  {user?.bio && <p className="text-gray-500 text-sm mt-2">{user.bio}</p>}
-                  
-                  <div className="flex items-center gap-4 mt-3 text-gray-500 text-sm">
-                    {user?.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        {user.email}
-                      </span>
-                    )}
-                    {user?.years_recruiting && (
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-4 h-4" />
-                        {user.years_recruiting}+ years recruiting
-                      </span>
-                    )}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
+                      <p className="text-gray-600">
+                        {user?.title || 'Recruiter'}
+                        {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
+                      </p>
+                      {user?.bio && <p className="text-gray-500 text-sm mt-2">{user.bio}</p>}
+                      
+                      <div className="flex items-center gap-4 mt-3 text-gray-500 text-sm">
+                        {user?.email && (
+                          <span className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            {user.email}
+                          </span>
+                        )}
+                        {user?.years_recruiting && (
+                          <span className="flex items-center gap-1">
+                            <Briefcase className="w-4 h-4" />
+                            {user.years_recruiting}+ years recruiting
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditing(true)}
+                      className="flex-shrink-0"
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" /> Edit Profile
+                    </Button>
                   </div>
 
                   {/* Social Links */}
