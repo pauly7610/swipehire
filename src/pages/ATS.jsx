@@ -88,6 +88,9 @@ export default function ATS() {
   const [activities, setActivities] = useState({});
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [applications, setApplications] = useState([]);
+  const [showMassMessageDialog, setShowMassMessageDialog] = useState(false);
+  const [massEmailSubject, setMassEmailSubject] = useState('');
+  const [massEmailBody, setMassEmailBody] = useState('');
 
   useEffect(() => {
     loadData();
@@ -246,6 +249,50 @@ export default function ATS() {
     
     setShowEmailDialog(false);
     setEmailCandidate(null);
+  };
+
+  const sendMassEmail = async () => {
+    if (!massEmailSubject || !massEmailBody || selectedMatches.size === 0) return;
+    
+    const matchIds = Array.from(selectedMatches);
+    
+    for (const matchId of matchIds) {
+      const match = matches.find(m => m.id === matchId);
+      const candidate = candidates[match?.candidate_id];
+      const user = candidate ? users[candidate.user_id] : null;
+      const job = jobs.find(j => j.id === match?.job_id);
+      
+      if (user) {
+        const replacements = {
+          '{name}': user.full_name?.split(' ')[0] || 'there',
+          '{company}': company?.name || 'Our Company',
+          '{job}': job?.title || 'the position',
+          '{skills}': candidate?.skills?.slice(0, 3).join(', ') || 'your field',
+          '{recruiter}': currentUser?.recruiter_name || currentUser?.full_name || 'The Team'
+        };
+        
+        let subject = massEmailSubject;
+        let body = massEmailBody;
+        
+        Object.entries(replacements).forEach(([key, value]) => {
+          subject = subject.replace(new RegExp(key, 'g'), value);
+          body = body.replace(new RegExp(key, 'g'), value);
+        });
+        
+        await base44.integrations.Core.SendEmail({
+          to: user.email,
+          subject: subject,
+          body: body
+        });
+        
+        await logActivity(matchId, 'email_sent', `Sent mass email: ${subject}`);
+      }
+    }
+    
+    setShowMassMessageDialog(false);
+    setMassEmailSubject('');
+    setMassEmailBody('');
+    setSelectedMatches(new Set());
   };
 
   const getStageFromStatus = (status) => {
@@ -630,8 +677,11 @@ export default function ATS() {
             {selectedMatches.size > 0 && (
               <>
                 <Badge className="bg-pink-500 text-white">{selectedMatches.size} selected</Badge>
+                <Button onClick={() => setShowMassMessageDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Mail className="w-4 h-4 mr-2" /> Message {selectedMatches.size}
+                </Button>
                 <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white">
-                  Move {selectedMatches.size} Selected
+                  Move {selectedMatches.size}
                 </Button>
               </>
             )}
@@ -1520,6 +1570,74 @@ export default function ATS() {
           setFeedbackMatch(null);
         }}
       />
+
+      {/* Mass Message Dialog */}
+      <Dialog open={showMassMessageDialog} onOpenChange={setShowMassMessageDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-blue-500" />
+              Send Mass Message to {selectedMatches.size} Candidates
+            </DialogTitle>
+            <DialogDescription>
+              Personalize your message with: {'{name}'}, {'{company}'}, {'{job}'}, {'{skills}'}, {'{recruiter}'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Template Selection */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Quick Templates</label>
+              <div className="flex flex-wrap gap-2">
+                {EMAIL_TEMPLATES.map(template => (
+                  <Button
+                    key={template.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setMassEmailSubject(template.subject);
+                      setMassEmailBody(template.body);
+                    }}
+                  >
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Subject</label>
+              <Input 
+                value={massEmailSubject} 
+                onChange={(e) => setMassEmailSubject(e.target.value)}
+                placeholder="Email subject..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Message</label>
+              <Textarea 
+                value={massEmailBody} 
+                onChange={(e) => setMassEmailBody(e.target.value)}
+                placeholder="Write your message... Use {name}, {company}, {job}, {skills}, {recruiter} for personalization"
+                rows={10}
+              />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+              <strong>Note:</strong> Each candidate will receive a personalized version of this email. 
+              The placeholders will be automatically replaced with their specific information.
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMassMessageDialog(false)}>Cancel</Button>
+            <Button onClick={sendMassEmail} disabled={!massEmailSubject || !massEmailBody} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Send className="w-4 h-4 mr-2" /> Send to {selectedMatches.size} Candidates
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Email Dialog */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
