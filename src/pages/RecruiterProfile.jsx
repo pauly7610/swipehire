@@ -46,6 +46,12 @@ export default function RecruiterProfile() {
 
   const loadProfile = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setLoading(false);
+        return;
+      }
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
@@ -129,6 +135,26 @@ export default function RecruiterProfile() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <User className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+            <p className="text-gray-600 mb-6">Please login to view your profile</p>
+            <Button 
+              onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+              className="w-full swipe-gradient text-white"
+            >
+              Login to Continue
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
