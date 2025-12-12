@@ -960,9 +960,12 @@ export default function ATS() {
                             <input
                               type="checkbox"
                               checked={match ? selectedMatches.has(match.id) : false}
-                              onChange={() => match && toggleSelectMatch(match.id)}
-                              disabled={!match}
-                              className="w-5 h-5 rounded border-2 border-orange-500 accent-orange-500 cursor-pointer hover:border-orange-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              onChange={() => {
+                                if (match) {
+                                  toggleSelectMatch(match.id);
+                                }
+                              }}
+                              className="w-5 h-5 rounded border-2 border-orange-500 accent-orange-500 cursor-pointer hover:border-orange-600 transition-colors"
                             />
                           </td>
                           <td className="p-4">
