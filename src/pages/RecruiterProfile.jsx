@@ -160,6 +160,16 @@ export default function RecruiterProfile() {
         {/* Recruiter Personal Profile Card */}
         <Card className="shadow-xl border-0 mb-6 overflow-visible">
           <CardContent className="pt-0">
+            {editing && (
+              <div className="absolute top-4 right-4 z-10">
+                <Button 
+                  onClick={handleSave}
+                  className="swipe-gradient text-white shadow-lg"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            )}
             <div className="flex justify-between items-start">
               <div className="relative -mt-12">
                 <div className="relative group">
