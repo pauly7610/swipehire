@@ -317,61 +317,7 @@ export default function RecruiterProfile() {
           </CardContent>
         </Card>
 
-        {/* Company Card */}
-        {company && (
-          <Card className="shadow-sm border-0 mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                {company?.logo_url ? (
-                  <img src={company.logo_url} alt={company.name} className="w-14 h-14 rounded-xl object-cover" />
-                ) : (
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
-                    <Building2 className="w-7 h-7 text-pink-400" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{company.name}</h3>
-                  <p className="text-sm text-gray-500">{company.industry}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                    {company?.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {company.location}
-                      </span>
-                    )}
-                    {company?.size && (
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" /> {company.size}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <Link to={createPageUrl('CompanyBranding')}>
-                  <Button variant="outline" size="sm">
-                    <Edit2 className="w-4 h-4 mr-1" /> Edit
-                  </Button>
-                </Link>
-              </div>
-              
-              {/* Company Social Links */}
-              <div className="flex gap-2 mt-3 pt-3 border-t">
-                {company?.website && (
-                  <a href={company.website} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm">
-                      <Globe className="w-4 h-4 mr-1" /> Website
-                    </Button>
-                  </a>
-                )}
-                {company?.linkedin_url && (
-                  <a href={company.linkedin_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm">
-                      <Linkedin className="w-4 h-4 mr-1" /> LinkedIn
-                    </Button>
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-6">
@@ -379,6 +325,11 @@ export default function RecruiterProfile() {
             <TabsTrigger value="about" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               About
             </TabsTrigger>
+            {company && (
+              <TabsTrigger value="company" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Company
+              </TabsTrigger>
+            )}
             <TabsTrigger value="videos" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Videos
             </TabsTrigger>
@@ -391,11 +342,76 @@ export default function RecruiterProfile() {
           </TabsList>
 
           <TabsContent value="about" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">About Me</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">{user?.bio || 'No bio yet.'}</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="company" className="space-y-6">
+            {/* Company Header */}
+            <Card className="shadow-sm border-0">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  {company?.logo_url ? (
+                    <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                      <Building2 className="w-8 h-8 text-pink-400" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900">{company.name}</h3>
+                    <p className="text-sm text-gray-500">{company.industry}</p>
+                    <div className="flex items-center gap-3 mt-2 text-sm text-gray-400">
+                      {company?.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" /> {company.location}
+                        </span>
+                      )}
+                      {company?.size && (
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" /> {company.size}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Link to={createPageUrl('CompanyBranding')}>
+                    <Button variant="outline" size="sm">
+                      <Edit2 className="w-4 h-4 mr-1" /> Edit Company
+                    </Button>
+                  </Link>
+                </div>
+                
+                {/* Company Social Links */}
+                <div className="flex gap-2 mt-4 pt-4 border-t">
+                  {company?.website && (
+                    <a href={company.website} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm">
+                        <Globe className="w-4 h-4 mr-1" /> Website
+                      </Button>
+                    </a>
+                  )}
+                  {company?.linkedin_url && (
+                    <a href={company.linkedin_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm">
+                        <Linkedin className="w-4 h-4 mr-1" /> LinkedIn
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Description */}
             {company?.description && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">About Us</CardTitle>
+                  <CardTitle className="text-lg">About the Company</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">{company.description}</p>
@@ -419,7 +435,7 @@ export default function RecruiterProfile() {
             {company?.culture_traits?.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Culture</CardTitle>
+                  <CardTitle className="text-lg">Company Culture</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
