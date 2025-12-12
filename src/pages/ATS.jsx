@@ -957,14 +957,13 @@ export default function ATS() {
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
                           <td className="p-4">
-                            {match && (
-                              <input
-                                type="checkbox"
-                                checked={selectedMatches.has(match.id)}
-                                onChange={() => toggleSelectMatch(match.id)}
-                                className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                              />
-                            )}
+                            <input
+                              type="checkbox"
+                              checked={match ? selectedMatches.has(match.id) : false}
+                              onChange={() => match && toggleSelectMatch(match.id)}
+                              disabled={!match}
+                              className="w-5 h-5 rounded border-2 border-orange-500 accent-orange-500 cursor-pointer hover:border-orange-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            />
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
