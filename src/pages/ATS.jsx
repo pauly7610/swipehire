@@ -755,6 +755,13 @@ export default function ATS() {
           </TabsList>
         </Tabs>
 
+        {/* Helper Text */}
+        {searchMode === 'pipeline' && selectedMatches.size === 0 && filteredMatches.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            💡 <strong>Tip:</strong> Check the boxes next to candidates to select them for mass actions (messaging, moving stages, etc.)
+          </div>
+        )}
+
         {/* Pipeline View with Drag & Drop */}
         {viewMode === 'pipeline' && searchMode === 'pipeline' && (
           <DragDropContext onDragEnd={onDragEnd}>
@@ -802,7 +809,7 @@ export default function ATS() {
                                           type="checkbox"
                                           checked={selectedMatches.has(match.id)}
                                           onChange={() => toggleSelectMatch(match.id)}
-                                          className="mt-1 rounded border-gray-300"
+                                          className="mt-1 w-4 h-4 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                                           onClick={(e) => e.stopPropagation()}
                                         />
                                         <div className="flex-1" onClick={() => openCandidateDetails(match)}>
@@ -1025,7 +1032,8 @@ export default function ATS() {
                             setSelectedMatches(new Set());
                           }
                         }}
-                        className="rounded border-gray-300"
+                        checked={selectedMatches.size > 0 && selectedMatches.size === filteredMatches.length}
+                        className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                       />
                     </th>
                     <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
@@ -1053,7 +1061,7 @@ export default function ATS() {
                             type="checkbox"
                             checked={selectedMatches.has(match.id)}
                             onChange={() => toggleSelectMatch(match.id)}
-                            className="rounded border-gray-300"
+                            className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                           />
                         </td>
                         <td className="p-4 cursor-pointer" onClick={() => openCandidateDetails(match)}>
