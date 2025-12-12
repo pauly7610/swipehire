@@ -965,7 +965,10 @@ export default function ATS() {
                                   toggleSelectMatch(match.id);
                                 }
                               }}
-                              className="w-5 h-5 rounded border-2 border-orange-500 accent-orange-500 cursor-pointer hover:border-orange-600 transition-colors"
+                              style={{
+                                accentColor: '#f97316',
+                              }}
+                              className="w-5 h-5 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors checked:bg-orange-500"
                             />
                           </td>
                           <td className="p-4">
