@@ -956,20 +956,23 @@ export default function ATS() {
                       
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
-                          <td className="p-4">
-                            <input
-                              type="checkbox"
-                              checked={match ? selectedMatches.has(match.id) : false}
-                              onChange={() => {
-                                if (match) {
-                                  toggleSelectMatch(match.id);
-                                }
-                              }}
-                              style={{
-                                accentColor: '#f97316',
-                              }}
-                              className="w-5 h-5 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors checked:bg-orange-500"
-                            />
+                          <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center">
+                              <input
+                                type="checkbox"
+                                checked={match ? selectedMatches.has(match.id) : false}
+                                onChange={() => {
+                                  if (match) {
+                                    toggleSelectMatch(match.id);
+                                  }
+                                }}
+                                className="w-6 h-6 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors"
+                                style={{
+                                  accentColor: '#f97316',
+                                  backgroundColor: match && selectedMatches.has(match.id) ? '#f97316' : 'white'
+                                }}
+                              />
+                            </div>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
