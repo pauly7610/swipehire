@@ -802,9 +802,6 @@ export default function ATS() {
                                   >
                                     <CardContent className="p-3">
                                       <div className="flex items-start gap-2">
-                                        <div {...provided.dragHandleProps} className="pt-1 cursor-grab">
-                                          <GripVertical className="w-4 h-4 text-gray-400" />
-                                        </div>
                                         <input
                                           type="checkbox"
                                           checked={selectedMatches.has(match.id)}
@@ -812,6 +809,9 @@ export default function ATS() {
                                           className="mt-1 w-4 h-4 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                                           onClick={(e) => e.stopPropagation()}
                                         />
+                                        <div {...provided.dragHandleProps} className="pt-1 cursor-grab">
+                                          <GripVertical className="w-4 h-4 text-gray-400" />
+                                        </div>
                                         <div className="flex-1" onClick={() => openCandidateDetails(match)}>
                                           <div className="flex items-center gap-2">
                                             {candidate?.photo_url ? (
