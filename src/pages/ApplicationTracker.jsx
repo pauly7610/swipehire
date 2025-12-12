@@ -35,12 +35,6 @@ export default function ApplicationTracker() {
 
   const loadApplications = async () => {
     try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        navigate(createPageUrl('Welcome'), { replace: true });
-        return;
-      }
-
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 

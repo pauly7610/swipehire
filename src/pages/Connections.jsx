@@ -29,12 +29,6 @@ export default function Connections() {
 
   const loadData = async () => {
     try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        window.location.href = createPageUrl('Welcome');
-        return;
-      }
-
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
