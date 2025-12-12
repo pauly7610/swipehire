@@ -686,19 +686,6 @@ export default function ATS() {
               </>
             )}
 
-            <Button 
-              variant="outline"
-              onClick={() => {
-                if (selectedMatches.size === filteredMatches.length) {
-                  setSelectedMatches(new Set());
-                } else {
-                  setSelectedMatches(new Set(filteredMatches.map(m => m.id)));
-                }
-              }}
-            >
-              {selectedMatches.size === filteredMatches.length ? 'Deselect All' : 'Select All'}
-            </Button>
-
             <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50">
               <Trophy className="w-4 h-4 mr-2" /> Compare Candidates
             </Button>
@@ -928,6 +915,29 @@ export default function ATS() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
+                      <th className="w-10 p-4">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const newSet = new Set(selectedMatches);
+                              globalSearchResults.forEach(c => {
+                                const match = matches.find(m => m.candidate_id === c.id);
+                                if (match) newSet.add(match.id);
+                              });
+                              setSelectedMatches(newSet);
+                            } else {
+                              const candidateIds = globalSearchResults.map(c => c.id);
+                              const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
+                                const match = matches.find(m => m.id === matchId);
+                                return !candidateIds.includes(match?.candidate_id);
+                              }));
+                              setSelectedMatches(newSet);
+                            }
+                          }}
+                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                        />
+                      </th>
                       <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
                       <th className="text-left p-4 font-medium text-gray-600">Skills</th>
                       <th className="text-left p-4 font-medium text-gray-600">Location</th>
@@ -942,9 +952,20 @@ export default function ATS() {
                       const user = users[candidate.user_id];
                       const pipelineStatus = getCandidateMatchStatus(candidate.id);
                       const stage = pipelineStatus ? PIPELINE_STAGES.find(s => s.id === pipelineStatus) : null;
+                      const match = matches.find(m => m.candidate_id === candidate.id);
                       
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
+                          <td className="p-4">
+                            {match && (
+                              <input
+                                type="checkbox"
+                                checked={selectedMatches.has(match.id)}
+                                onChange={() => toggleSelectMatch(match.id)}
+                                className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                              />
+                            )}
+                          </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
                               {candidate?.photo_url ? (
