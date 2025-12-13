@@ -789,13 +789,9 @@ export default function CandidateProfile() {
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
-                    {exp.logo_url ? (
-                      <img src={exp.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
-                        <Briefcase className="w-6 h-6 text-pink-500" />
-                      </div>
-                    )}
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="w-6 h-6 text-pink-500" />
+                    </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
