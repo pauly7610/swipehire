@@ -42,6 +42,7 @@ export default function CandidateProfile() {
   const [newSkill, setNewSkill] = useState('');
   const [showExperienceModal, setShowExperienceModal] = useState(false);
   const [newExperience, setNewExperience] = useState({ title: '', company: '', start_date: '', end_date: '', description: '' });
+  const [editingExperienceIndex, setEditingExperienceIndex] = useState(null);
   const [videoStats, setVideoStats] = useState({ views: 0, likes: 0, posts: 0 });
   const [followers, setFollowers] = useState(0);
   const [userVideos, setUserVideos] = useState([]);
@@ -169,7 +170,16 @@ export default function CandidateProfile() {
   };
 
   const addExperience = async () => {
-    const updatedExperience = [...(editData.experience || []), newExperience];
+    let updatedExperience;
+    if (editingExperienceIndex !== null) {
+      // Update existing experience
+      updatedExperience = [...(editData.experience || [])];
+      updatedExperience[editingExperienceIndex] = newExperience;
+    } else {
+      // Add new experience
+      updatedExperience = [...(editData.experience || []), newExperience];
+    }
+    
     const updatedData = { ...editData, experience: updatedExperience };
     
     setEditData(updatedData);
@@ -180,6 +190,7 @@ export default function CandidateProfile() {
     }
     
     setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '' });
+    setEditingExperienceIndex(null);
     setShowExperienceModal(false);
   };
 
@@ -741,12 +752,16 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="experience" className="space-y-4">
-            <Button 
-              onClick={() => setShowExperienceModal(true)} 
-              className="w-full swipe-gradient text-white"
-            >
-              <Plus className="w-5 h-5 mr-2" /> Add Experience
-            </Button>
+          <Button 
+          onClick={() => {
+          setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '' });
+          setEditingExperienceIndex(null);
+          setShowExperienceModal(true);
+          }} 
+          className="w-full swipe-gradient text-white"
+          >
+          <Plus className="w-5 h-5 mr-2" /> Add Experience
+          </Button>
 
             {(editing ? editData.experience : candidate?.experience)?.map((exp, i) => (
               <Card key={i}>
@@ -769,19 +784,33 @@ export default function CandidateProfile() {
                           )}
                         </div>
                         {editing && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              setEditData({
-                                ...editData,
-                                experience: editData.experience.filter((_, idx) => idx !== i)
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setNewExperience(exp);
+                                setEditingExperienceIndex(i);
+                                setShowExperienceModal(true);
+                              }}
+                              className="text-blue-500 hover:text-blue-700"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setEditData({
+                                  ...editData,
+                                  experience: editData.experience.filter((_, idx) => idx !== i)
+                                });
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1031,7 +1060,7 @@ export default function CandidateProfile() {
       <Dialog open={showExperienceModal} onOpenChange={setShowExperienceModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Experience</DialogTitle>
+            <DialogTitle>{editingExperienceIndex !== null ? 'Edit Experience' : 'Add Experience'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1091,7 +1120,7 @@ export default function CandidateProfile() {
               </div>
             </div>
             <Button onClick={addExperience} className="w-full swipe-gradient text-white">
-              Add Experience
+              {editingExperienceIndex !== null ? 'Update Experience' : 'Add Experience'}
             </Button>
           </div>
         </DialogContent>
