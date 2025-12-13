@@ -39,35 +39,34 @@ export default function ViewCandidateProfile() {
     }
     try {
       const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        const user = null;
+      let user = null;
+      if (isAuth) {
+        user = await base44.auth.me();
         setCurrentUser(user);
-      } else {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
+        
+        const companies = await base44.entities.Company.filter({ user_id: user.id });
+        if (companies.length > 0) {
+          setCompany(companies[0]);
+        }
       }
       
-      const [companies] = await Promise.all([
-        base44.entities.Company.filter({ user_id: user.id })
-      ]);
+      const allCandidates = await base44.entities.Candidate.list();
+      const candidates = allCandidates.filter(c => c.id === candidateId);
       
-      if (companies.length > 0) {
-        setCompany(companies[0]);
-      }
-      
-      const candidates = await base44.entities.Candidate.filter({ id: candidateId });
       if (candidates.length > 0) {
         setCandidate(candidates[0]);
         
         // Check if already connected
-        const connections = await base44.entities.Connection.filter({
-          $or: [
-            { requester_id: user.id, receiver_id: candidates[0].user_id },
-            { requester_id: candidates[0].user_id, receiver_id: user.id }
-          ]
-        });
-        if (connections.length > 0) {
-          setConnection(connections[0]);
+        if (user) {
+          const connections = await base44.entities.Connection.filter({
+            $or: [
+              { requester_id: user.id, receiver_id: candidates[0].user_id },
+              { requester_id: candidates[0].user_id, receiver_id: user.id }
+            ]
+          });
+          if (connections.length > 0) {
+            setConnection(connections[0]);
+          }
         }
         
         // Try to get user info
