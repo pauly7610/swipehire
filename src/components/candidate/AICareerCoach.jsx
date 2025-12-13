@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, Lightbulb, Target, TrendingUp, BookOpen } from 'lucide-react';
+import { Sparkles, Loader2, Lightbulb, Target, TrendingUp, BookOpen, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 export default function AICareerCoach({ candidate, user }) {
   const [question, setQuestion] = useState('');
@@ -182,9 +183,64 @@ Provide practical, actionable advice.`;
                   {advice.timestamp.toLocaleTimeString()}
                 </span>
               </div>
-              <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+              <ReactMarkdown 
+                className="prose prose-sm max-w-none text-gray-700"
+                components={{
+                  a: ({ href, children }) => (
+                    <a 
+                      href={href} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 underline font-medium"
+                    >
+                      {children}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="text-lg font-bold text-gray-900 mt-4 mb-2 pb-2 border-b border-purple-200">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-base font-semibold text-gray-900 mt-3 mb-2">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold text-gray-800 mt-2 mb-1">
+                      {children}
+                    </h3>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-5 space-y-1 my-2">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal pl-5 space-y-1 my-2">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="text-gray-700 leading-relaxed">
+                      {children}
+                    </li>
+                  ),
+                  p: ({ children }) => (
+                    <p className="my-2 leading-relaxed">
+                      {children}
+                    </p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-gray-900">
+                      {children}
+                    </strong>
+                  ),
+                }}
+              >
                 {advice.content}
-              </div>
+              </ReactMarkdown>
             </motion.div>
           )}
         </AnimatePresence>
