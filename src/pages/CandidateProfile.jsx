@@ -32,6 +32,7 @@ import ResumeViewer from '@/components/profile/ResumeViewer';
 import ResumeBuilder from '@/components/profile/ResumeBuilder';
 import AICareerCoach from '@/components/candidate/AICareerCoach';
 import CalendarIntegration from '@/components/calendar/CalendarIntegration';
+import ImageCropper from '@/components/shared/ImageCropper';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -41,8 +42,11 @@ export default function CandidateProfile() {
   const [editData, setEditData] = useState({});
   const [newSkill, setNewSkill] = useState('');
   const [showExperienceModal, setShowExperienceModal] = useState(false);
-  const [newExperience, setNewExperience] = useState({ title: '', company: '', start_date: '', end_date: '', description: '' });
+  const [newExperience, setNewExperience] = useState({ title: '', company: '', start_date: '', end_date: '', description: '', logo_url: '' });
   const [editingExperienceIndex, setEditingExperienceIndex] = useState(null);
+  const [uploadingExpLogo, setUploadingExpLogo] = useState(false);
+  const [showExpLogoCropper, setShowExpLogoCropper] = useState(false);
+  const [selectedExpLogoFile, setSelectedExpLogoFile] = useState(null);
   const [videoStats, setVideoStats] = useState({ views: 0, likes: 0, posts: 0 });
   const [followers, setFollowers] = useState(0);
   const [userVideos, setUserVideos] = useState([]);
@@ -189,9 +193,27 @@ export default function CandidateProfile() {
       setCandidate(updatedData);
     }
     
-    setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '' });
+    setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '', logo_url: '' });
     setEditingExperienceIndex(null);
     setShowExperienceModal(false);
+  };
+
+  const handleExpLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedExpLogoFile(file);
+    setShowExpLogoCropper(true);
+  };
+
+  const handleExpLogoCropComplete = async (croppedFile) => {
+    setUploadingExpLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
+      setNewExperience({ ...newExperience, logo_url: file_url });
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+    }
+    setUploadingExpLogo(false);
   };
 
   if (loading) {
@@ -753,23 +775,27 @@ export default function CandidateProfile() {
 
           <TabsContent value="experience" className="space-y-4">
           <Button 
-          onClick={() => {
-          setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '' });
-          setEditingExperienceIndex(null);
-          setShowExperienceModal(true);
-          }} 
-          className="w-full swipe-gradient text-white"
+            onClick={() => {
+              setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '', logo_url: '' });
+              setEditingExperienceIndex(null);
+              setShowExperienceModal(true);
+            }} 
+            className="w-full swipe-gradient text-white"
           >
-          <Plus className="w-5 h-5 mr-2" /> Add Experience
+            <Plus className="w-5 h-5 mr-2" /> Add Experience
           </Button>
 
             {(editing ? editData.experience : candidate?.experience)?.map((exp, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
-                      <Briefcase className="w-6 h-6 text-pink-500" />
-                    </div>
+                    {exp.logo_url ? (
+                      <img src={exp.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Briefcase className="w-6 h-6 text-pink-500" />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
@@ -1064,6 +1090,38 @@ export default function CandidateProfile() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label>Company Logo (optional)</Label>
+              <div className="flex items-center gap-4 mt-2">
+                <div className="relative">
+                  {uploadingExpLogo ? (
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+                    </div>
+                  ) : newExperience.logo_url ? (
+                    <img src={newExperience.logo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                      <Briefcase className="w-6 h-6 text-pink-400" />
+                    </div>
+                  )}
+                  <label className="absolute bottom-0 right-0 w-6 h-6 swipe-gradient rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                    <Upload className="w-3 h-3 text-white" />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleExpLogoUpload} disabled={uploadingExpLogo} />
+                  </label>
+                </div>
+                {newExperience.logo_url && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setNewExperience({ ...newExperience, logo_url: '' })}
+                    className="text-red-500"
+                  >
+                    <X className="w-4 h-4 mr-1" /> Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div>
               <Label>Job Title</Label>
               <Input
                 value={newExperience.title}
@@ -1143,6 +1201,14 @@ export default function CandidateProfile() {
           setCandidate({ ...candidate, resume_url: resumeUrl });
           setEditData({ ...editData, resume_url: resumeUrl });
         }}
+      />
+
+      {/* Experience Logo Cropper */}
+      <ImageCropper
+        file={selectedExpLogoFile}
+        open={showExpLogoCropper}
+        onOpenChange={setShowExpLogoCropper}
+        onCropComplete={handleExpLogoCropComplete}
       />
     </div>
   );
