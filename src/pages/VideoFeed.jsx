@@ -121,12 +121,18 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
       setDragX(0);
       return;
     }
-    if (info.offset.x > 100) {
-      onSwipe?.('right');
-    } else if (info.offset.x < -100) {
-      onSwipe?.('left');
+    const swipeThreshold = 100;
+    if (Math.abs(info.offset.x) > swipeThreshold) {
+      // Swipe detected - animate off screen
+      const direction = info.offset.x > 0 ? 1 : -1;
+      setDragX(direction * 1000); // Move far off screen
+      setTimeout(() => {
+        onSwipe?.(direction > 0 ? 'right' : 'left');
+        setDragX(0);
+      }, 300);
+    } else {
+      setDragX(0);
     }
-    setDragX(0);
   };
 
   return (
@@ -139,6 +145,8 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         dragElastic={0.7}
         onDrag={(e, info) => canSwipe && setDragX(info.offset.x)}
         onDragEnd={handleDragEnd}
+        animate={{ x: dragX }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         {/* Swipe Indicators */}
         <AnimatePresence>
