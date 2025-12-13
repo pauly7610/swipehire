@@ -28,6 +28,8 @@ import IndustrySelect from '@/components/shared/IndustrySelect';
 import AIProfileAssistant from '@/components/profile/AIProfileAssistant';
 import ResumeViewer from '@/components/profile/ResumeViewer';
 import ResumeBuilder from '@/components/profile/ResumeBuilder';
+import AICareerCoach from '@/components/candidate/AICareerCoach';
+import CalendarIntegration from '@/components/calendar/CalendarIntegration';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -440,6 +442,9 @@ export default function CandidateProfile() {
             </TabsTrigger>
             <TabsTrigger value="resume" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Resume Builder
+            </TabsTrigger>
+            <TabsTrigger value="tools" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Career Tools
             </TabsTrigger>
           </TabsList>
 
@@ -915,6 +920,14 @@ export default function CandidateProfile() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="tools" className="space-y-6">
+            {/* AI Career Coach */}
+            <AICareerCoach candidate={candidate} user={user} />
+            
+            {/* Calendar Integration */}
+            <CalendarIntegration userType="candidate" />
           </TabsContent>
         </Tabs>
 
