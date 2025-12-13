@@ -789,14 +789,16 @@ export default function ATS() {
                                   >
                                     <CardContent className="p-3">
                                       <div className="flex items-start gap-2 mb-3">
-                                        <div onClick={(e) => e.stopPropagation()}>
-                                          <input
-                                            type="checkbox"
-                                            checked={selectedMatches.has(match.id)}
-                                            onChange={() => toggleSelectMatch(match.id)}
-                                            className="mt-1 w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors flex-shrink-0"
-                                          />
-                                        </div>
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedMatches.has(match.id)}
+                                          onChange={(e) => {
+                                            e.stopPropagation();
+                                            toggleSelectMatch(match.id);
+                                          }}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="mt-1 w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors flex-shrink-0"
+                                        />
                                         <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
                                           <GripVertical className="w-4 h-4 text-gray-400" />
                                         </div>
@@ -958,15 +960,17 @@ export default function ATS() {
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
                           <td className="p-4">
-                            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center">
                               <input
                                 type="checkbox"
                                 checked={match ? selectedMatches.has(match.id) : false}
-                                onChange={() => {
+                                onChange={(e) => {
+                                  e.stopPropagation();
                                   if (match) {
                                     toggleSelectMatch(match.id);
                                   }
                                 }}
+                                onClick={(e) => e.stopPropagation()}
                                 className="w-6 h-6 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors"
                                 style={{
                                   accentColor: '#f97316',
@@ -1086,11 +1090,15 @@ export default function ATS() {
 
                   return (
                     <tr key={match.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="p-4">
                         <input
                           type="checkbox"
                           checked={selectedMatches.has(match.id)}
-                          onChange={() => toggleSelectMatch(match.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleSelectMatch(match.id);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                         />
                       </td>
