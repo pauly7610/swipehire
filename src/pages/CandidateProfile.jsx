@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   User, MapPin, Briefcase, GraduationCap, Upload, Plus, X, Edit2, 
   Video, FileText, Star, Zap, Crown, ChevronRight, AlertTriangle,
-  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin, Play, CheckCircle2
+  Eye, Heart, Users, Link as LinkIcon, Globe, Github, Linkedin, Play, CheckCircle2, Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
