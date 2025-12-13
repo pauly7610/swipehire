@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ReactQuill from 'react-quill';
 import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
@@ -759,7 +760,12 @@ export default function CandidateProfile() {
                           <h3 className="font-semibold text-gray-900">{exp.title}</h3>
                           <p className="text-gray-600">{exp.company}</p>
                           <p className="text-sm text-gray-400">{exp.start_date} - {exp.end_date || 'Present'}</p>
-                          {exp.description && <p className="text-gray-600 mt-2">{exp.description}</p>}
+                          {exp.description && (
+                            <div 
+                              className="text-gray-600 mt-2 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: exp.description }}
+                            />
+                          )}
                         </div>
                         {editing && (
                           <Button 
@@ -1060,11 +1066,24 @@ export default function CandidateProfile() {
               </div>
             </div>
             <div>
-              <Label>Description</Label>
-              <Textarea
-                value={newExperience.description}
-                onChange={(e) => setNewExperience({ ...newExperience, description: e.target.value })}
-              />
+              <Label>Description (supports formatting)</Label>
+              <div className="border rounded-lg">
+                <ReactQuill
+                  value={newExperience.description || ''}
+                  onChange={(value) => setNewExperience({ ...newExperience, description: value })}
+                  modules={{
+                    toolbar: [
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['bold', 'italic', 'underline'],
+                      ['emoji'],
+                      ['clean']
+                    ]
+                  }}
+                  placeholder="Describe your role and achievements..."
+                  className="bg-white"
+                  style={{ minHeight: '150px' }}
+                />
+              </div>
             </div>
             <Button onClick={addExperience} className="w-full swipe-gradient text-white">
               Add Experience
