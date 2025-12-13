@@ -135,8 +135,8 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
       <motion.div 
         className="relative w-full max-w-md h-full max-h-[85vh] mx-auto"
         drag={canSwipe ? "x" : false}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.3}
+        dragConstraints={{ left: -200, right: 200 }}
+        dragElastic={0.7}
         onDrag={(e, info) => canSwipe && setDragX(info.offset.x)}
         onDragEnd={handleDragEnd}
       >
