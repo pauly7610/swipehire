@@ -860,10 +860,7 @@ export default function CandidateProfile() {
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Upload Resume</h3>
                   <p className="text-sm text-gray-500 mb-4">Already have a resume? Upload it here</p>
-                  <label>
-                    <Button variant="outline" size="sm" className="cursor-pointer">
-                      <Upload className="w-4 h-4 mr-2" /> Choose File
-                    </Button>
+                  <label className="cursor-pointer">
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx"
@@ -878,9 +875,13 @@ export default function CandidateProfile() {
                           setEditData({ ...editData, resume_url: file_url });
                         } catch (error) {
                           console.error('Upload failed:', error);
+                          alert('Upload failed. Please try again.');
                         }
                       }}
                     />
+                    <Button variant="outline" size="sm" type="button">
+                      <Upload className="w-4 h-4 mr-2" /> Choose File
+                    </Button>
                   </label>
                 </CardContent>
               </Card>
