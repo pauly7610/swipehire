@@ -23,8 +23,15 @@ export default function BrowseJobs() {
   const [filters, setFilters] = useState({
     jobType: 'all',
     experienceLevel: 'all',
-    location: ''
+    location: '',
+    salaryMin: '',
+    salaryMax: '',
+    skills: [],
+    remoteOnly: false,
+    companySize: 'all'
   });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [skillInput, setSkillInput] = useState('');
   const [user, setUser] = useState(null);
   const [candidate, setCandidate] = useState(null);
   const [matchScores, setMatchScores] = useState({});
@@ -98,6 +105,8 @@ export default function BrowseJobs() {
   };
 
   const filteredJobs = jobs.filter(job => {
+    const company = companies[job.company_id];
+    
     // Search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -106,7 +115,7 @@ export default function BrowseJobs() {
         job.description,
         job.location,
         ...(job.skills_required || []),
-        companies[job.company_id]?.name
+        company?.name
       ].join(' ').toLowerCase();
       if (!searchableText.includes(query)) return false;
     }
@@ -119,6 +128,25 @@ export default function BrowseJobs() {
 
     // Location filter
     if (filters.location && !job.location?.toLowerCase().includes(filters.location.toLowerCase())) return false;
+
+    // Salary range filter
+    if (filters.salaryMin && job.salary_max && job.salary_max < parseFloat(filters.salaryMin)) return false;
+    if (filters.salaryMax && job.salary_min && job.salary_min > parseFloat(filters.salaryMax)) return false;
+
+    // Skills filter
+    if (filters.skills.length > 0) {
+      const jobSkills = (job.skills_required || []).map(s => s.toLowerCase());
+      const hasMatchingSkill = filters.skills.some(skill => 
+        jobSkills.some(js => js.includes(skill.toLowerCase()))
+      );
+      if (!hasMatchingSkill) return false;
+    }
+
+    // Remote only filter
+    if (filters.remoteOnly && job.job_type !== 'remote' && !job.location?.toLowerCase().includes('remote')) return false;
+
+    // Company size filter
+    if (filters.companySize !== 'all' && company?.size !== filters.companySize) return false;
 
     return true;
   });
@@ -159,60 +187,206 @@ export default function BrowseJobs() {
         {/* Search & Filters */}
         <Card className="border-0 shadow-sm mb-6">
           <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Search jobs, skills, companies..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <div className="flex gap-2 flex-wrap">
-                <Select value={filters.jobType} onValueChange={(v) => setFilters({...filters, jobType: v})}>
-                  <SelectTrigger className="w-[130px]">
-                    <Briefcase className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Job Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="full-time">Full-time</SelectItem>
-                    <SelectItem value="part-time">Part-time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="remote">Remote</SelectItem>
-                    <SelectItem value="internship">Internship</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="flex flex-col gap-4">
+              {/* Main Search and Quick Filters */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search jobs, skills, companies..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <div className="flex gap-2 flex-wrap">
+                  <Select value={filters.jobType} onValueChange={(v) => setFilters({...filters, jobType: v})}>
+                    <SelectTrigger className="w-[130px]">
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Job Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="full-time">Full-time</SelectItem>
+                      <SelectItem value="part-time">Part-time</SelectItem>
+                      <SelectItem value="contract">Contract</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <Select value={filters.experienceLevel} onValueChange={(v) => setFilters({...filters, experienceLevel: v})}>
-                  <SelectTrigger className="w-[140px]">
-                    <Users className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Experience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="entry">Entry</SelectItem>
-                    <SelectItem value="mid">Mid</SelectItem>
-                    <SelectItem value="senior">Senior</SelectItem>
-                    <SelectItem value="lead">Lead</SelectItem>
-                    <SelectItem value="executive">Executive</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Select value={filters.experienceLevel} onValueChange={(v) => setFilters({...filters, experienceLevel: v})}>
+                    <SelectTrigger className="w-[140px]">
+                      <Users className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="entry">Entry</SelectItem>
+                      <SelectItem value="mid">Mid</SelectItem>
+                      <SelectItem value="senior">Senior</SelectItem>
+                      <SelectItem value="lead">Lead</SelectItem>
+                      <SelectItem value="executive">Executive</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[130px]">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="match">Best Match</SelectItem>
-                    <SelectItem value="recent">Most Recent</SelectItem>
-                    <SelectItem value="salary">Highest Salary</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-[130px]">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="match">Best Match</SelectItem>
+                      <SelectItem value="recent">Most Recent</SelectItem>
+                      <SelectItem value="salary">Highest Salary</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                    className="gap-2"
+                  >
+                    <Filter className="w-4 h-4" />
+                    Advanced
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+                  </Button>
+                </div>
               </div>
+
+              {/* Advanced Filters */}
+              {showAdvancedFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="pt-4 border-t space-y-4"
+                >
+                  {/* Salary Range */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Salary Range (yearly, in thousands)</label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        placeholder="Min (e.g., 50)"
+                        value={filters.salaryMin}
+                        onChange={(e) => setFilters({...filters, salaryMin: e.target.value})}
+                        className="w-32"
+                      />
+                      <span className="text-gray-400">to</span>
+                      <Input
+                        type="number"
+                        placeholder="Max (e.g., 150)"
+                        value={filters.salaryMax}
+                        onChange={(e) => setFilters({...filters, salaryMax: e.target.value})}
+                        className="w-32"
+                      />
+                      <span className="text-sm text-gray-500">k/year</span>
+                    </div>
+                  </div>
+
+                  {/* Skills Filter */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Required Skills</label>
+                    <div className="flex gap-2 mb-2">
+                      <Input
+                        placeholder="Add skill (e.g., React, Python)"
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && skillInput.trim()) {
+                            e.preventDefault();
+                            setFilters({...filters, skills: [...filters.skills, skillInput.trim()]});
+                            setSkillInput('');
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={() => {
+                          if (skillInput.trim()) {
+                            setFilters({...filters, skills: [...filters.skills, skillInput.trim()]});
+                            setSkillInput('');
+                          }
+                        }}
+                        variant="outline"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {filters.skills.map((skill, i) => (
+                        <Badge key={i} className="bg-pink-100 text-pink-700 pr-1">
+                          {skill}
+                          <button
+                            onClick={() => setFilters({...filters, skills: filters.skills.filter((_, idx) => idx !== i)})}
+                            className="ml-2 hover:bg-pink-200 rounded-full p-0.5"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Company Size & Remote Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Company Size</label>
+                      <Select value={filters.companySize} onValueChange={(v) => setFilters({...filters, companySize: v})}>
+                        <SelectTrigger>
+                          <Building2 className="w-4 h-4 mr-2" />
+                          <SelectValue placeholder="Any size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any Size</SelectItem>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="500+">500+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Work Type</label>
+                      <label className="flex items-center gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={filters.remoteOnly}
+                          onChange={(e) => setFilters({...filters, remoteOnly: e.target.checked})}
+                          className="w-4 h-4 rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                        />
+                        <span className="text-sm text-gray-700">Remote Only</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-sm text-gray-500">
+                      {filteredJobs.length} jobs match your filters
+                    </span>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setFilters({
+                        jobType: 'all',
+                        experienceLevel: 'all',
+                        location: '',
+                        salaryMin: '',
+                        salaryMax: '',
+                        skills: [],
+                        remoteOnly: false,
+                        companySize: 'all'
+                      })}
+                      className="text-pink-600 hover:text-pink-700"
+                    >
+                      Clear All Filters
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </CardContent>
         </Card>
