@@ -789,13 +789,14 @@ export default function ATS() {
                                   >
                                     <CardContent className="p-3">
                                       <div className="flex items-start gap-2 mb-3">
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedMatches.has(match.id)}
-                                          onChange={() => toggleSelectMatch(match.id)}
-                                          className="mt-1 w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors flex-shrink-0"
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedMatches.has(match.id)}
+                                            onChange={() => toggleSelectMatch(match.id)}
+                                            className="mt-1 w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors flex-shrink-0"
+                                          />
+                                        </div>
                                         <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
                                           <GripVertical className="w-4 h-4 text-gray-400" />
                                         </div>
@@ -914,30 +915,30 @@ export default function ATS() {
               ) : (
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="w-10 p-4">
-                        <input
-                          type="checkbox"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const newSet = new Set(selectedMatches);
-                              globalSearchResults.forEach(c => {
-                                const match = matches.find(m => m.candidate_id === c.id);
-                                if (match) newSet.add(match.id);
-                              });
-                              setSelectedMatches(newSet);
-                            } else {
-                              const candidateIds = globalSearchResults.map(c => c.id);
-                              const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
-                                const match = matches.find(m => m.id === matchId);
-                                return !candidateIds.includes(match?.candidate_id);
-                              }));
-                              setSelectedMatches(newSet);
-                            }
-                          }}
-                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                        />
-                      </th>
+                  <tr>
+                    <th className="w-10 p-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const newSet = new Set(selectedMatches);
+                            globalSearchResults.forEach(c => {
+                              const match = matches.find(m => m.candidate_id === c.id);
+                              if (match) newSet.add(match.id);
+                            });
+                            setSelectedMatches(newSet);
+                          } else {
+                            const candidateIds = globalSearchResults.map(c => c.id);
+                            const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
+                              const match = matches.find(m => m.id === matchId);
+                              return !candidateIds.includes(match?.candidate_id);
+                            }));
+                            setSelectedMatches(newSet);
+                          }
+                        }}
+                        className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                      />
+                    </th>
                       <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
                       <th className="text-left p-4 font-medium text-gray-600">Skills</th>
                       <th className="text-left p-4 font-medium text-gray-600">Location</th>
@@ -956,8 +957,8 @@ export default function ATS() {
                       
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
-                          <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-center">
+                          <td className="p-4">
+                            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="checkbox"
                                 checked={match ? selectedMatches.has(match.id) : false}
@@ -1077,22 +1078,22 @@ export default function ATS() {
                 </thead>
                 <tbody>
                   {filteredMatches.map((match) => {
-                    const candidate = candidates[match.candidate_id];
-                    const user = candidate ? users[candidate.user_id] : null;
-                    const job = jobs.find(j => j.id === match.job_id);
-                    const currentStage = getStageFromStatus(match.status);
-                    const stage = PIPELINE_STAGES.find(s => s.id === currentStage);
-                    
-                    return (
-                      <tr key={match.id} className="border-b hover:bg-gray-50">
-                        <td className="p-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedMatches.has(match.id)}
-                            onChange={() => toggleSelectMatch(match.id)}
-                            className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                          />
-                        </td>
+                  const candidate = candidates[match.candidate_id];
+                  const user = candidate ? users[candidate.user_id] : null;
+                  const job = jobs.find(j => j.id === match.job_id);
+                  const currentStage = getStageFromStatus(match.status);
+                  const stage = PIPELINE_STAGES.find(s => s.id === currentStage);
+
+                  return (
+                    <tr key={match.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedMatches.has(match.id)}
+                          onChange={() => toggleSelectMatch(match.id)}
+                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                        />
+                      </td>
                         <td className="p-4 cursor-pointer" onClick={() => openCandidateDetails(match)}>
                           <div className="flex items-center gap-3">
                             {candidate?.photo_url ? (
