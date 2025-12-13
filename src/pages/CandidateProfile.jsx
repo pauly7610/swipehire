@@ -1068,7 +1068,7 @@ export default function CandidateProfile() {
             </div>
             <div>
               <Label>Description (supports formatting)</Label>
-              <div className="rounded-lg overflow-hidden" style={{ minHeight: '250px' }}>
+              <div className="rounded-lg overflow-hidden" style={{ minHeight: '350px' }}>
                 <ReactQuill
                   value={newExperience.description || ''}
                   onChange={(value) => setNewExperience({ ...newExperience, description: value })}
@@ -1086,6 +1086,7 @@ export default function CandidateProfile() {
                   }}
                   placeholder="✨ Describe your role and achievements... Use the toolbar above for formatting!"
                   theme="snow"
+                  style={{ height: '250px' }}
                 />
               </div>
             </div>
