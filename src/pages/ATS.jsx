@@ -807,8 +807,14 @@ export default function ATS() {
                                        <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
                                          <GripVertical className="w-4 h-4 text-gray-400" />
                                        </div>
-                                       <div className="flex-1 min-w-0" onClick={() => openCandidateDetails(match)}>
-                                          <div className="flex items-center gap-2">
+                                       <div 
+                                         className="flex-1 min-w-0 cursor-pointer" 
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           openCandidateDetails(match);
+                                         }}
+                                       >
+                                         <div className="flex items-center gap-2">
                                             {candidate?.photo_url ? (
                                               <img src={candidate.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                                             ) : (
@@ -1111,7 +1117,10 @@ export default function ATS() {
                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors pointer-events-none"
                        />
                      </td>
-                        <td className="p-4 cursor-pointer" onClick={() => openCandidateDetails(match)}>
+                       <td className="p-4 cursor-pointer" onClick={(e) => {
+                         e.stopPropagation();
+                         openCandidateDetails(match);
+                       }}>
                           <div className="flex items-center gap-3">
                             {candidate?.photo_url ? (
                               <img src={candidate.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
