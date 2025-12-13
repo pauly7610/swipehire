@@ -166,11 +166,17 @@ export default function CandidateProfile() {
     });
   };
 
-  const addExperience = () => {
-    setEditData({
-      ...editData,
-      experience: [...(editData.experience || []), newExperience]
-    });
+  const addExperience = async () => {
+    const updatedExperience = [...(editData.experience || []), newExperience];
+    const updatedData = { ...editData, experience: updatedExperience };
+    
+    setEditData(updatedData);
+    
+    if (candidate?.id) {
+      await base44.entities.Candidate.update(candidate.id, { experience: updatedExperience });
+      setCandidate(updatedData);
+    }
+    
     setNewExperience({ title: '', company: '', start_date: '', end_date: '', description: '' });
     setShowExperienceModal(false);
   };
