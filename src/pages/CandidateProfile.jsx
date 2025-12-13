@@ -1073,15 +1073,19 @@ export default function CandidateProfile() {
                   onChange={(value) => setNewExperience({ ...newExperience, description: value })}
                   modules={{
                     toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['bold', 'italic', 'underline'],
-                      ['emoji'],
+                      [{ 'indent': '-1'}, { 'indent': '+1' }],
+                      [{ 'color': [] }, { 'background': [] }],
+                      [{ 'align': [] }],
+                      ['link', 'code-block'],
                       ['clean']
                     ]
                   }}
-                  placeholder="Describe your role and achievements..."
+                  placeholder="✨ Describe your role and achievements... Use the toolbar above for formatting!"
                   className="bg-white"
-                  style={{ minHeight: '150px' }}
+                  style={{ minHeight: '200px' }}
                 />
               </div>
             </div>
