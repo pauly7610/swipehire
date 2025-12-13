@@ -39,6 +39,9 @@ export default function RecruiterProfile() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showLogoCropper, setShowLogoCropper] = useState(false);
+  const [selectedLogoFile, setSelectedLogoFile] = useState(null);
 
   useEffect(() => {
     loadProfile();
@@ -129,6 +132,25 @@ export default function RecruiterProfile() {
     } catch (err) {
       console.error('Save failed:', err);
     }
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedLogoFile(file);
+    setShowLogoCropper(true);
+  };
+
+  const handleLogoCropComplete = async (croppedFile) => {
+    setUploadingLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
+      await base44.entities.Company.update(company.id, { logo_url: file_url });
+      setCompany({ ...company, logo_url: file_url });
+    } catch (err) {
+      console.error('Logo upload failed:', err);
+    }
+    setUploadingLogo(false);
   };
 
   if (loading) {
@@ -383,13 +405,23 @@ export default function RecruiterProfile() {
             <Card className="shadow-sm border-0">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  {company?.logo_url ? (
-                    <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-xl object-cover" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
-                      <Building2 className="w-8 h-8 text-pink-400" />
-                    </div>
-                  )}
+                  <div className="relative group">
+                    {uploadingLogo ? (
+                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+                      </div>
+                    ) : company?.logo_url ? (
+                      <img src={company.logo_url} alt={company.name} className="w-16 h-16 rounded-xl object-cover" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-pink-400" />
+                      </div>
+                    )}
+                    <label className="absolute bottom-0 right-0 w-6 h-6 swipe-gradient rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                      <Upload className="w-3 h-3 text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                    </label>
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900">{company.name}</h3>
                     <p className="text-sm text-gray-500">{company.industry}</p>
@@ -626,6 +658,14 @@ export default function RecruiterProfile() {
         open={showImageViewer}
         onOpenChange={setShowImageViewer}
         title={user?.full_name}
+      />
+
+      {/* Logo Cropper */}
+      <ImageCropper
+        file={selectedLogoFile}
+        open={showLogoCropper}
+        onOpenChange={setShowLogoCropper}
+        onCropComplete={handleLogoCropComplete}
       />
     </div>
   );
