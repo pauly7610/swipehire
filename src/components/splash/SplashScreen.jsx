@@ -31,20 +31,25 @@ export default function SplashScreen({ onComplete }) {
       `}</style>
 
       <div className="max-w-2xl mx-auto px-6 text-center">
-        {/* Step 1: Logo */}
+        {/* Step 1: Logo with Swipe Animation */}
         <motion.div
-          initial={{ scale: 0, opacity: 0 }}
+          initial={{ x: -200, opacity: 0 }}
           animate={{ 
-            scale: step >= 1 ? 1 : 0, 
+            x: step >= 1 ? 0 : -200, 
             opacity: step >= 1 ? 1 : 0 
           }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ 
+            duration: 0.6, 
+            ease: "easeOut",
+            type: "spring",
+            stiffness: 100
+          }}
           className="mb-8"
         >
           <img 
-            src="https://cdn.prod.website-files.com/67543ad139c45da0c6e49d32/67556f5fa0def75a36c32485_Logo%20Black.svg" 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/04083b079_swipehire_no_bg.png" 
             alt="SwipeHire" 
-            className="w-48 h-48 md:w-64 md:h-64 mx-auto"
+            className="w-64 h-auto md:w-80 md:h-auto mx-auto"
           />
         </motion.div>
 
