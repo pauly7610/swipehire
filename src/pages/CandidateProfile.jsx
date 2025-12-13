@@ -582,6 +582,35 @@ export default function CandidateProfile() {
               </CardContent>
             </Card>
 
+            {/* Work Experience */}
+            {candidate?.experience?.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Work Experience</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {candidate.experience.map((exp, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Briefcase className="w-6 h-6 text-pink-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{exp.title}</h3>
+                        <p className="text-gray-600">{exp.company}</p>
+                        <p className="text-sm text-gray-400">{exp.start_date} - {exp.end_date || 'Present'}</p>
+                        {exp.description && (
+                          <div 
+                            className="text-gray-600 mt-2 prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: exp.description }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Experience Level & Culture */}
             <Card>
               <CardHeader>
