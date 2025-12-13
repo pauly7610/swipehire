@@ -16,6 +16,7 @@ import {
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import DealBreakersEditor from '@/components/profile/DealBreakersEditor';
 import PortfolioSection from '@/components/profile/PortfolioSection';
 import JobSuggestions from '@/components/matching/JobSuggestions';
@@ -1067,7 +1068,7 @@ export default function CandidateProfile() {
             </div>
             <div>
               <Label>Description (supports formatting)</Label>
-              <div className="border rounded-lg">
+              <div className="rounded-lg overflow-hidden" style={{ minHeight: '250px' }}>
                 <ReactQuill
                   value={newExperience.description || ''}
                   onChange={(value) => setNewExperience({ ...newExperience, description: value })}
@@ -1084,8 +1085,7 @@ export default function CandidateProfile() {
                     ]
                   }}
                   placeholder="✨ Describe your role and achievements... Use the toolbar above for formatting!"
-                  className="bg-white"
-                  style={{ minHeight: '200px' }}
+                  theme="snow"
                 />
               </div>
             </div>
