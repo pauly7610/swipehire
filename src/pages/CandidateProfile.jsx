@@ -860,27 +860,30 @@ export default function CandidateProfile() {
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Upload Resume</h3>
                   <p className="text-sm text-gray-500 mb-4">Already have a resume? Upload it here</p>
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        try {
-                          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                          await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
-                          setCandidate({ ...candidate, resume_url: file_url });
-                          setEditData({ ...editData, resume_url: file_url });
-                        } catch (error) {
-                          console.error('Upload failed:', error);
-                          alert('Upload failed. Please try again.');
-                        }
-                      }}
-                    />
-                    <Button variant="outline" size="sm" type="button">
-                      <Upload className="w-4 h-4 mr-2" /> Choose File
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    id="resume-upload"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      try {
+                        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                        await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
+                        setCandidate({ ...candidate, resume_url: file_url });
+                        setEditData({ ...editData, resume_url: file_url });
+                      } catch (error) {
+                        console.error('Upload failed:', error);
+                        alert('Upload failed. Please try again.');
+                      }
+                    }}
+                  />
+                  <label htmlFor="resume-upload">
+                    <Button variant="outline" size="sm" type="button" asChild>
+                      <span className="cursor-pointer">
+                        <Upload className="w-4 h-4 mr-2" /> Choose File
+                      </span>
                     </Button>
                   </label>
                 </CardContent>
