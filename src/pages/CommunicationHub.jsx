@@ -25,6 +25,7 @@ export default function CommunicationHub() {
   
   // Data
   const [messages, setMessages] = useState([]);
+  const [sentMessages, setSentMessages] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -61,6 +62,7 @@ export default function CommunicationHub() {
         // Load all data in parallel
         const [
           userMessages,
+          sentMessages,
           userNotifications,
           candidateInterviews,
           candidateMatches,
@@ -68,6 +70,7 @@ export default function CommunicationHub() {
           allCompanies
         ] = await Promise.all([
           base44.entities.DirectMessage.filter({ receiver_id: currentUser.id }, '-created_date', 100),
+          base44.entities.DirectMessage.filter({ sender_id: currentUser.id }, '-created_date', 100),
           base44.entities.Notification.filter({ user_id: currentUser.id }, '-created_date', 50),
           base44.entities.Interview.filter({ candidate_id: candidateData.id }, '-created_date'),
           base44.entities.Match.filter({ candidate_id: candidateData.id }, '-created_date'),
@@ -75,7 +78,7 @@ export default function CommunicationHub() {
           base44.entities.Company.list()
         ]);
 
-        setMessages(userMessages);
+        setMessages([...userMessages, ...sentMessages]);
         setNotifications(userNotifications);
         setInterviews(candidateInterviews);
         setMatches(candidateMatches);
@@ -114,14 +117,19 @@ export default function CommunicationHub() {
   const unifiedFeed = React.useMemo(() => {
     const items = [];
 
-    // Add messages
-    messages.forEach(msg => {
+    // Add messages (filter based on tab)
+    const messagesToShow = activeTab === 'sent' 
+      ? messages.filter(m => m.sender_id === user?.id)
+      : messages.filter(m => m.receiver_id === user?.id);
+    
+    messagesToShow.forEach(msg => {
       items.push({
         id: `msg-${msg.id}`,
         type: 'message',
         data: msg,
         date: new Date(msg.created_date),
-        isRead: msg.is_read
+        isRead: msg.is_read,
+        isSent: msg.sender_id === user?.id
       });
     });
 
@@ -163,7 +171,9 @@ export default function CommunicationHub() {
 
     // Filter by tab
     if (activeTab === 'messages') {
-      return items.filter(i => i.type === 'message');
+      return items.filter(i => i.type === 'message' && !i.isSent);
+    } else if (activeTab === 'sent') {
+      return items.filter(i => i.type === 'message' && i.isSent);
     } else if (activeTab === 'interviews') {
       return items.filter(i => i.type === 'interview');
     } else if (activeTab === 'updates') {
@@ -171,7 +181,7 @@ export default function CommunicationHub() {
     }
 
     return items;
-  }, [messages, notifications, interviews, matches, activeTab]);
+  }, [messages, notifications, interviews, matches, activeTab, user]);
 
   // Filter by search
   const filteredFeed = searchQuery 
@@ -296,7 +306,14 @@ export default function CommunicationHub() {
               className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
-              Messages
+              Inbox
+            </TabsTrigger>
+            <TabsTrigger 
+              value="sent" 
+              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+            >
+              <ArrowRight className="w-4 h-4 mr-1" />
+              Sent
             </TabsTrigger>
             <TabsTrigger 
               value="interviews" 
@@ -412,7 +429,7 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
   const getTitle = () => {
     switch (type) {
       case 'message':
-        return 'New Message';
+        return item.isSent ? 'Sent Message' : 'New Message';
       case 'interview':
         return `Interview ${data.status === 'confirmed' ? 'Confirmed' : 'Scheduled'}`;
       case 'notification':
