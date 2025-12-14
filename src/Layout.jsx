@@ -253,6 +253,7 @@ export default function Layout({ children, currentPageName }) {
                             { name: 'Browse', icon: Search, page: 'BrowseCandidates' },
                             { name: 'Swipe', icon: Users, page: 'SwipeCandidates' },
                             { name: 'Feed', icon: Home, page: 'VideoFeed' },
+                            { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
                             { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
                             { name: 'ATS', icon: Monitor, page: 'ATS' },
                             { name: 'Profile', icon: User, page: 'RecruiterProfile' },
