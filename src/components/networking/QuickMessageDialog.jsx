@@ -23,14 +23,14 @@ export default function QuickMessageDialog({
   senderName,
   connectionId 
 }) {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(MESSAGE_TEMPLATES[0].text);
   const [template, setTemplate] = useState('intro');
   const [sending, setSending] = useState(false);
 
   const handleTemplateChange = (templateId) => {
     setTemplate(templateId);
     const selected = MESSAGE_TEMPLATES.find(t => t.id === templateId);
-    if (selected && selected.text) {
+    if (selected) {
       setMessage(selected.text);
     }
   };
