@@ -611,10 +611,9 @@ export default function ViewCandidateProfile() {
         onOpenChange={setShowMessageDialog}
         recipientId={candidateUser?.id}
         recipientName={candidateUser?.full_name}
-        context={{
-          type: 'candidate_profile',
-          candidate_id: candidate?.id
-        }}
+        senderId={currentUser?.id}
+        senderName={currentUser?.full_name}
+        connectionId={connection?.id}
       />
     </div>
   );
