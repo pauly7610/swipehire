@@ -168,8 +168,8 @@ export default function ViewCandidateProfile() {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Action Buttons - Always show Message button for authenticated users */}
-        {currentUser && candidateUser && currentUser.id !== candidateUser.id && (
+        {/* Action Buttons - Show for all users */}
+        {currentUser && candidate && currentUser.id !== candidate.user_id ? (
           <div className="absolute top-4 right-4 flex gap-2">
             <Button 
               onClick={() => setShowMessageDialog(true)}
@@ -178,39 +178,40 @@ export default function ViewCandidateProfile() {
               <MessageCircle className="w-4 h-4 mr-2" />
               Message
             </Button>
-            {connection ? (
-              <Button disabled className="bg-white text-gray-600 shadow-md">
-                {connection.status === 'accepted' ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Connected
-                  </>
+            {candidateUser && (
+              <>
+                {connection ? (
+                  <Button disabled className="bg-white text-gray-600 shadow-md">
+                    {connection.status === 'accepted' ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Connected
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Request Sent
+                      </>
+                    )}
+                  </Button>
                 ) : (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Request Sent
-                  </>
+                  <Button 
+                    onClick={handleConnect}
+                    disabled={sendingConnection}
+                    className="bg-white text-pink-600 hover:bg-gray-50 shadow-md"
+                  >
+                    {sendingConnection ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-4 h-4 mr-2" />
+                    )}
+                    Connect
+                  </Button>
                 )}
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleConnect}
-                disabled={sendingConnection}
-                className="bg-white text-pink-600 hover:bg-gray-50 shadow-md"
-              >
-                {sendingConnection ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <UserPlus className="w-4 h-4 mr-2" />
-                )}
-                Connect
-              </Button>
+              </>
             )}
           </div>
-        )}
-
-        {/* Message button for non-logged in users - prompts login */}
-        {!currentUser && (
+        ) : !currentUser ? (
           <div className="absolute top-4 right-4">
             <Button 
               onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
@@ -220,7 +221,7 @@ export default function ViewCandidateProfile() {
               Message
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">
