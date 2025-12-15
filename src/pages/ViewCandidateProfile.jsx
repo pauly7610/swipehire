@@ -168,18 +168,18 @@ export default function ViewCandidateProfile() {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Always show Message button for authenticated users */}
         {currentUser && candidateUser && currentUser.id !== candidateUser.id && (
           <div className="absolute top-4 right-4 flex gap-2">
             <Button 
               onClick={() => setShowMessageDialog(true)}
-              className="bg-white text-pink-600 hover:bg-gray-50"
+              className="bg-white text-pink-600 hover:bg-gray-50 shadow-md"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
               Message
             </Button>
             {connection ? (
-              <Button disabled className="bg-white text-gray-600">
+              <Button disabled className="bg-white text-gray-600 shadow-md">
                 {connection.status === 'accepted' ? (
                   <>
                     <Check className="w-4 h-4 mr-2" />
@@ -196,7 +196,7 @@ export default function ViewCandidateProfile() {
               <Button 
                 onClick={handleConnect}
                 disabled={sendingConnection}
-                className="bg-white text-pink-600 hover:bg-gray-50"
+                className="bg-white text-pink-600 hover:bg-gray-50 shadow-md"
               >
                 {sendingConnection ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -206,6 +206,19 @@ export default function ViewCandidateProfile() {
                 Connect
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Message button for non-logged in users - prompts login */}
+        {!currentUser && (
+          <div className="absolute top-4 right-4">
+            <Button 
+              onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+              className="bg-white text-pink-600 hover:bg-gray-50 shadow-md"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Message
+            </Button>
           </div>
         )}
       </div>
