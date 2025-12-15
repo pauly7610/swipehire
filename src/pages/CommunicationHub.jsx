@@ -49,9 +49,11 @@ export default function CommunicationHub() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
+      // Check if user is a candidate or recruiter
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+      const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
       
-      if (!candidateData) {
+      if (!candidateData && !companyData) {
         navigate(createPageUrl('Onboarding'), { replace: true });
         return;
       }
@@ -82,6 +84,35 @@ export default function CommunicationHub() {
         setNotifications(userNotifications);
         setInterviews(candidateInterviews);
         setMatches(candidateMatches);
+
+        const jobMap = {};
+        allJobs.forEach(j => { jobMap[j.id] = j; });
+        setJobs(jobMap);
+
+        const companyMap = {};
+        allCompanies.forEach(c => { companyMap[c.id] = c; });
+        setCompanies(companyMap);
+      } else if (companyData) {
+        // Recruiter view - load recruiter-specific data
+        const [
+          userMessages,
+          sentMessages,
+          userNotifications,
+          companyMatches,
+          allJobs,
+          allCompanies
+        ] = await Promise.all([
+          base44.entities.DirectMessage.filter({ receiver_id: currentUser.id }, '-created_date', 100),
+          base44.entities.DirectMessage.filter({ sender_id: currentUser.id }, '-created_date', 100),
+          base44.entities.Notification.filter({ user_id: currentUser.id }, '-created_date', 50),
+          base44.entities.Match.filter({ company_id: companyData.id }, '-created_date'),
+          base44.entities.Job.list(),
+          base44.entities.Company.list()
+        ]);
+
+        setMessages([...userMessages, ...sentMessages]);
+        setNotifications(userNotifications);
+        setMatches(companyMatches);
 
         const jobMap = {};
         allJobs.forEach(j => { jobMap[j.id] = j; });

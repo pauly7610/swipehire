@@ -38,12 +38,14 @@ export default function ViewCandidateProfile() {
       return;
     }
     try {
+      // Load candidate profile (public view)
       const isAuth = await base44.auth.isAuthenticated();
       let user = null;
       if (isAuth) {
         user = await base44.auth.me();
         setCurrentUser(user);
         
+        // Check if current user is a recruiter
         const companies = await base44.entities.Company.filter({ user_id: user.id });
         if (companies.length > 0) {
           setCompany(companies[0]);
