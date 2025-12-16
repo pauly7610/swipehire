@@ -285,15 +285,7 @@ export default function CommunicationHub() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-4">
-        {/* Debug Info */}
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-          <p><strong>Debug:</strong></p>
-          <p>Interviews loaded: {interviews.length}</p>
-          <p>Upcoming interviews: {upcomingInterviews}</p>
-          <p>Active tab: {activeTab}</p>
-          <p>Unified feed items: {unifiedFeed.length}</p>
-          <p>Filtered feed items: {filteredFeed.length}</p>
-        </div>
+
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
