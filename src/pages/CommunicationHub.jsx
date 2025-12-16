@@ -66,7 +66,7 @@ export default function CommunicationHub() {
           userMessages,
           sentMessages,
           userNotifications,
-          candidateInterviews,
+          allInterviews,
           candidateMatches,
           allJobs,
           allCompanies
@@ -74,11 +74,13 @@ export default function CommunicationHub() {
           base44.entities.DirectMessage.filter({ receiver_id: currentUser.id }, '-created_date', 100),
           base44.entities.DirectMessage.filter({ sender_id: currentUser.id }, '-created_date', 100),
           base44.entities.Notification.filter({ user_id: currentUser.id }, '-created_date', 50),
-          base44.entities.Interview.filter({ candidate_id: candidateData.id }, '-created_date'),
+          base44.entities.Interview.list(),
           base44.entities.Match.filter({ candidate_id: candidateData.id }, '-created_date'),
           base44.entities.Job.list(),
           base44.entities.Company.list()
         ]);
+
+        const candidateInterviews = allInterviews.filter(i => i.candidate_id === candidateData.id);
 
         setMessages([...userMessages, ...sentMessages]);
         setNotifications(userNotifications);
