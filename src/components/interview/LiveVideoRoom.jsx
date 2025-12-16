@@ -197,7 +197,7 @@ Be specific and reference actual conversation content where possible. Use bullet
 
       {/* Left Panel - Notes (Recruiter only) */}
       {isRecruiter && (
-        <div className="w-80 bg-white flex flex-col border-r border-gray-200 relative">
+        <div className="w-96 bg-white flex flex-col border-r border-gray-200 relative shadow-xl">
           {/* Save Success Popup */}
           <AnimatePresence>
             {showSaveSuccess && (
@@ -224,8 +224,8 @@ Be specific and reference actual conversation content where possible. Use bullet
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills&#10;• Communication&#10;• Questions asked&#10;• Red flags / Green flags"
-              className="flex-1 resize-none min-h-0 text-sm"
+              placeholder="Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills demonstrated&#10;• Communication & presentation&#10;• Questions asked by candidate&#10;• Cultural fit observations&#10;• Red flags / Green flags&#10;• Salary expectations discussed&#10;• Availability & notice period"
+              className="flex-1 resize-none min-h-0 text-sm leading-relaxed"
             />
             <div className="space-y-2 mt-3">
               <Button 
@@ -292,13 +292,13 @@ Be specific and reference actual conversation content where possible. Use bullet
           {/* Local Video PiP */}
           <motion.div
             drag
-            dragConstraints={{ left: 0, right: 200, top: 0, bottom: 200 }}
-            className="absolute bottom-24 left-4 w-32 h-44 md:w-48 md:h-64 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
+            dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}
+            className="absolute bottom-28 right-6 w-48 h-64 md:w-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/30 cursor-move hover:border-pink-500/50 transition-colors"
           >
             {isVideoOn ? (
               <video
                 ref={localVideoRef}
-                className="w-full h-full object-cover mirror"
+                className="w-full h-full object-cover"
                 autoPlay
                 muted
                 playsInline
@@ -306,49 +306,55 @@ Be specific and reference actual conversation content where possible. Use bullet
               />
             ) : (
               <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                <VideoOff className="w-8 h-8 text-gray-400" />
+                <div className="text-center">
+                  <VideoOff className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">Camera Off</p>
+                </div>
               </div>
             )}
+            <div className="absolute top-2 left-2 bg-black/50 px-2 py-1 rounded text-xs text-white">
+              You
+            </div>
           </motion.div>
         </div>
 
         {/* Controls */}
-        <div className="p-6 flex items-center justify-center gap-4">
+        <div className="p-8 flex items-center justify-center gap-6">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleMic}
-            className={`w-14 h-14 rounded-full flex items-center justify-center ${
-              isMicOn ? 'bg-white/20' : 'bg-red-500'
+            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all ${
+              isMicOn ? 'bg-white/20 hover:bg-white/30' : 'bg-red-500 hover:bg-red-600'
             }`}
           >
-            {isMicOn ? <Mic className="w-6 h-6 text-white" /> : <MicOff className="w-6 h-6 text-white" />}
+            {isMicOn ? <Mic className="w-7 h-7 text-white" /> : <MicOff className="w-7 h-7 text-white" />}
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleVideo}
-            className={`w-14 h-14 rounded-full flex items-center justify-center ${
-              isVideoOn ? 'bg-white/20' : 'bg-red-500'
+            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all ${
+              isVideoOn ? 'bg-white/20 hover:bg-white/30' : 'bg-red-500 hover:bg-red-600'
             }`}
           >
-            {isVideoOn ? <Video className="w-6 h-6 text-white" /> : <VideoOff className="w-6 h-6 text-white" />}
+            {isVideoOn ? <Video className="w-7 h-7 text-white" /> : <VideoOff className="w-7 h-7 text-white" />}
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={endCall}
-            className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-lg"
+            className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-2xl transition-all"
           >
-            <PhoneOff className="w-7 h-7 text-white" />
+            <PhoneOff className="w-8 h-8 text-white" />
           </motion.button>
         </div>
       </div>
 
       {/* Right Panel - Resume */}
-      <div className="w-80 bg-white flex flex-col border-l border-gray-200">
+      <div className="w-96 bg-white flex flex-col border-l border-gray-200 shadow-xl">
         {/* Candidate Info */}
         <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
           <div className="flex items-center gap-3">
