@@ -81,11 +81,6 @@ export default function CommunicationHub() {
         ]);
 
         const candidateInterviews = allInterviews.filter(i => i.candidate_id === candidateData.id);
-        
-        console.log('DEBUG - All interviews:', allInterviews.length);
-        console.log('DEBUG - Candidate ID:', candidateData.id);
-        console.log('DEBUG - Filtered interviews:', candidateInterviews.length);
-        console.log('DEBUG - All interviews data:', allInterviews);
 
         setMessages([...userMessages, ...sentMessages]);
         setNotifications(userNotifications);
@@ -100,11 +95,12 @@ export default function CommunicationHub() {
         allCompanies.forEach(c => { companyMap[c.id] = c; });
         setCompanies(companyMap);
       } else if (companyData) {
-        // Recruiter view - load recruiter-specific data
+        // Recruiter view - load recruiter-specific data including interviews
         const [
           userMessages,
           sentMessages,
           userNotifications,
+          allInterviews,
           companyMatches,
           allJobs,
           allCompanies
@@ -112,13 +108,17 @@ export default function CommunicationHub() {
           base44.entities.DirectMessage.filter({ receiver_id: currentUser.id }, '-created_date', 100),
           base44.entities.DirectMessage.filter({ sender_id: currentUser.id }, '-created_date', 100),
           base44.entities.Notification.filter({ user_id: currentUser.id }, '-created_date', 50),
+          base44.entities.Interview.list(),
           base44.entities.Match.filter({ company_id: companyData.id }, '-created_date'),
           base44.entities.Job.list(),
           base44.entities.Company.list()
         ]);
 
+        const companyInterviews = allInterviews.filter(i => i.company_id === companyData.id);
+
         setMessages([...userMessages, ...sentMessages]);
         setNotifications(userNotifications);
+        setInterviews(companyInterviews);
         setMatches(companyMatches);
 
         const jobMap = {};
