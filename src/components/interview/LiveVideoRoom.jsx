@@ -195,39 +195,44 @@ Be specific and reference actual conversation content where possible. Use bullet
         }
       `}</style>
 
-      {/* Left Panel - Notes (Recruiter only) */}
-      {isRecruiter && (
-        <div className="w-96 bg-white flex flex-col border-r border-gray-200 relative shadow-xl">
-          {/* Save Success Popup */}
-          <AnimatePresence>
-            {showSaveSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                Notes Saved!
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* Left Panel - Notes */}
+      <div className="w-96 bg-white flex flex-col border-r border-gray-200 relative shadow-xl">
+        {/* Save Success Popup */}
+        <AnimatePresence>
+          {showSaveSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Notes Saved!
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-pink-500" />
-              Interview Notes
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">Auto-syncs to candidate profile</p>
-          </div>
-          <div className="flex-1 p-4 flex flex-col">
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills demonstrated&#10;• Communication & presentation&#10;• Questions asked by candidate&#10;• Cultural fit observations&#10;• Red flags / Green flags&#10;• Salary expectations discussed&#10;• Availability & notice period"
-              className="flex-1 resize-none min-h-0 text-sm leading-relaxed"
-            />
-            <div className="space-y-2 mt-3">
+        <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-pink-500" />
+            {isRecruiter ? 'Interview Notes' : 'My Notes'}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {isRecruiter ? 'Auto-syncs to candidate profile' : 'Take notes during your interview'}
+          </p>
+        </div>
+        <div className="flex-1 p-4 flex flex-col">
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={isRecruiter 
+              ? "Take notes during the interview...&#10;&#10;• First impressions&#10;• Technical skills demonstrated&#10;• Communication & presentation&#10;• Questions asked by candidate&#10;• Cultural fit observations&#10;• Red flags / Green flags&#10;• Salary expectations discussed&#10;• Availability & notice period"
+              : "Take notes during the interview...&#10;&#10;• Key points discussed&#10;• Questions to ask&#10;• Important details to remember&#10;• Company culture observations&#10;• Next steps&#10;• Follow-up items"
+            }
+            className="flex-1 resize-none min-h-0 text-sm leading-relaxed"
+          />
+          <div className="space-y-2 mt-3">
+            {isRecruiter && (
               <Button 
                 size="sm" 
                 variant="outline" 
@@ -242,30 +247,30 @@ Be specific and reference actual conversation content where possible. Use bullet
                 )}
                 {generatingNotes ? 'Generating...' : 'AI Generate Notes Template'}
               </Button>
-              <div className="flex items-center gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => saveNotes(false)}
-                  disabled={saving}
-                  className="flex-1 swipe-gradient text-white"
-                >
-                  {saving ? (
-                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  ) : (
-                    <Save className="w-3 h-3 mr-1" />
-                  )}
-                  Save Notes
-                </Button>
-              </div>
-              {lastSaved && (
-                <p className="text-xs text-gray-400 text-center">
-                  Last saved {lastSaved.toLocaleTimeString()}
-                </p>
-              )}
+            )}
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => saveNotes(false)}
+                disabled={saving}
+                className="flex-1 swipe-gradient text-white"
+              >
+                {saving ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <Save className="w-3 h-3 mr-1" />
+                )}
+                Save Notes
+              </Button>
             </div>
+            {lastSaved && (
+              <p className="text-xs text-gray-400 text-center">
+                Last saved {lastSaved.toLocaleTimeString()}
+              </p>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Center - Video Area */}
       <div className="flex-1 flex flex-col">
