@@ -81,6 +81,11 @@ export default function CommunicationHub() {
         ]);
 
         const candidateInterviews = allInterviews.filter(i => i.candidate_id === candidateData.id);
+        
+        console.log('DEBUG - All interviews:', allInterviews.length);
+        console.log('DEBUG - Candidate ID:', candidateData.id);
+        console.log('DEBUG - Filtered interviews:', candidateInterviews.length);
+        console.log('DEBUG - All interviews data:', allInterviews);
 
         setMessages([...userMessages, ...sentMessages]);
         setNotifications(userNotifications);
