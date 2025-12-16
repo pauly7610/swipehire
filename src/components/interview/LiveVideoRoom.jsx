@@ -7,7 +7,7 @@ import {
   Video, VideoOff, Mic, MicOff, PhoneOff, 
   Maximize2, Minimize2, FileText, Save, User,
   ChevronLeft, ChevronRight, ExternalLink, Loader2,
-  Sparkles, CheckCircle2
+  Sparkles, CheckCircle2, Mic2, MicOff as MicOffIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -24,10 +24,13 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
   const [lastSaved, setLastSaved] = useState(null);
   const [generatingNotes, setGeneratingNotes] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptionStatus, setTranscriptionStatus] = useState('');
   
   const localVideoRef = useRef(null);
   const timerRef = useRef(null);
   const autoSaveRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     startCall();
@@ -46,6 +49,9 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
       endCall();
       if (timerRef.current) clearInterval(timerRef.current);
       if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
     };
   }, []);
 
@@ -92,9 +98,78 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
     }
   };
 
+  const toggleTranscription = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast.error('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isTranscribing) {
+      // Stop transcription
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsTranscribing(false);
+      setTranscriptionStatus('');
+    } else {
+      // Start transcription
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        setIsTranscribing(true);
+        setTranscriptionStatus('Listening...');
+      };
+      
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          setNotes(prev => {
+            const newNote = `[${timestamp}] ${finalTranscript.trim()}\n`;
+            return prev ? prev + newNote : newNote;
+          });
+        }
+        
+        setTranscriptionStatus(interimTranscript || 'Listening...');
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setTranscriptionStatus('Error: ' + event.error);
+        if (event.error === 'no-speech') {
+          setTranscriptionStatus('No speech detected');
+        }
+      };
+      
+      recognition.onend = () => {
+        if (isTranscribing) {
+          // Auto-restart if still enabled
+          recognition.start();
+        }
+      };
+      
+      recognitionRef.current = recognition;
+      recognition.start();
+    }
+  };
+
   const saveNotes = async (isAutoSave = false) => {
-    if (!isRecruiter) return;
-    
     setSaving(true);
     try {
       // Save to interview if exists
@@ -213,13 +288,41 @@ Be specific and reference actual conversation content where possible. Use bullet
         </AnimatePresence>
 
         <div className="p-4 border-b bg-gradient-to-r from-pink-50 to-orange-50">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-pink-500" />
-            {isRecruiter ? 'Interview Notes' : 'My Notes'}
-          </h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-pink-500" />
+              <h3 className="font-semibold text-gray-900">
+                {isRecruiter ? 'Interview Notes' : 'My Notes'}
+              </h3>
+            </div>
+            <Button
+              size="sm"
+              variant={isTranscribing ? "default" : "outline"}
+              onClick={toggleTranscription}
+              className={isTranscribing ? "swipe-gradient text-white animate-pulse" : ""}
+            >
+              {isTranscribing ? (
+                <>
+                  <MicOffIcon className="w-3 h-3 mr-1" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Mic2 className="w-3 h-3 mr-1" />
+                  Auto-Transcribe
+                </>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500">
             {isRecruiter ? 'Auto-syncs to candidate profile' : 'Take notes during your interview'}
           </p>
+          {isTranscribing && (
+            <div className="mt-2 flex items-center gap-2 text-xs">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-gray-600">{transcriptionStatus}</span>
+            </div>
+          )}
         </div>
         <div className="flex-1 p-4 flex flex-col">
           <Textarea
