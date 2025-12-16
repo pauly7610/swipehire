@@ -274,7 +274,7 @@ export default function Chat() {
             </p>
           </div>
 
-          {candidate?.resume_url && hasActiveInterview && (
+          {hasActiveInterview && (
             <Button 
               variant="outline"
               onClick={() => setShowResumePanel(!showResumePanel)}
@@ -407,7 +407,7 @@ export default function Chat() {
         </div>
 
         {/* Right Side - Resume & Notes Panel */}
-        {showResumePanel && candidate?.resume_url && (
+        {showResumePanel && (
           <div className="w-1/2 border-l border-gray-200 bg-white flex flex-col">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -425,17 +425,24 @@ export default function Chat() {
 
             {/* Resume Viewer */}
             <div className="flex-1 overflow-auto p-4 bg-gray-50">
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Candidate Resume</h4>
-                <iframe 
-                  src={candidate.resume_url.endsWith('.pdf') 
-                    ? candidate.resume_url 
-                    : `https://docs.google.com/viewer?url=${encodeURIComponent(candidate.resume_url)}&embedded=true`
-                  }
-                  className="w-full h-96 rounded-lg border border-gray-200"
-                  title="Resume"
-                />
-              </div>
+              {candidate?.resume_url ? (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Candidate Resume</h4>
+                  <iframe 
+                    src={candidate.resume_url.endsWith('.pdf') 
+                      ? candidate.resume_url 
+                      : `https://docs.google.com/viewer?url=${encodeURIComponent(candidate.resume_url)}&embedded=true`
+                    }
+                    className="w-full h-96 rounded-lg border border-gray-200"
+                    title="Resume"
+                  />
+                </div>
+              ) : (
+                <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 text-center">
+                  <FileText className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                  <p className="text-sm text-gray-500">No resume uploaded yet</p>
+                </div>
+              )}
 
               {/* Interview Notes */}
               <div>
