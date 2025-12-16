@@ -292,9 +292,9 @@ export default function Chat() {
       </div>
 
       {/* Main Content Container */}
-      <div className="flex-1 overflow-hidden flex">
+      <div className="flex-1 overflow-hidden flex relative">
         {/* Left Side - Chat */}
-        <div className={`flex flex-col ${showResumePanel ? 'w-1/2' : 'w-full'} transition-all`}>
+        <div className={`flex flex-col transition-all duration-300 ${showResumePanel ? 'w-1/2' : 'w-full'}`}>
           {/* Job Info Card */}
           <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50">
             <div className="max-w-2xl mx-auto space-y-3">
@@ -407,8 +407,8 @@ export default function Chat() {
         </div>
 
         {/* Right Side - Resume & Notes Panel */}
-        {showResumePanel && (
-          <div className="w-1/2 border-l border-gray-200 bg-white flex flex-col">
+        {showResumePanel && hasActiveInterview && (
+          <div className="w-1/2 border-l border-gray-200 bg-white flex flex-col shadow-xl">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-pink-500" />
