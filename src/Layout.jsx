@@ -239,28 +239,27 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const candidateNav = [
-                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs' },
-                    { name: 'Browse', icon: Search, page: 'BrowseJobs' },
-                    { name: 'Feed', icon: Home, page: 'VideoFeed' },
-                    { name: 'Referrals', icon: Users, page: 'Referrals' },
-                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
-                    { name: 'Profile', icon: User, page: 'CandidateProfile' },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: true },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
                   ];
 
   // Only show Admin to the specific admin email
   const isMainAdmin = user?.email === 'xmitchell99@gmail.com';
   
   const employerNav = [
-                                    { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard' },
-                                    { name: 'Browse', icon: Search, page: 'BrowseCandidates' },
-                                    { name: 'Swipe', icon: Users, page: 'SwipeCandidates' },
-                                    { name: 'Feed', icon: Home, page: 'VideoFeed' },
-                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals' },
-                                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
-                                    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
-                                    { name: 'ATS', icon: Monitor, page: 'ATS' },
-                                    { name: 'Profile', icon: User, page: 'RecruiterProfile' },
-                                    ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
+                                    { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard', mobile: true },
+                                    { name: 'Browse', icon: Search, page: 'BrowseCandidates', mobile: false },
+                                    { name: 'Swipe', icon: Users, page: 'SwipeCandidates', mobile: true },
+                                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: false },
+                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false },
+                                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                                    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
+                                    { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
+                                    { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
+                                    ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : []),
                                   ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;
@@ -297,7 +296,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
         <div className="flex justify-around items-center h-14 px-1">
-          {navItems.map((item) => (
+          {navItems.filter(item => item.mobile !== false).map((item) => (
             <Link
               key={item.name}
               to={createPageUrl(item.page)}
