@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Users, Zap, ChevronRight } from 'lucide-react';
 import SplashScreen from '@/components/splash/SplashScreen';
+import Logo from '@/components/shared/Logo';
 
 export default function Welcome() {
   const navigate = useNavigate();
