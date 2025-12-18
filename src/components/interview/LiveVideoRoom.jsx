@@ -100,7 +100,7 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
 
   const toggleTranscription = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast.error('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+      alert('Auto-transcription is only supported in Chrome and Edge browsers. Please switch browsers to use this feature.');
       return;
     }
 
@@ -170,6 +170,8 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
   };
 
   const saveNotes = async (isAutoSave = false) => {
+    if (saving) return; // Prevent concurrent saves
+    
     setSaving(true);
     try {
       // Save to interview if exists

@@ -62,7 +62,7 @@ export default function Chat() {
       } catch (error) {
         console.error('Polling error:', error);
       }
-    }, 2000); // Poll every 2 seconds
+    }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(pollInterval);
   }, [matchId, messages.length]);
