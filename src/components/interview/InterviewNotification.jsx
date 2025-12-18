@@ -115,6 +115,7 @@ export default function InterviewNotification() {
 
   const getTimeUntil = (scheduledAt) => {
     const now = new Date();
+    // Parse as UTC to avoid timezone issues
     const scheduled = new Date(scheduledAt);
     const minutesUntil = differenceInMinutes(scheduled, now);
 

@@ -30,6 +30,8 @@ export default function Onboarding() {
   });
   const [newSkill, setNewSkill] = useState('');
   const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // Recruiter fields
   const [recruiterData, setRecruiterData] = useState({
@@ -122,6 +124,12 @@ export default function Onboarding() {
     const file = e.target.files[0];
     if (!file) return;
     
+    if (type === 'company') {
+      setUploadingLogo(true);
+    } else {
+      setUploadingPhoto(true);
+    }
+    
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       if (type === 'candidate') {
@@ -134,6 +142,9 @@ export default function Onboarding() {
     } catch (error) {
       console.error('Upload failed:', error);
     }
+    
+    setUploadingPhoto(false);
+    setUploadingLogo(false);
   };
 
   const handleResumeUpload = async (e) => {
@@ -151,13 +162,24 @@ export default function Onboarding() {
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !candidateData.skills.includes(newSkill.trim())) {
-      setCandidateData({
-        ...candidateData,
-        skills: [...candidateData.skills, newSkill.trim()]
-      });
-      setNewSkill('');
+    const trimmedSkill = newSkill.trim();
+    if (!trimmedSkill) return;
+    
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = candidateData.skills.some(
+      skill => skill.toLowerCase() === trimmedSkill.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      alert('This skill has already been added');
+      return;
     }
+    
+    setCandidateData({
+      ...candidateData,
+      skills: [...candidateData.skills, trimmedSkill]
+    });
+    setNewSkill('');
   };
 
   const removeSkill = (skillToRemove) => {
@@ -291,7 +313,11 @@ export default function Onboarding() {
                 {/* Photo Upload */}
                 <div className="flex justify-center">
                   <div className="relative">
-                    {candidateData.photo_url ? (
+                    {uploadingPhoto ? (
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <Loader2 className="w-12 h-12 text-pink-500 animate-spin" />
+                      </div>
+                    ) : candidateData.photo_url ? (
                       <img
                         src={candidateData.photo_url}
                         alt="Profile"
@@ -302,9 +328,9 @@ export default function Onboarding() {
                         <User className="w-12 h-12 text-pink-400" />
                       </div>
                     )}
-                    <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
+                    <label className={`absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg ${uploadingPhoto ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Upload className="w-5 h-5 text-white" />
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'candidate')} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'candidate')} disabled={uploadingPhoto} />
                     </label>
                   </div>
                 </div>
@@ -449,7 +475,11 @@ export default function Onboarding() {
                 {/* Recruiter Photo Upload */}
                 <div className="flex justify-center">
                   <div className="relative">
-                    {recruiterData.photo_url ? (
+                    {uploadingPhoto ? (
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-lg">
+                        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+                      </div>
+                    ) : recruiterData.photo_url ? (
                       <img
                         src={recruiterData.photo_url}
                         alt="Recruiter"
@@ -460,9 +490,9 @@ export default function Onboarding() {
                         <User className="w-12 h-12 text-purple-400" />
                       </div>
                     )}
-                    <label className="absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg">
+                    <label className={`absolute bottom-0 right-0 w-10 h-10 swipe-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg ${uploadingPhoto ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Upload className="w-5 h-5 text-white" />
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'recruiter')} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'recruiter')} disabled={uploadingPhoto} />
                     </label>
                   </div>
                 </div>
@@ -516,9 +546,13 @@ export default function Onboarding() {
                       />
                     </div>
                     <div className="pt-7">
-                      <label className="flex items-center justify-center w-12 h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 transition-colors">
-                        <Upload className="w-5 h-5 text-gray-400" />
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} />
+                      <label className={`flex items-center justify-center w-12 h-12 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-purple-400 transition-colors ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        {uploadingLogo ? (
+                          <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+                        ) : (
+                          <Upload className="w-5 h-5 text-gray-400" />
+                        )}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'company')} disabled={uploadingLogo} />
                       </label>
                     </div>
                   </div>

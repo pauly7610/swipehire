@@ -199,9 +199,25 @@ export default function SwipeCandidates() {
     x.set(0);
   };
 
-  const handleUndo = () => {
+  const handleUndo = async () => {
     if (swipeHistory.length === 0) return;
     const lastSwipe = swipeHistory[swipeHistory.length - 1];
+    
+    // Delete the last swipe from database
+    try {
+      const lastSwipes = await base44.entities.Swipe.filter({
+        swiper_id: user.id,
+        target_id: lastSwipe.candidate.id,
+        swiper_type: 'employer'
+      }, '-created_date', 1);
+      
+      if (lastSwipes.length > 0) {
+        await base44.entities.Swipe.delete(lastSwipes[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to delete swipe:', error);
+    }
+    
     setSwipeHistory(swipeHistory.slice(0, -1));
     setCurrentIndex(lastSwipe.index);
   };
