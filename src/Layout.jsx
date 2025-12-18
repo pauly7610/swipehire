@@ -293,35 +293,35 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-        <div className="flex justify-around items-center h-14 px-1">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 md:hidden z-50 shadow-lg">
+        <div className="flex justify-around items-center h-16 px-1">
           {navItems.filter(item => item.mobile !== false).map((item) => (
             <Link
               key={item.name}
               to={createPageUrl(item.page)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 py-1.5 transition-colors relative",
+                "flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 relative rounded-lg active:scale-95",
                 currentPageName === item.page 
-                  ? "text-transparent" 
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "text-transparent scale-110" 
+                  : "text-gray-400 hover:text-gray-600 active:bg-gray-100"
               )}
             >
               <div className="relative">
                 <item.icon 
                   className={cn(
-                    "w-5 h-5 mb-0.5",
+                    "w-6 h-6 mb-1 transition-transform",
                     currentPageName === item.page && "stroke-[url(#gradient)]"
                   )}
                   style={currentPageName === item.page ? { stroke: '#FF005C' } : {}}
                 />
                 {item.page === 'CommunicationHub' && unreadInboxCount > 0 && (
-                  <span className="absolute -top-1 -right-2 w-4 h-4 bg-pink-500 text-white text-[10px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-2 w-4 h-4 bg-pink-500 text-white text-[10px] rounded-full flex items-center justify-center animate-bounce">
                     {unreadInboxCount > 9 ? '9+' : unreadInboxCount}
                   </span>
                 )}
               </div>
               <span className={cn(
-                "text-[10px] font-medium",
+                "text-[10px] font-semibold",
                 currentPageName === item.page && "swipe-gradient-text"
               )}>
                 {item.name}
@@ -341,22 +341,22 @@ export default function Layout({ children, currentPageName }) {
                     <NotificationBell />
                   </div>
         
-        <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1.5 py-2">
           {navItems.map((item) => (
             <Link
               key={item.name}
               to={createPageUrl(item.page)}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
                 currentPageName === item.page 
-                  ? "swipe-gradient text-white shadow-lg shadow-pink-500/25" 
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "swipe-gradient text-white shadow-lg shadow-pink-500/30 scale-[1.02]" 
+                  : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
               )}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-5 h-5 flex-shrink-0" />
               <span className="font-medium">{item.name}</span>
               {item.page === 'CommunicationHub' && unreadInboxCount > 0 && (
-                <span className="ml-auto w-5 h-5 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="ml-auto w-5 h-5 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
                   {unreadInboxCount > 9 ? '9+' : unreadInboxCount}
                 </span>
               )}
