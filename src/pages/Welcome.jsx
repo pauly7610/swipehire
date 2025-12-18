@@ -124,12 +124,14 @@ export default function Welcome() {
           
           <div className="space-y-4">
             <Button
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  base44.auth.redirectToLogin(window.location.origin);
+                  const nextUrl = window.location.origin;
+                  await base44.auth.redirectToLogin(nextUrl);
                 } catch (err) {
                   console.error('Login redirect failed:', err);
-                  window.location.href = '/api/auth/login';
+                  // Fallback to direct redirect
+                  window.location.href = `/api/auth/login?next=${encodeURIComponent(window.location.origin)}`;
                 }
               }}
               className="w-full swipe-gradient text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
@@ -147,12 +149,14 @@ export default function Welcome() {
             </div>
 
             <Button
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  base44.auth.redirectToLogin(window.location.origin);
+                  const nextUrl = window.location.origin;
+                  await base44.auth.redirectToLogin(nextUrl);
                 } catch (err) {
-                  console.error('Login redirect failed:', err);
-                  window.location.href = '/api/auth/login';
+                  console.error('Google login redirect failed:', err);
+                  // Fallback to direct redirect
+                  window.location.href = `/api/auth/login?next=${encodeURIComponent(window.location.origin)}`;
                 }
               }}
               variant="outline"
@@ -171,12 +175,13 @@ export default function Welcome() {
           <p className="text-center text-sm text-gray-500 mt-6">
             New to SwipeHire?{' '}
             <button
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  base44.auth.redirectToLogin(createPageUrl('Onboarding'));
+                  const nextUrl = createPageUrl('Onboarding');
+                  await base44.auth.redirectToLogin(nextUrl);
                 } catch (err) {
                   console.error('Signup redirect failed:', err);
-                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(createPageUrl('Onboarding'));
+                  window.location.href = `/api/auth/login?next=${encodeURIComponent(createPageUrl('Onboarding'))}`;
                 }
               }}
               className="font-semibold swipe-gradient-text hover:underline"
