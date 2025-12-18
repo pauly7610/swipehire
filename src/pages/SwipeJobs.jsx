@@ -95,7 +95,7 @@ export default function SwipeJobs() {
   };
 
   const currentJob = jobs[currentIndex];
-  const currentCompany = currentJob ? companies[currentJob.company_id] : null;
+  const currentCompany = (currentJob && companies[currentJob.company_id]) || null;
 
   // Check deal breakers and calculate match score for current job
   useEffect(() => {
