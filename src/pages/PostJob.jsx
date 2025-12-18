@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { 
   Briefcase, MapPin, DollarSign, Plus, X, Eye, ArrowRight, 
-  CheckCircle, Building2, Wand2, HelpCircle, Trash2
+  CheckCircle, Building2, Wand2, HelpCircle, Trash2, Save
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
@@ -47,6 +47,28 @@ export default function PostJob() {
     screening_questions: [],
     industry: ''
   });
+
+  // Load draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('job_posting_draft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        setJobData(draft.jobData || jobData);
+        setStep(draft.step || 1);
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
+    }
+  }, []);
+
+  // Auto-save draft
+  useEffect(() => {
+    if (jobData.title || jobData.description) {
+      const draft = { jobData, step };
+      localStorage.setItem('job_posting_draft', JSON.stringify(draft));
+    }
+  }, [jobData, step]);
 
   useEffect(() => {
     loadCompany();
@@ -109,6 +131,7 @@ export default function PostJob() {
         salary_max: parseFloat(jobData.salary_max) || 0,
         is_active: true
       });
+      localStorage.removeItem('job_posting_draft'); // Clear draft
       navigate(createPageUrl('ManageJobs'));
     } catch (error) {
       console.error('Failed to post job:', error);
@@ -123,6 +146,7 @@ export default function PostJob() {
         company_id: company.id,
         is_active: true
       });
+      localStorage.removeItem('job_posting_draft'); // Clear draft
       setShowAIWizard(false);
       navigate(createPageUrl('ManageJobs'));
     } catch (error) {
@@ -504,8 +528,17 @@ export default function PostJob() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
-          <p className="text-gray-500">Find the perfect candidate for your team</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
+              <p className="text-gray-500">Find the perfect candidate for your team</p>
+            </div>
+            {(jobData.title || jobData.description) && (
+              <Badge className="bg-blue-100 text-blue-700">
+                <Save className="w-3 h-3 mr-1" /> Draft Auto-Saved
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Progress */}
