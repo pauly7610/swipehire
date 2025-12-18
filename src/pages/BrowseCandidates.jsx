@@ -526,12 +526,21 @@ export default function BrowseCandidates() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                    <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-start justify-between gap-4 mb-1">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg text-gray-900 truncate">{candidate.headline || 'Professional'}</h3>
-                        {candidate.industry && (
-                          <p className="text-sm text-gray-600">{candidate.industry}</p>
-                        )}
+                        <h3 className="font-bold text-lg text-gray-900 truncate mb-1">
+                          {candidate.headline || 'Professional'}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          {candidate.industry && <span>{candidate.industry}</span>}
+                          {candidate.industry && candidate.location && <span>•</span>}
+                          {candidate.location && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span>{candidate.location}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       {/* Experience Badge */}
@@ -543,12 +552,6 @@ export default function BrowseCandidates() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 mb-3">
-                      {candidate.location && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <span>{candidate.location}</span>
-                        </div>
-                      )}
                       {candidate.experience_years && (
                         <div className="flex items-center gap-1">
                           <Briefcase className="w-4 h-4 text-gray-400" />
