@@ -207,7 +207,7 @@ export default function EmployerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -217,6 +217,13 @@ export default function EmployerDashboard() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 92, 0.3); }
+          50% { box-shadow: 0 0 25px rgba(255, 0, 92, 0.5); }
+        }
+        .glow-on-hover:hover {
+          animation: pulse-glow 2s ease-in-out infinite;
         }
       `}</style>
 
@@ -251,11 +258,13 @@ export default function EmployerDashboard() {
               )}
             </div>
           </div>
-          <Link to={createPageUrl('PostJob')}>
-            <Button className="swipe-gradient text-white shadow-lg shadow-pink-500/25">
-              <Plus className="w-5 h-5 mr-2" /> Post a Job
-            </Button>
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link to={createPageUrl('PostJob')}>
+              <Button className="swipe-gradient text-white shadow-xl shadow-pink-500/30 glow-on-hover">
+                <Plus className="w-5 h-5 mr-2" /> Post a Job
+              </Button>
+            </Link>
+          </motion.div>
         </div>
 
         {/* Dashboard Tabs */}
@@ -328,17 +337,20 @@ export default function EmployerDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Card 
-                className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all cursor-pointer group"
                 onClick={() => navigate(createPageUrl(stat.link))}
               >
-                <CardContent className="p-5">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.bgColor} flex items-center justify-center mb-3`}>
-                    <stat.icon className={`w-6 h-6 bg-gradient-to-br ${stat.color} bg-clip-text text-transparent`} style={{ color: stat.color.includes('pink') ? '#FF005C' : stat.color.includes('purple') ? '#9333EA' : stat.color.includes('blue') ? '#3B82F6' : '#22C55E' }} />
+                <CardContent className="p-6 relative">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <stat.icon className={`w-7 h-7 bg-gradient-to-br ${stat.color} bg-clip-text text-transparent`} style={{ color: stat.color.includes('pink') ? '#FF005C' : stat.color.includes('purple') ? '#9333EA' : stat.color.includes('blue') ? '#3B82F6' : '#22C55E' }} />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900">{stat.value}</h3>
-                  <p className="text-gray-500 text-sm">{stat.label}</p>
+                  <h3 className="text-4xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+                  <p className="text-gray-500 text-sm font-medium">{stat.label}</p>
                 </CardContent>
               </Card>
             </motion.div>

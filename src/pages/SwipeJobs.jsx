@@ -289,7 +289,7 @@ export default function SwipeJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50/30 via-white to-orange-50/30 p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -300,14 +300,25 @@ export default function SwipeJobs() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .card-float:hover {
+          animation: float 2s ease-in-out infinite;
+        }
       `}</style>
 
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Discover Jobs</h1>
-          <p className="text-gray-500">Swipe right on opportunities you love</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Discover Jobs</h1>
+          <p className="text-gray-600 font-medium">Swipe right on opportunities you love ❤️</p>
+        </motion.div>
 
         {/* Card Stack */}
         <div className="relative h-[520px] mb-8"
