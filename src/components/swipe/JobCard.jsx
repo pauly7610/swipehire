@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink, Zap, TrendingUp, Users } from 'lucide-react';
+import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink, Zap, TrendingUp, Users, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply }) {
+export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer }) {
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     if (min && max) {
@@ -292,13 +292,28 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   </div>
                 )}
 
-                <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="outline" size="sm" className="w-full border-pink-200 text-pink-600 hover:bg-pink-50">
-                      <Building2 className="w-4 h-4 mr-2" /> View Company Profile
-                    </Button>
-                  </motion.div>
-                </Link>
+                <div className="space-y-2">
+                  <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button variant="outline" size="sm" className="w-full border-pink-200 text-pink-600 hover:bg-pink-50">
+                        <Building2 className="w-4 h-4 mr-2" /> View Company Profile
+                      </Button>
+                    </motion.div>
+                  </Link>
+                  
+                  {onRefer && (
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
+                        onClick={(e) => { e.stopPropagation(); onRefer(); }}
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" /> Refer a Candidate
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </div>
             </div>
 

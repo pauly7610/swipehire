@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
@@ -239,28 +239,29 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const candidateNav = [
-            { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs' },
-            { name: 'Browse', icon: Search, page: 'BrowseJobs' },
-            { name: 'Feed', icon: Home, page: 'VideoFeed' },
-            { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
-            { name: 'Network', icon: Users, page: 'Connections' },
-            { name: 'Profile', icon: User, page: 'CandidateProfile' },
-          ];
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs' },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs' },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed' },
+                    { name: 'Referrals', icon: Users, page: 'Referrals' },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile' },
+                  ];
 
   // Only show Admin to the specific admin email
   const isMainAdmin = user?.email === 'xmitchell99@gmail.com';
   
   const employerNav = [
-                            { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard' },
-                            { name: 'Browse', icon: Search, page: 'BrowseCandidates' },
-                            { name: 'Swipe', icon: Users, page: 'SwipeCandidates' },
-                            { name: 'Feed', icon: Home, page: 'VideoFeed' },
-                            { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
-                            { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
-                            { name: 'ATS', icon: Monitor, page: 'ATS' },
-                            { name: 'Profile', icon: User, page: 'RecruiterProfile' },
-                            ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
-                          ];
+                                    { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard' },
+                                    { name: 'Browse', icon: Search, page: 'BrowseCandidates' },
+                                    { name: 'Swipe', icon: Users, page: 'SwipeCandidates' },
+                                    { name: 'Feed', icon: Home, page: 'VideoFeed' },
+                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals' },
+                                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub' },
+                                    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs' },
+                                    { name: 'ATS', icon: Monitor, page: 'ATS' },
+                                    { name: 'Profile', icon: User, page: 'RecruiterProfile' },
+                                    ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel' }] : []),
+                                  ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;
 

@@ -15,6 +15,7 @@ import QuickApplyModal from '@/components/candidate/QuickApplyModal';
 import DealBreakerModal from '@/components/matching/DealBreakerModal';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
+import ReferCandidateModal from '@/components/referral/ReferCandidateModal';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export default function SwipeJobs() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showDealBreakerModal, setShowDealBreakerModal] = useState(false);
   const [pendingDealBreakerSwipe, setPendingDealBreakerSwipe] = useState(null);
+  const [showReferModal, setShowReferModal] = useState(false);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
@@ -356,13 +358,14 @@ export default function SwipeJobs() {
                 }}
               >
                 <JobCard
-                                        job={currentJob}
-                                        company={currentCompany}
-                                        isFlipped={isFlipped}
-                                        onFlip={() => setIsFlipped(!isFlipped)}
-                                        matchScore={currentMatchScore}
-                                        onQuickApply={() => setShowQuickApply(true)}
-                                      />
+                  job={currentJob}
+                  company={currentCompany}
+                  isFlipped={isFlipped}
+                  onFlip={() => setIsFlipped(!isFlipped)}
+                  matchScore={currentMatchScore}
+                  onQuickApply={() => setShowQuickApply(true)}
+                  onRefer={() => setShowReferModal(true)}
+                />
 
                 {/* Swipe indicators */}
                 <motion.div
@@ -488,6 +491,16 @@ export default function SwipeJobs() {
                   setShowDealBreakerModal(false);
                   setPendingDealBreakerSwipe(null);
                 }}
+              />
+
+              {/* Refer Modal */}
+              <ReferCandidateModal
+                open={showReferModal}
+                onOpenChange={setShowReferModal}
+                job={currentJob}
+                company={currentCompany}
+                user={user}
+                userType="candidate"
               />
 
               {/* Onboarding Tooltip */}

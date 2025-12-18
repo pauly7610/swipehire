@@ -36,6 +36,7 @@ import CommunicationHub from './pages/CommunicationHub';
 import FavoriteCandidates from './pages/FavoriteCandidates';
 import FollowedCompanies from './pages/FollowedCompanies';
 import BrowseCandidates from './pages/BrowseCandidates';
+import Referrals from './pages/Referrals';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +79,7 @@ export const PAGES = {
     "FavoriteCandidates": FavoriteCandidates,
     "FollowedCompanies": FollowedCompanies,
     "BrowseCandidates": BrowseCandidates,
+    "Referrals": Referrals,
 }
 
 export const pagesConfig = {
