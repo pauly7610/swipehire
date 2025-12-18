@@ -512,6 +512,18 @@ export default function BrowseJobs() {
           </div>
         )}
       </div>
+
+      {/* Refer Modal */}
+      {showReferModal && selectedJob && selectedCompany && (
+        <ReferCandidateModal
+          open={showReferModal}
+          onOpenChange={setShowReferModal}
+          job={selectedJob}
+          company={selectedCompany}
+          user={user}
+          userType="candidate"
+        />
+      )}
     </div>
   );
 }

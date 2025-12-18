@@ -405,26 +405,44 @@ export function useAIMatching() {
     setLoading(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analyze this candidate-job match and provide 3 key insights about why they're a good fit:
+        prompt: `Analyze this candidate-job match and provide detailed, personalized insights.
 
-Candidate:
-- Headline: ${candidate.headline || 'N/A'}
+CANDIDATE PROFILE:
+- Name: ${candidate.user?.full_name || 'Candidate'}
+- Current Role: ${candidate.headline || 'N/A'}
 - Skills: ${candidate.skills?.join(', ') || 'N/A'}
 - Experience Level: ${candidate.experience_level || 'N/A'}
 - Years of Experience: ${candidate.experience_years || 'N/A'}
+- Education: ${candidate.education?.map(e => `${e.degree} in ${e.major} from ${e.university}`).join('; ') || 'N/A'}
+- Recent Experience: ${candidate.experience?.[0] ? `${candidate.experience[0].title} at ${candidate.experience[0].company}` : 'N/A'}
 - Culture Preferences: ${candidate.culture_preferences?.join(', ') || 'N/A'}
+- Bio: ${candidate.bio || 'N/A'}
 
-Job:
+JOB DETAILS:
 - Title: ${job.title}
+- Company: ${company.name}
 - Required Skills: ${job.skills_required?.join(', ') || 'N/A'}
-- Experience Required: ${job.experience_level_required || 'N/A'}
+- Experience Required: ${job.experience_level_required || 'N/A'} (${job.experience_years_min}+ years)
+- Location: ${job.location || 'N/A'}
+- Type: ${job.job_type || 'N/A'}
+- Salary: $${job.salary_min}-${job.salary_max}
+- Key Responsibilities: ${job.responsibilities?.slice(0, 3).join('; ') || 'N/A'}
 
-Company:
-- Name: ${company.name}
+COMPANY CULTURE:
 - Industry: ${company.industry || 'N/A'}
-- Culture: ${company.culture_traits?.join(', ') || 'N/A'}
+- Size: ${company.size || 'N/A'}
+- Culture Traits: ${company.culture_traits?.join(', ') || 'N/A'}
+- Benefits: ${company.benefits?.join(', ') || 'N/A'}
+- Mission: ${company.mission || 'N/A'}
 
-Provide specific, actionable insights.`,
+Provide 3-5 specific, data-driven insights about:
+1. Skill alignment (be specific about which skills match)
+2. Experience fit and growth potential
+3. Culture compatibility 
+4. Unique strengths this candidate brings
+5. Any concerns or gaps to address
+
+Make insights conversational, actionable, and personalized.`,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -434,11 +452,20 @@ Provide specific, actionable insights.`,
                 type: 'object',
                 properties: {
                   text: { type: 'string' },
-                  type: { type: 'string', enum: ['skills', 'experience', 'culture', 'highlight'] }
+                  type: { type: 'string', enum: ['skills', 'experience', 'culture', 'highlight', 'strength', 'concern'] },
+                  details: { type: 'string' }
                 }
               }
             },
-            summary: { type: 'string' }
+            summary: { type: 'string' },
+            recommendation: { 
+              type: 'string',
+              enum: ['strong_match', 'good_match', 'potential_match', 'not_recommended']
+            },
+            key_selling_points: {
+              type: 'array',
+              items: { type: 'string' }
+            }
           }
         }
       });

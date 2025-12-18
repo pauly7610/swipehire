@@ -58,15 +58,37 @@ export default function AIJobWizard({ onComplete, onClose, company }) {
 
       switch (type) {
         case 'description':
-          prompt = `Generate a compelling job description for a ${jobData.title} position at a ${company?.industry || 'technology'} company. 
-The role is ${jobData.job_type}, ${jobData.experience_level_required} level, located in ${jobData.location || 'flexible location'}.
-Write a professional, engaging description that highlights the opportunity and company culture. 2-3 paragraphs.`;
+          prompt = `Generate a compelling job description for a ${jobData.title} position at ${company?.name || 'our company'}, a ${company?.industry || 'technology'} company${company?.size ? ` with ${company.size} employees` : ''}.
+
+Context:
+- Role: ${jobData.job_type}, ${jobData.experience_level_required} level
+- Location: ${jobData.location || 'flexible location'}
+- Company culture: ${company?.culture_traits?.join(', ') || 'innovative and collaborative'}
+${company?.mission ? `- Mission: ${company.mission}` : ''}
+
+Write a professional, engaging description that:
+1. Opens with an exciting hook about the role or company
+2. Describes day-to-day responsibilities and impact
+3. Highlights growth opportunities and company culture
+4. Ends with a call-to-action
+
+Make it 3-4 paragraphs, conversational yet professional.`;
           schema = { type: 'object', properties: { description: { type: 'string' } } };
           break;
 
         case 'responsibilities':
-          prompt = `List 6-8 key responsibilities for a ${jobData.title} position at a ${company?.industry || 'technology'} company.
-Experience level: ${jobData.experience_level_required}. Make them specific and action-oriented.`;
+          prompt = `List 7-9 key day-to-day responsibilities for a ${jobData.title} position at a ${company?.industry || 'technology'} company.
+
+Context:
+- Experience level: ${jobData.experience_level_required}
+- Team size: ${company?.size || 'growing team'}
+- Job type: ${jobData.job_type}
+
+Make each responsibility:
+- Action-oriented (start with strong verbs)
+- Specific and measurable
+- Relevant to ${jobData.experience_level_required} level expectations
+- Focused on impact and outcomes`;
           schema = { type: 'object', properties: { responsibilities: { type: 'array', items: { type: 'string' } } } };
           break;
 
@@ -78,9 +100,19 @@ Include both technical skills and soft skills.`;
           break;
 
         case 'skills':
-          prompt = `List 8-12 relevant technical and professional skills for a ${jobData.title} position in ${company?.industry || 'technology'}.
-Experience level: ${jobData.experience_level_required}. Include both must-have and nice-to-have skills.`;
-          schema = { type: 'object', properties: { skills: { type: 'array', items: { type: 'string' } } } };
+          prompt = `List 10-15 relevant skills for a ${jobData.title} position in ${company?.industry || 'technology'}.
+
+Organize by priority:
+- Experience level: ${jobData.experience_level_required}
+- Must-have technical skills (core technologies)
+- Important soft skills
+- Nice-to-have skills
+
+Include modern, in-demand technologies relevant to this role. Be specific (e.g., "React.js" not just "JavaScript").`;
+          schema = { type: 'object', properties: { 
+            must_have: { type: 'array', items: { type: 'string' } },
+            nice_to_have: { type: 'array', items: { type: 'string' } }
+          } };
           break;
 
         case 'benefits':
@@ -355,22 +387,46 @@ These should be answerable in 1-2 minutes each. Focus on introduction, motivatio
 
               {suggestions.skills && (
                 <Card className="p-3 bg-pink-50 border-pink-200 mb-4">
-                  <p className="text-sm font-medium text-pink-700 mb-2">Suggested Skills:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {suggestions.skills.skills?.map((skill, i) => (
-                      <Badge
-                        key={i}
-                        className="cursor-pointer bg-white hover:bg-pink-100 text-pink-600 border border-pink-200"
-                        onClick={() => {
-                          if (!jobData.skills_required.includes(skill)) {
-                            updateJob('skills_required', [...jobData.skills_required, skill]);
-                          }
-                        }}
-                      >
-                        <Plus className="w-3 h-3 mr-1" /> {skill}
-                      </Badge>
-                    ))}
-                  </div>
+                  {suggestions.skills.must_have?.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-sm font-medium text-pink-700 mb-2">Must-Have Skills:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.skills.must_have.map((skill, i) => (
+                          <Badge
+                            key={i}
+                            className="cursor-pointer bg-pink-600 hover:bg-pink-700 text-white"
+                            onClick={() => {
+                              if (!jobData.skills_required.includes(skill)) {
+                                updateJob('skills_required', [...jobData.skills_required, skill]);
+                              }
+                            }}
+                          >
+                            <Plus className="w-3 h-3 mr-1" /> {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {suggestions.skills.nice_to_have?.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-pink-700 mb-2">Nice-to-Have:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.skills.nice_to_have.map((skill, i) => (
+                          <Badge
+                            key={i}
+                            className="cursor-pointer bg-white hover:bg-pink-100 text-pink-600 border border-pink-200"
+                            onClick={() => {
+                              if (!jobData.skills_required.includes(skill)) {
+                                updateJob('skills_required', [...jobData.skills_required, skill]);
+                              }
+                            }}
+                          >
+                            <Plus className="w-3 h-3 mr-1" /> {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </Card>
               )}
 
