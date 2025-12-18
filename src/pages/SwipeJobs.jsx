@@ -262,31 +262,60 @@ export default function SwipeJobs() {
         </div>
 
         {/* Card Stack */}
-        <div className="relative h-[480px] mb-8">
+        <div className="relative h-[520px] mb-8"
+          style={{
+            touchAction: 'pan-y pinch-zoom'
+          }}
+        >
           {currentJob ? (
             <>
-              {/* Background card */}
+              {/* Background cards for depth */}
+              {jobs[currentIndex + 2] && (
+                <motion.div 
+                  className="absolute inset-0 scale-90 opacity-30"
+                  initial={{ scale: 0.85, opacity: 0.2 }}
+                  animate={{ scale: 0.90, opacity: 0.3 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <JobCard
+                    job={jobs[currentIndex + 2]}
+                    company={companies[jobs[currentIndex + 2].company_id]}
+                    isFlipped={false}
+                  />
+                </motion.div>
+              )}
               {jobs[currentIndex + 1] && (
-                <div className="absolute inset-0 scale-95 opacity-50">
+                <motion.div 
+                  className="absolute inset-0 scale-95 opacity-50"
+                  initial={{ scale: 0.90, opacity: 0.3 }}
+                  animate={{ scale: 0.95, opacity: 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <JobCard
                     job={jobs[currentIndex + 1]}
                     company={companies[jobs[currentIndex + 1].company_id]}
                     isFlipped={false}
                   />
-                </div>
+                </motion.div>
               )}
 
               {/* Active card */}
               <motion.div
-                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform"
+                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
                 style={{ x, rotate, opacity }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.1}
-                dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
+                dragElastic={0.2}
+                dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
                 onDragEnd={handleDragEnd}
-                whileDrag={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
+                whileTap={{ scale: 1.01 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 600, 
+                  damping: 35,
+                  mass: 0.8
+                }}
               >
                 <JobCard
                                         job={currentJob}

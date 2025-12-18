@@ -288,7 +288,11 @@ export default function SwipeCandidates() {
         </div>
 
         {/* Card Stack */}
-        <div className="relative h-[500px] mb-8">
+        <div className="relative h-[540px] mb-8"
+          style={{
+            touchAction: 'pan-y pinch-zoom'
+          }}
+        >
           {!selectedJobId ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-lg">
               <Briefcase className="w-16 h-16 text-gray-300 mb-4" />
@@ -297,29 +301,54 @@ export default function SwipeCandidates() {
             </div>
           ) : currentCandidate ? (
             <>
-              {/* Background card */}
-                              {candidates[currentIndex + 1] && (
-                                <div className="absolute inset-0 scale-95 opacity-50">
-                                  <CandidateCard
-                                    candidate={candidates[currentIndex + 1]}
-                                    user={users[candidates[currentIndex + 1].user_id]}
-                                    isFlipped={false}
-                                  />
-                                </div>
-                              )}
+              {/* Background cards for depth */}
+              {candidates[currentIndex + 2] && (
+                <motion.div 
+                  className="absolute inset-0 scale-90 opacity-30"
+                  initial={{ scale: 0.85, opacity: 0.2 }}
+                  animate={{ scale: 0.90, opacity: 0.3 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <CandidateCard
+                    candidate={candidates[currentIndex + 2]}
+                    user={users[candidates[currentIndex + 2].user_id]}
+                    isFlipped={false}
+                  />
+                </motion.div>
+              )}
+              {candidates[currentIndex + 1] && (
+                <motion.div 
+                  className="absolute inset-0 scale-95 opacity-50"
+                  initial={{ scale: 0.90, opacity: 0.3 }}
+                  animate={{ scale: 0.95, opacity: 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <CandidateCard
+                    candidate={candidates[currentIndex + 1]}
+                    user={users[candidates[currentIndex + 1].user_id]}
+                    isFlipped={false}
+                  />
+                </motion.div>
+              )}
 
               {/* Active card */}
-                              <motion.div
-                                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform"
-                                style={{ x, rotate, opacity }}
-                                drag="x"
-                                dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={0.1}
-                                dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
-                                onDragEnd={handleDragEnd}
-                                whileDrag={{ scale: 1.02 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                              >
+              <motion.div
+                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
+                style={{ x, rotate, opacity }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
+                onDragEnd={handleDragEnd}
+                whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
+                whileTap={{ scale: 1.01 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 600, 
+                  damping: 35,
+                  mass: 0.8
+                }}
+              >
                                 <CandidateCard
                                   candidate={currentCandidate}
                                   user={currentCandidateUser}
