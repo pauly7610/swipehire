@@ -12,6 +12,7 @@ import { Loader2, Inbox, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import QuickApplyModal from '@/components/candidate/QuickApplyModal';
+import DealBreakerModal from '@/components/matching/DealBreakerModal';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export default function SwipeJobs() {
   const [swipeCount, setSwipeCount] = useState(0);
   const [showQuickApply, setShowQuickApply] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showDealBreakerModal, setShowDealBreakerModal] = useState(false);
+  const [pendingDealBreakerSwipe, setPendingDealBreakerSwipe] = useState(null);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
@@ -223,6 +226,13 @@ export default function SwipeJobs() {
   };
 
   const triggerSwipe = (direction) => {
+    // Check for deal breakers on right swipe
+    if (direction === 'right' && dealBreakerWarnings.length > 0) {
+      setPendingDealBreakerSwipe({ direction, job: currentJob });
+      setShowDealBreakerModal(true);
+      return;
+    }
+    
     // Show feedback dialog every 5 swipes
     if ((swipeCount + 1) % 5 === 0) {
       setPendingSwipe({ direction, job: currentJob });
@@ -446,6 +456,25 @@ export default function SwipeJobs() {
                     is_positive: true,
                     comment: applyData.coverLetter 
                   });
+                }}
+              />
+
+              {/* Deal Breaker Modal */}
+              <DealBreakerModal
+                open={showDealBreakerModal}
+                onOpenChange={setShowDealBreakerModal}
+                dealBreakers={dealBreakerWarnings}
+                targetName="job"
+                onProceed={() => {
+                  setShowDealBreakerModal(false);
+                  if (pendingDealBreakerSwipe) {
+                    handleSwipe(pendingDealBreakerSwipe.direction);
+                    setPendingDealBreakerSwipe(null);
+                  }
+                }}
+                onCancel={() => {
+                  setShowDealBreakerModal(false);
+                  setPendingDealBreakerSwipe(null);
                 }}
               />
               </div>

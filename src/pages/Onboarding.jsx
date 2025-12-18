@@ -52,6 +52,37 @@ export default function Onboarding() {
     size: '11-50'
   });
 
+  // Load draft data on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('onboarding_draft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        if (draft.userType === 'candidate' && draft.candidateData) {
+          setCandidateData(draft.candidateData);
+        } else if (draft.userType === 'employer') {
+          if (draft.recruiterData) setRecruiterData(draft.recruiterData);
+          if (draft.companyData) setCompanyData(draft.companyData);
+        }
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
+    }
+  }, []);
+
+  // Auto-save draft
+  useEffect(() => {
+    if (userType && step > 1) {
+      const draft = {
+        userType,
+        candidateData: userType === 'candidate' ? candidateData : null,
+        recruiterData: userType === 'employer' ? recruiterData : null,
+        companyData: userType === 'employer' ? companyData : null
+      };
+      localStorage.setItem('onboarding_draft', JSON.stringify(draft));
+    }
+  }, [candidateData, recruiterData, companyData, userType, step]);
+
   useEffect(() => {
     let mounted = true;
     
@@ -212,6 +243,7 @@ export default function Onboarding() {
         if (profileFound) {
           localStorage.setItem('swipehire_view_mode', 'candidate');
           localStorage.removeItem('swipehire_selected_role');
+          localStorage.removeItem('onboarding_draft'); // Clear draft
           navigate(createPageUrl('SwipeJobs'), { replace: true });
         } else {
           console.error('Profile creation timeout');
@@ -245,6 +277,7 @@ export default function Onboarding() {
         if (companyFound) {
           localStorage.setItem('swipehire_view_mode', 'employer');
           localStorage.removeItem('swipehire_selected_role');
+          localStorage.removeItem('onboarding_draft'); // Clear draft
           navigate(createPageUrl('EmployerDashboard'), { replace: true });
         } else {
           console.error('Company creation timeout');
