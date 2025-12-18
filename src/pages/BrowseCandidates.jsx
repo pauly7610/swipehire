@@ -20,6 +20,7 @@ export default function BrowseCandidates() {
   const [company, setCompany] = useState(null);
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [usersMap, setUsersMap] = useState({});
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,11 +76,17 @@ export default function BrowseCandidates() {
       setCompany(companyData);
 
       // Load all data in parallel for better performance
-      const [allCandidates, favs, companyJobs] = await Promise.all([
+      const [allCandidates, favs, companyJobs, allUsers] = await Promise.all([
         base44.entities.Candidate.list(),
         base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }),
-        base44.entities.Job.filter({ company_id: companyData.id, is_active: true })
+        base44.entities.Job.filter({ company_id: companyData.id, is_active: true }),
+        base44.entities.User.list()
       ]);
+
+      // Create users map
+      const userMapping = {};
+      allUsers.forEach(u => { userMapping[u.id] = u; });
+      setUsersMap(userMapping);
 
       setCandidates(allCandidates);
       setFavorites(favs);
@@ -529,11 +536,13 @@ export default function BrowseCandidates() {
                     <div className="flex items-start justify-between gap-4 mb-1">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg text-gray-900 truncate mb-1">
-                          {candidate.headline || 'Professional'}
+                          {usersMap[candidate.user_id]?.full_name || candidate.headline || 'Professional'}
                         </h3>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
+                          {candidate.headline && <span>{candidate.headline}</span>}
+                          {candidate.headline && candidate.industry && <span>•</span>}
                           {candidate.industry && <span>{candidate.industry}</span>}
-                          {candidate.industry && candidate.location && <span>•</span>}
+                          {(candidate.headline || candidate.industry) && candidate.location && <span>•</span>}
                           {candidate.location && (
                             <div className="flex items-center gap-1">
                               <MapPin className="w-3.5 h-3.5" />
