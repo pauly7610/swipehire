@@ -254,12 +254,11 @@ export default function Layout({ children, currentPageName }) {
                                     { name: 'Browse', icon: Search, page: 'BrowseCandidates', mobile: false },
                                     { name: 'Swipe', icon: Users, page: 'SwipeCandidates', mobile: true },
                                     { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: false },
-                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false },
                                     { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
                                     { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
                                     { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
                                     { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
-                                    ...(isMainAdmin ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : []),
+                                    ...(isMainAdmin ? [{ name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false }, { name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : [{ name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false }]),
                                   ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;

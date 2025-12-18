@@ -494,11 +494,12 @@ export default function BrowseCandidates() {
           {filteredCandidates.map((candidate) => (
             <Card 
               key={candidate.id} 
-              className={`hover:shadow-lg transition-all group relative ${selectedCandidates.includes(candidate.id) ? 'ring-2 ring-pink-500' : ''}`}
+              className={`overflow-hidden hover:shadow-2xl transition-all duration-300 group relative border-0 ${selectedCandidates.includes(candidate.id) ? 'ring-2 ring-pink-500' : ''}`}
             >
-              <CardContent className="pt-6">
+              {/* Background Gradient */}
+              <div className="h-24 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 relative">
                 {/* Select Checkbox */}
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-3 left-3 z-10">
                   <input
                     type="checkbox"
                     checked={selectedCandidates.includes(candidate.id)}
@@ -506,18 +507,18 @@ export default function BrowseCandidates() {
                       e.stopPropagation();
                       toggleSelectCandidate(candidate.id);
                     }}
-                    className="w-5 h-5 rounded border-gray-300 text-pink-500 focus:ring-pink-500 cursor-pointer"
+                    className="w-5 h-5 rounded border-white text-pink-500 focus:ring-pink-500 cursor-pointer bg-white/20 backdrop-blur-sm"
                   />
                 </div>
 
                 {/* Favorite Button */}
-                <div className="absolute top-4 right-4 z-10">
+                <div className="absolute top-3 right-3 z-10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleFavoriteToggle(candidate.id);
                     }}
-                    className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:scale-110 transition-transform"
+                    className="w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
                   >
                     <Heart
                       className={`w-5 h-5 ${isFavorited(candidate.id) ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`}
@@ -525,82 +526,89 @@ export default function BrowseCandidates() {
                   </button>
                 </div>
 
-                <div>
-                  {/* Profile Photo */}
-                  <div className="flex justify-center mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                    {candidate.photo_url ? (
-                      <img
-                        src={candidate.photo_url}
-                        alt={candidate.headline}
-                        className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-lg">
-                        <User className="w-12 h-12 text-pink-400" />
-                      </div>
-                    )}
+                {/* Experience Badge */}
+                {candidate.experience_level && (
+                  <div className="absolute bottom-3 left-3">
+                    <Badge className="bg-white/90 backdrop-blur-sm text-pink-600 capitalize border-0">
+                      {candidate.experience_level}
+                    </Badge>
                   </div>
+                )}
+              </div>
 
-                  {/* Info */}
-                  <div className="text-center mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                    <h3 className="font-bold text-lg text-gray-900 mb-1">{candidate.headline || 'Professional'}</h3>
-                    {candidate.industry && (
-                      <p className="text-sm text-gray-600 mb-2">{candidate.industry}</p>
-                    )}
-                    {candidate.location && (
-                      <div className="flex items-center justify-center gap-1 text-gray-500 text-sm">
-                        <MapPin className="w-4 h-4" />
-                        <span>{candidate.location}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Experience */}
-                  {(candidate.experience_level || candidate.experience_years) && (
-                    <div className="flex items-center justify-center gap-2 mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                      <Briefcase className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {candidate.experience_level && <span className="capitalize">{candidate.experience_level}</span>}
-                        {candidate.experience_level && candidate.experience_years && ' • '}
-                        {candidate.experience_years && <span>{candidate.experience_years} years</span>}
-                      </span>
+              <CardContent className="pt-0 px-4 pb-4">
+                {/* Profile Photo */}
+                <div className="flex justify-center -mt-12 mb-3 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                  {candidate.photo_url ? (
+                    <img
+                      src={candidate.photo_url}
+                      alt={candidate.headline}
+                      className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center border-4 border-white shadow-xl">
+                      <User className="w-12 h-12 text-pink-400" />
                     </div>
                   )}
-
-                  {/* Bio */}
-                  {candidate.bio && (
-                    <p className="text-sm text-gray-600 text-center mb-4 line-clamp-2 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                      {candidate.bio}
-                    </p>
-                  )}
-
-                  {/* Skills */}
-                  {candidate.skills && candidate.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 justify-center cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
-                      {candidate.skills.slice(0, 5).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {candidate.skills.length > 5 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{candidate.skills.length - 5} more
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-
-                  {/* View Profile Button */}
-                  <Button
-                    className="w-full mt-4 swipe-gradient text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`);
-                    }}
-                  >
-                    View Profile
-                  </Button>
                 </div>
+
+                {/* Info */}
+                <div className="text-center mb-3 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                  <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{candidate.headline || 'Professional'}</h3>
+                  {candidate.industry && (
+                    <p className="text-sm text-gray-600 mb-1">{candidate.industry}</p>
+                  )}
+                  {candidate.location && (
+                    <div className="flex items-center justify-center gap-1 text-gray-500 text-sm">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{candidate.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Experience Years */}
+                {candidate.experience_years && (
+                  <div className="flex items-center justify-center gap-2 mb-3 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full">
+                      <Briefcase className="w-4 h-4 text-pink-500" />
+                      <span className="text-sm font-medium text-gray-700">{candidate.experience_years} years</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bio */}
+                {candidate.bio && (
+                  <p className="text-sm text-gray-600 text-center mb-3 line-clamp-2 px-2 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                    {candidate.bio}
+                  </p>
+                )}
+
+                {/* Skills */}
+                {candidate.skills && candidate.skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 justify-center mb-4 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                    {candidate.skills.slice(0, 4).map((skill) => (
+                      <Badge key={skill} className="text-xs bg-gradient-to-r from-pink-50 to-orange-50 text-pink-600 border-pink-200">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {candidate.skills.length > 4 && (
+                      <Badge className="text-xs bg-gray-100 text-gray-600">
+                        +{candidate.skills.length - 4}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* View Profile Button */}
+                <Button
+                  className="w-full swipe-gradient text-white hover:shadow-lg transition-shadow"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`);
+                  }}
+                >
+                  View Full Profile
+                </Button>
               </CardContent>
             </Card>
           ))}
