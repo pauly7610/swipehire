@@ -98,10 +98,10 @@ export default function SwipeJobs() {
   const currentCompany = currentJob ? companies[currentJob.company_id] : null;
 
   // Check deal breakers and calculate match score for current job
-    useEffect(() => {
-      if (currentJob && candidate) {
-        const company = companies[currentJob.company_id];
-        if (company) {
+  useEffect(() => {
+    if (currentJob && candidate && currentJob.company_id) {
+      const company = companies[currentJob.company_id] || null;
+      if (company) {
           const { violations } = checkDealBreakers(candidate, currentJob, company);
           setDealBreakerWarnings(violations);
 
@@ -167,9 +167,9 @@ export default function SwipeJobs() {
         });
 
         const mutualSwipe = employerSwipes.find(s => s.direction === 'right' || s.direction === 'super');
-        
+
         if (mutualSwipe) {
-          const company = companies[currentJob.company_id];
+          const company = companies[currentJob.company_id] || null;
           // Create match
           const match = await base44.entities.Match.create({
             candidate_id: candidate.id,
