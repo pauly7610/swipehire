@@ -16,6 +16,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import AIJobWizard from '@/components/jobs/AIJobWizard';
+import AIJobDescriptionAssistant from '@/components/jobs/AIJobDescriptionAssistant';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import LocationSelect from '@/components/shared/LocationSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
@@ -260,6 +261,21 @@ export default function PostJob() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
+            {/* AI Assistant */}
+            <AIJobDescriptionAssistant
+              jobData={jobData}
+              onApply={(generated) => {
+                setJobData({
+                  ...jobData,
+                  description: generated.description || jobData.description,
+                  responsibilities: generated.responsibilities || jobData.responsibilities,
+                  requirements: generated.requirements || jobData.requirements,
+                  benefits: generated.benefits || jobData.benefits,
+                  skills_required: [...new Set([...jobData.skills_required, ...(generated.suggested_keywords || [])])]
+                });
+              }}
+            />
+
             <div>
               <Label className="text-gray-700 text-base">Job Description *</Label>
               <Textarea
