@@ -40,10 +40,16 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
 
     // Auto-save notes every 30 seconds
     autoSaveRef.current = setInterval(() => {
-      if (notes && isRecruiter) {
+      if (notes) {
         saveNotes(true);
       }
     }, 30000);
+
+    // Check transcription support on mount
+    const hasTranscriptionSupport = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    if (!hasTranscriptionSupport) {
+      setTranscriptionStatus('⚠️ Auto-transcription requires Chrome or Edge browser');
+    }
 
     return () => {
       endCall();
@@ -70,11 +76,35 @@ export default function LiveVideoRoom({ interview, candidate, candidateUser, job
   const endCall = async () => {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
     }
+    setInCall(false);
+    
     // Save notes before ending
-    if (notes && isRecruiter) {
+    if (notes) {
       await saveNotes(false);
     }
+    
+    // Mark interview as completed
+    if (interview?.id && isRecruiter) {
+      await base44.entities.Interview.update(interview.id, { 
+        status: 'completed' 
+      });
+    }
+
+    // Notify other party that call ended
+    if (match?.id) {
+      const otherUserId = isRecruiter ? match.candidate_user_id : match.company_user_id;
+      await base44.entities.Notification.create({
+        user_id: otherUserId,
+        type: 'system',
+        title: 'Interview Ended',
+        message: `${candidateUser?.full_name || company?.name || 'The other party'} has ended the video interview.`,
+        match_id: match.id,
+        navigate_to: 'CommunicationHub'
+      });
+    }
+    
     if (onEnd) onEnd();
   };
 
