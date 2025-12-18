@@ -86,9 +86,9 @@ export default function RecruiterProfile() {
         setAverageRating(avg);
       }
 
-      // Set edit data from user
+      // Set edit data from user - keep all existing data
       setEditData({
-        full_name: currentUser.full_name,
+        full_name: currentUser.full_name || '',
         title: currentUser.title || '',
         workplace: currentUser.workplace || '',
         bio: currentUser.bio || '',
@@ -96,7 +96,10 @@ export default function RecruiterProfile() {
         linkedin_url: currentUser.linkedin_url || '',
         photo_url: currentUser.photo_url || '',
         years_recruiting: currentUser.years_recruiting || '',
-        specialties: currentUser.specialties || []
+        specialties: currentUser.specialties || [],
+        recruiter_name: currentUser.recruiter_name || '',
+        recruiter_title: currentUser.recruiter_title || '',
+        recruiter_photo: currentUser.recruiter_photo || ''
       });
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -126,7 +129,12 @@ export default function RecruiterProfile() {
 
   const handleSave = async () => {
     try {
-      await base44.auth.updateMe(editData);
+      // Merge with existing user data to preserve all fields
+      const updateData = {
+        ...user,
+        ...editData
+      };
+      await base44.auth.updateMe(updateData);
       setUser({ ...user, ...editData });
       setEditing(false);
     } catch (err) {
