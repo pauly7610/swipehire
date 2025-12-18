@@ -236,84 +236,41 @@ export default function RecruiterProfile() {
                 </div>
               </div>
 
-              <Button 
-                variant={editing ? "default" : "outline"} 
-                onClick={() => editing ? handleSave() : setEditing(true)}
-                className={`self-start md:mt-4 h-10 md:h-auto ${editing ? 'swipe-gradient text-white' : ''}`}
-              >
-                {editing ? 'Save' : <><Edit2 className="w-4 h-4 mr-1 md:mr-2" /> Edit</>}
-              </Button>
+
             </div>
 
             {/* Recruiter Info */}
             <div className="mt-4">
-              {editing ? (
-                <div className="space-y-3 md:space-y-4">
-                  <div>
-                    <Label className="text-sm">Full Name</Label>
-                    <Input value={editData.full_name || ''} onChange={(e) => setEditData({ ...editData, full_name: e.target.value })} className="mt-1 h-11" />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Title / Role</Label>
-                    <Input placeholder="e.g., Senior Technical Recruiter" value={editData.title || ''} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="mt-1 h-11" />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Current Workplace</Label>
-                    <Input placeholder="Where do you work?" value={editData.workplace || ''} onChange={(e) => setEditData({ ...editData, workplace: e.target.value })} className="mt-1 h-11" />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Bio</Label>
-                    <Textarea placeholder="Tell candidates about yourself..." value={editData.bio || ''} onChange={(e) => setEditData({ ...editData, bio: e.target.value })} className="mt-1" rows={3} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm">Phone</Label>
-                      <Input placeholder="+1 (555) 000-0000" value={editData.phone || ''} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} className="mt-1 h-11" />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Years Recruiting</Label>
-                      <Input type="number" placeholder="5" value={editData.years_recruiting || ''} onChange={(e) => setEditData({ ...editData, years_recruiting: e.target.value })} className="mt-1 h-11" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm">LinkedIn URL</Label>
-                    <Input placeholder="https://linkedin.com/in/..." value={editData.linkedin_url || ''} onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })} className="mt-1 h-11" />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">{user?.full_name}</h1>
-                  <p className="text-sm md:text-base text-gray-600 mt-1">
-                    {user?.title || 'Recruiter'}
-                    {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
-                  </p>
-                  {user?.bio && <p className="text-gray-500 text-sm mt-2 leading-relaxed">{user.bio}</p>}
-                  
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-3 text-gray-500 text-xs md:text-sm">
-                    {user?.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3 md:w-4 md:h-4" />
-                        <span className="truncate">{user.email}</span>
-                      </span>
-                    )}
-                    {user?.years_recruiting && (
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-3 h-3 md:w-4 md:h-4" />
-                        {user.years_recruiting}+ years
-                      </span>
-                    )}
-                  </div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{user?.full_name}</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                {user?.title || 'Recruiter'}
+                {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
+              </p>
+              {user?.bio && <p className="text-gray-500 text-sm mt-2 leading-relaxed">{user.bio}</p>}
+              
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-3 text-gray-500 text-xs md:text-sm">
+                {user?.email && (
+                  <span className="flex items-center gap-1">
+                    <Mail className="w-3 h-3 md:w-4 md:h-4" />
+                    <span className="truncate">{user.email}</span>
+                  </span>
+                )}
+                {user?.years_recruiting && (
+                  <span className="flex items-center gap-1">
+                    <Briefcase className="w-3 h-3 md:w-4 md:h-4" />
+                    {user.years_recruiting}+ years
+                  </span>
+                )}
+              </div>
 
-                  {/* Social Links */}
-                  {user?.linkedin_url && (
-                    <div className="flex gap-3 mt-3">
-                      <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer"
-                         className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
-                        <Linkedin className="w-5 h-5 text-blue-600" />
-                      </a>
-                    </div>
-                  )}
-                </>
+              {/* Social Links */}
+              {user?.linkedin_url && (
+                <div className="flex gap-3 mt-3">
+                  <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer"
+                     className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                    <Linkedin className="w-5 h-5 text-blue-600" />
+                  </a>
+                </div>
               )}
             </div>
 
@@ -364,6 +321,9 @@ export default function RecruiterProfile() {
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex-shrink-0 px-3 md:flex-1 text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               Reviews
+            </TabsTrigger>
+            <TabsTrigger value="edit" className="flex-shrink-0 px-3 md:flex-1 text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+              Edit Profile
             </TabsTrigger>
           </TabsList>
 
@@ -602,6 +562,53 @@ export default function RecruiterProfile() {
               companyId={company?.id}
               canLeaveFeedback={false}
             />
+          </TabsContent>
+
+          <TabsContent value="edit" className="space-y-4 md:space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base md:text-lg">Edit Your Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 md:space-y-4">
+                <div>
+                  <Label className="text-sm">Full Name</Label>
+                  <Input value={editData.full_name || ''} onChange={(e) => setEditData({ ...editData, full_name: e.target.value })} className="mt-1 h-11" />
+                </div>
+                <div>
+                  <Label className="text-sm">Title / Role</Label>
+                  <Input placeholder="e.g., Senior Technical Recruiter" value={editData.title || ''} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="mt-1 h-11" />
+                </div>
+                <div>
+                  <Label className="text-sm">Current Workplace</Label>
+                  <Input placeholder="Where do you work?" value={editData.workplace || ''} onChange={(e) => setEditData({ ...editData, workplace: e.target.value })} className="mt-1 h-11" />
+                </div>
+                <div>
+                  <Label className="text-sm">Bio</Label>
+                  <Textarea placeholder="Tell candidates about yourself..." value={editData.bio || ''} onChange={(e) => setEditData({ ...editData, bio: e.target.value })} className="mt-1" rows={4} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sm">Phone</Label>
+                    <Input placeholder="+1 (555) 000-0000" value={editData.phone || ''} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} className="mt-1 h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-sm">Years Recruiting</Label>
+                    <Input type="number" placeholder="5" value={editData.years_recruiting || ''} onChange={(e) => setEditData({ ...editData, years_recruiting: e.target.value })} className="mt-1 h-11" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm">LinkedIn URL</Label>
+                  <Input placeholder="https://linkedin.com/in/..." value={editData.linkedin_url || ''} onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })} className="mt-1 h-11" />
+                </div>
+                
+                <Button 
+                  onClick={handleSave}
+                  className="w-full swipe-gradient text-white h-11 md:h-12 text-sm md:text-base"
+                >
+                  Save Changes
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
