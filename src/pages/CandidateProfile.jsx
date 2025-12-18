@@ -239,27 +239,28 @@ export default function CandidateProfile() {
       `}</style>
 
       {/* Header Banner */}
-      <div className="swipe-gradient h-32 relative">
+      <div className="swipe-gradient h-40 md:h-32 relative">
         {/* Edit/Save Button - Top Right */}
         <div className="absolute top-4 right-4">
           <Button
             variant={editing ? "default" : "outline"}
             onClick={() => editing ? handleSave() : setEditing(true)}
-            className={editing ? "bg-white text-pink-600 shadow-lg" : "bg-white border-white text-gray-900 shadow-lg"}
+            className={editing ? "bg-white text-pink-600 shadow-lg h-9 md:h-auto text-xs md:text-sm" : "bg-white border-white text-gray-900 shadow-lg h-9 md:h-auto text-xs md:text-sm"}
           >
             {editing ? (
-              <>Save Changes</>
+              <>Save</>
             ) : (
               <>
-                <Edit2 className="w-4 h-4 mr-2" /> 
-                Edit Profile
+                <Edit2 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" /> 
+                <span className="hidden md:inline">Edit Profile</span>
+                <span className="md:hidden">Edit</span>
               </>
             )}
           </Button>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 -mt-16">
+      <div className="max-w-2xl mx-auto px-4 md:px-6 -mt-20 md:-mt-16">
         {/* Profile Card */}
         <Card className="shadow-xl border-0 mb-6 overflow-visible">
           <CardContent className="pt-0">
@@ -301,28 +302,28 @@ export default function CandidateProfile() {
             </div>
 
             {/* Stats Row */}
-            <div className="flex gap-6 mt-4 mb-2">
+            <div className="grid grid-cols-4 gap-3 md:flex md:gap-6 mt-4 mb-2">
               <div className="text-center">
-                <p className="text-xl font-bold text-gray-900">{videoStats.posts}</p>
-                <p className="text-xs text-gray-500">Videos</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.posts}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Videos</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-bold text-gray-900">{followers}</p>
-                <p className="text-xs text-gray-500">Followers</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900">{followers}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Followers</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-bold text-gray-900">{videoStats.views}</p>
-                <p className="text-xs text-gray-500">Views</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.views}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Views</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-bold text-gray-900">{videoStats.likes}</p>
-                <p className="text-xs text-gray-500">Likes</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.likes}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Likes</p>
               </div>
             </div>
 
             {/* Info */}
             <div className="mt-4">
-              <h1 className="text-2xl font-bold text-gray-900">{user?.full_name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{user?.full_name}</h1>
               {editing ? (
                 <div className="space-y-3 mt-2">
                   <div>
@@ -464,30 +465,32 @@ export default function CandidateProfile() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="about" className="space-y-6">
-          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm">
-            <TabsTrigger value="about" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              About
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Videos
-            </TabsTrigger>
-            <TabsTrigger value="experience" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Experience
-            </TabsTrigger>
-            <TabsTrigger value="portfolio" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Portfolio
-            </TabsTrigger>
-            <TabsTrigger value="credentials" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Credentials
-            </TabsTrigger>
-            <TabsTrigger value="resume" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Resume Builder
-            </TabsTrigger>
-            <TabsTrigger value="tools" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
-              Career Tools
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="about" className="space-y-4 md:space-y-6">
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="w-max md:w-full bg-white rounded-xl p-1 shadow-sm inline-flex md:grid md:grid-cols-7">
+              <TabsTrigger value="about" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                About
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Videos
+              </TabsTrigger>
+              <TabsTrigger value="experience" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Experience
+              </TabsTrigger>
+              <TabsTrigger value="portfolio" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Portfolio
+              </TabsTrigger>
+              <TabsTrigger value="credentials" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Credentials
+              </TabsTrigger>
+              <TabsTrigger value="resume" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Resume
+              </TabsTrigger>
+              <TabsTrigger value="tools" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+                Tools
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="about" className="space-y-6">
             {/* Bio */}
@@ -772,12 +775,12 @@ export default function CandidateProfile() {
             {userVideos.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Video className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No videos posted yet</p>
+                  <Video className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-sm md:text-base text-gray-500">No videos posted yet</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                 {userVideos.map((video) => (
                   <div 
                     key={video.id}

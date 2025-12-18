@@ -16,7 +16,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Hero Photo Section */}
-            <div className="relative h-64 bg-gradient-to-br from-pink-500/10 via-orange-500/10 to-purple-500/10">
+            <div className="relative h-56 md:h-64 bg-gradient-to-br from-pink-500/10 via-orange-500/10 to-purple-500/10">
               {candidate?.photo_url ? (
                 <img 
                   src={candidate.photo_url} 
@@ -60,12 +60,12 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
               )}
 
               {/* Name & Title Overlay */}
-              <div className="absolute bottom-4 left-4 right-4">
+              <div className="absolute bottom-3 md:bottom-4 left-4 right-4">
                 <motion.h3 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-2xl font-bold text-white mb-1 drop-shadow-lg"
+                  className="text-xl md:text-2xl font-bold text-white mb-0.5 md:mb-1 drop-shadow-lg line-clamp-1"
                 >
                   {user?.full_name || 'Candidate'}
                 </motion.h3>
@@ -73,7 +73,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.15 }}
-                  className="text-white/90 font-medium drop-shadow-lg"
+                  className="text-sm md:text-base text-white/90 font-medium drop-shadow-lg line-clamp-1"
                 >
                   {candidate?.headline || 'Professional'}
                 </motion.p>
@@ -81,37 +81,37 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             </div>
 
             {/* Content Section */}
-            <div className="flex-1 px-6 py-4 overflow-y-auto"
+            <div className="flex-1 px-4 md:px-6 py-3 md:py-4 overflow-y-auto"
               style={{ 
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#FF005C20 transparent'
               }}
             >
               {/* Location & Experience */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
                 {candidate?.location && (
                   <motion.div 
                     whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-2xl p-3 border border-pink-100"
+                    className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl md:rounded-2xl p-2.5 md:p-3 border border-pink-100"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <MapPin className="w-4 h-4 text-pink-600" />
-                      <span className="text-xs text-pink-600 font-medium">Location</span>
+                    <div className="flex items-center gap-1.5 md:gap-2 mb-1">
+                      <MapPin className="w-3 h-3 md:w-4 md:h-4 text-pink-600" />
+                      <span className="text-[10px] md:text-xs text-pink-600 font-medium">Location</span>
                     </div>
-                    <p className="font-bold text-gray-900 text-sm">{candidate.location}</p>
+                    <p className="font-bold text-gray-900 text-xs md:text-sm leading-tight truncate">{candidate.location}</p>
                   </motion.div>
                 )}
                 
                 {candidate?.experience_years && (
                   <motion.div 
                     whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-3 border border-blue-100"
+                    className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl md:rounded-2xl p-2.5 md:p-3 border border-blue-100"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs text-blue-600 font-medium">Experience</span>
+                    <div className="flex items-center gap-1.5 md:gap-2 mb-1">
+                      <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
+                      <span className="text-[10px] md:text-xs text-blue-600 font-medium">Experience</span>
                     </div>
-                    <p className="font-bold text-gray-900 text-sm">{candidate.experience_years} years</p>
+                    <p className="font-bold text-gray-900 text-xs md:text-sm leading-tight">{candidate.experience_years} years</p>
                   </motion.div>
                 )}
               </div>
@@ -126,9 +126,9 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
               )}
 
               {/* Top Skills */}
-              <div className="mb-4">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Top Skills</h4>
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-3 md:mb-4">
+                <h4 className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Top Skills</h4>
+                <div className="flex flex-wrap gap-1.5 md:gap-2">
                   {candidate?.skills?.slice(0, 6).map((skill, i) => (
                     <motion.div
                       key={i}
@@ -136,13 +136,13 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.05 * i }}
                     >
-                      <Badge className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-3 py-1.5 shadow-sm">
+                      <Badge className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-2 py-1 md:px-3 md:py-1.5 shadow-sm text-[10px] md:text-xs">
                         {skill}
                       </Badge>
                     </motion.div>
                   ))}
                   {candidate?.skills?.length > 6 && (
-                    <Badge variant="outline" className="border-pink-200 text-pink-600">
+                    <Badge variant="outline" className="border-pink-200 text-pink-600 text-[10px] md:text-xs">
                       +{candidate.skills.length - 6} more
                     </Badge>
                   )}
@@ -165,15 +165,15 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="px-6 py-4 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
+            <div className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onFlip}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                className="w-full flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
               >
-                <span className="text-sm font-medium">View Full Profile</span>
-                <ChevronDown className="w-4 h-4" />
+                <span className="text-xs md:text-sm font-medium">Full Profile</span>
+                <ChevronDown className="w-3 h-3 md:w-4 md:h-4" />
               </motion.button>
             </div>
           </motion.div>
