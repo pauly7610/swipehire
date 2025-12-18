@@ -28,6 +28,8 @@ import ResumeAnalysis from '@/components/ats/ResumeAnalysis';
 import ResumeCompare from '@/components/ats/ResumeCompare';
 import DetailedMatchInsights from '@/components/matching/DetailedMatchInsights';
 import MatchFeedbackForm from '@/components/matching/MatchFeedbackForm';
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
+import analytics from '@/components/analytics/Analytics';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -1765,6 +1767,9 @@ export default function ATS() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Onboarding Tooltip */}
+      <OnboardingTooltip pageName="ATS" />
     </div>
   );
 }

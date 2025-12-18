@@ -97,14 +97,24 @@ export default function Welcome() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <motion.img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/04083b079_swipehire_no_bg.png"
-            alt="SwipeHire"
-            initial={{ x: -150, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-48 h-auto mx-auto mb-4"
-          />
+            className="flex justify-center mb-4"
+          >
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-2xl">
+              <span className="text-white font-bold text-5xl">S</span>
+            </div>
+          </motion.div>
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-4xl font-bold swipe-gradient-text mb-2"
+          >
+            SwipeHire
+          </motion.h1>
           <p className="text-gray-600">Welcome back! Let's find your next opportunity.</p>
         </div>
 

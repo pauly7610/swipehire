@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import InterviewNotification from '@/components/interview/InterviewNotification';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/shared/Logo';
+import { usePageTracking } from '@/components/analytics/Analytics';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -172,8 +174,8 @@ export default function Layout({ children, currentPageName }) {
         {/* Simple header for public pages */}
         <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <Link to={createPageUrl('Welcome')} className="text-xl font-bold swipe-gradient bg-clip-text text-transparent">
-              SwipeHire
+            <Link to={createPageUrl('Welcome')}>
+              <Logo size="sm" />
             </Link>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => {
@@ -334,8 +336,8 @@ export default function Layout({ children, currentPageName }) {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 flex-col z-50">
         <div className="p-6 flex items-center justify-between">
                     <div>
-                      <h1 className="text-2xl font-bold swipe-gradient-text">SwipeHire</h1>
-                      <p className="text-xs text-gray-500 mt-1">Swipe. Match. Interview. Hired.</p>
+                      <Logo size="md" />
+                      <p className="text-xs text-gray-500 mt-2">Swipe. Match. Hired.</p>
                     </div>
                     <NotificationBell />
                   </div>

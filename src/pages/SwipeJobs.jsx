@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import QuickApplyModal from '@/components/candidate/QuickApplyModal';
 import DealBreakerModal from '@/components/matching/DealBreakerModal';
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
+import analytics from '@/components/analytics/Analytics';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -109,6 +111,16 @@ export default function SwipeJobs() {
 
   const handleSwipe = async (direction, feedback = null) => {
     if (!currentJob || !user) return;
+
+    // Track analytics
+    analytics.track('Job Swiped', {
+      direction,
+      jobId: currentJob.id,
+      jobTitle: currentJob.title,
+      companyId: currentJob.company_id,
+      matchScore: currentMatchScore,
+      hasDealBreakers: dealBreakerWarnings.length > 0
+    });
 
     const swipeData = {
       swiper_id: user.id,
@@ -477,6 +489,9 @@ export default function SwipeJobs() {
                   setPendingDealBreakerSwipe(null);
                 }}
               />
+
+              {/* Onboarding Tooltip */}
+              <OnboardingTooltip pageName="SwipeJobs" />
               </div>
               );
               }
