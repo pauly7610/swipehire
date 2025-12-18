@@ -36,6 +36,10 @@ export default function BrowseJobs() {
   const [candidate, setCandidate] = useState(null);
   const [matchScores, setMatchScores] = useState({});
   const [sortBy, setSortBy] = useState('match');
+  const [showReferModal, setShowReferModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   const { calculateMatchScore } = useAIMatching();
 
@@ -79,12 +83,12 @@ export default function BrowseJobs() {
       const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
       setCandidate(candidateData);
 
-      // Calculate match scores for all jobs
+      // Calculate match scores for all jobs (synchronously to avoid rate limits)
       if (candidateData) {
         const scores = {};
         for (const job of allJobs) {
           const company = companyMap[job.company_id];
-          const result = await calculateMatchScore(candidateData, job, company);
+          const result = calculateMatchScore(candidateData, job, company, {});
           scores[job.id] = result.score;
         }
         setMatchScores(scores);
