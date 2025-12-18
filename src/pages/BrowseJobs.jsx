@@ -57,8 +57,6 @@ export default function BrowseJobs() {
 
   const loadData = async () => {
     try {
-      const isAuth = await base44.auth.isAuthenticated();
-      
       const [allJobs, allCompanies] = await Promise.all([
         base44.entities.Job.filter({ is_active: true }),
         base44.entities.Company.list()
@@ -70,28 +68,36 @@ export default function BrowseJobs() {
       allCompanies.forEach(c => { companyMap[c.id] = c; });
       setCompanies(companyMap);
 
-      if (!isAuth) {
-        setLoading(false);
-        return;
-      }
-
-      const currentUser = await base44.auth.me();
-      
-      setUser(currentUser);
-
-      // Get candidate profile for match scoring
-      const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
-      setCandidate(candidateData);
-
-      // Calculate match scores for all jobs (synchronously to avoid rate limits)
-      if (candidateData) {
-        const scores = {};
-        for (const job of allJobs) {
-          const company = companyMap[job.company_id];
-          const result = calculateMatchScore(candidateData, job, company, {});
-          scores[job.id] = result.score;
+      // Try to get authenticated user, but don't fail if not logged in
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) {
+          setLoading(false);
+          return;
         }
-        setMatchScores(scores);
+
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+
+        // Get candidate profile for match scoring
+        const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+        setCandidate(candidateData);
+
+        // Calculate match scores for all jobs (synchronously to avoid rate limits)
+        if (candidateData) {
+          const scores = {};
+          for (const job of allJobs) {
+            const company = companyMap[job.company_id];
+            if (company) {
+              const result = calculateMatchScore(candidateData, job, company, {});
+              scores[job.id] = result.score;
+            }
+          }
+          setMatchScores(scores);
+        }
+      } catch (authError) {
+        // User not authenticated - continue with public view
+        console.log('Not authenticated, showing public view');
       }
     } catch (error) {
       console.error('Failed to load jobs:', error);
