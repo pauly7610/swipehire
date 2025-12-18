@@ -16,15 +16,12 @@ export default function Logo({ size = 'md', className = '' }) {
   };
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`${sizes[size]} rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
-        <span className="text-white font-bold" style={{ fontSize: size === 'xl' ? '2rem' : size === 'lg' ? '1.5rem' : size === 'md' ? '1.25rem' : '1rem' }}>
-          S
-        </span>
-      </div>
-      <span className={`${textSizes[size]} font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent`}>
-        SwipeHire
-      </span>
+    <div className={`flex items-center ${className}`}>
+      <img 
+        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/a0f43e240_swipehireicon.png"
+        alt="SwipeHire"
+        className={`${sizes[size]} object-contain`}
+      />
     </div>
   );
 }
