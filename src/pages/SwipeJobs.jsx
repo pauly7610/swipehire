@@ -99,17 +99,23 @@ export default function SwipeJobs() {
 
   // Check deal breakers and calculate match score for current job
     useEffect(() => {
-      if (currentJob && candidate && currentCompany) {
-        const { violations } = checkDealBreakers(candidate, currentJob, currentCompany);
-        setDealBreakerWarnings(violations);
+      if (currentJob && candidate) {
+        const company = companies[currentJob.company_id];
+        if (company) {
+          const { violations } = checkDealBreakers(candidate, currentJob, company);
+          setDealBreakerWarnings(violations);
 
-        const { score } = calculateMatchScore(candidate, currentJob, currentCompany);
-        setCurrentMatchScore(score);
+          const { score } = calculateMatchScore(candidate, currentJob, company);
+          setCurrentMatchScore(score);
+        } else {
+          setDealBreakerWarnings([]);
+          setCurrentMatchScore(null);
+        }
       } else {
         setDealBreakerWarnings([]);
         setCurrentMatchScore(null);
       }
-    }, [currentJob, candidate, currentCompany, checkDealBreakers, calculateMatchScore]);
+    }, [currentJob, candidate, companies, checkDealBreakers, calculateMatchScore]);
 
   const handleSwipe = async (direction, feedback = null) => {
     if (!currentJob || !user) return;
@@ -142,9 +148,10 @@ export default function SwipeJobs() {
     // Check for mutual match (if employer swiped right on this candidate for this job)
     if (direction === 'right' || direction === 'super') {
       // Notify the employer (anonymous) that someone swiped on their job
-      if (currentCompany?.user_id) {
+      const company = companies[currentJob.company_id];
+      if (company?.user_id) {
         await base44.entities.Notification.create({
-          user_id: currentCompany.user_id,
+          user_id: company.user_id,
           type: 'system',
           title: '👀 Someone is interested!',
           message: `A candidate swiped right on your ${currentJob.title} position. Check your candidates to find them!`
@@ -162,37 +169,38 @@ export default function SwipeJobs() {
         const mutualSwipe = employerSwipes.find(s => s.direction === 'right' || s.direction === 'super');
         
         if (mutualSwipe) {
+          const company = companies[currentJob.company_id];
           // Create match
           const match = await base44.entities.Match.create({
             candidate_id: candidate.id,
             company_id: currentJob.company_id,
             job_id: currentJob.id,
             candidate_user_id: user.id,
-            company_user_id: currentCompany?.user_id,
+            company_user_id: company?.user_id,
             match_score: currentMatchScore || 85
           });
-          
+
           // Notify both parties
           await Promise.all([
             base44.entities.Notification.create({
               user_id: user.id,
               type: 'new_match',
               title: '🎉 It\'s a Match!',
-              message: `You matched with ${currentCompany?.name} for ${currentJob.title}!`,
+              message: `You matched with ${company?.name || 'a company'} for ${currentJob.title}!`,
               match_id: match.id,
               job_id: currentJob.id
             }),
-            base44.entities.Notification.create({
-              user_id: currentCompany?.user_id,
+            company?.user_id ? base44.entities.Notification.create({
+              user_id: company.user_id,
               type: 'new_match',
               title: '🎉 It\'s a Match!',
               message: `You matched with a candidate for ${currentJob.title}!`,
               match_id: match.id,
               job_id: currentJob.id
-            })
+            }) : Promise.resolve()
           ]);
-          
-          setMatchData({ match, job: currentJob, company: currentCompany, candidate });
+
+          setMatchData({ match, job: currentJob, company: company, candidate });
           setShowMatch(true);
         }
       }
