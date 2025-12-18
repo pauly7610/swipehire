@@ -46,8 +46,9 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 </motion.div>
               )}
 
-              <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`} className="relative z-20">
-                {company?.logo_url ? (
+              {company?.id && (
+                <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`} className="relative z-20">
+                  {company.logo_url ? (
                   <motion.img 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -63,8 +64,16 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   >
                     <Building2 className="w-8 h-8 md:w-10 md:h-10 text-white" />
                   </motion.div>
-                )}
-              </Link>
+                  )}
+                </Link>
+              )}
+              {!company?.id && (
+                <div className="relative z-20">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-xl border-3 md:border-4 border-white">
+                    <Building2 className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                  </div>
+                </div>
+              )}
               
               <div className="absolute bottom-3 md:bottom-4 left-4 md:left-6 right-4 md:right-6">
                 <motion.h3 
@@ -75,17 +84,28 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 >
                   {job.title}
                 </motion.h3>
-                <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}>
-                  <motion.span 
+                {company?.id ? (
+                  <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
+                    <motion.span 
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.15 }}
                     className="text-sm md:text-base text-gray-600 font-medium hover:text-pink-500 transition-colors inline-flex items-center gap-1"
                   >
-                    {company?.name || 'Company'}
-                    <ExternalLink className="w-3 h-3" />
+                      {company.name || 'Company'}
+                      <ExternalLink className="w-3 h-3" />
+                    </motion.span>
+                  </Link>
+                ) : (
+                  <motion.span 
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-sm md:text-base text-gray-600 font-medium"
+                  >
+                    Company
                   </motion.span>
-                </Link>
+                )}
               </div>
             </div>
 
@@ -293,13 +313,15 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 )}
 
                 <div className="space-y-2">
-                  <Link to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button variant="outline" size="sm" className="w-full border-pink-200 text-pink-600 hover:bg-pink-50">
-                        <Building2 className="w-4 h-4 mr-2" /> View Company Profile
-                      </Button>
-                    </motion.div>
-                  </Link>
+                  {company?.id && (
+                    <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button variant="outline" size="sm" className="w-full border-pink-200 text-pink-600 hover:bg-pink-50">
+                          <Building2 className="w-4 h-4 mr-2" /> View Company Profile
+                        </Button>
+                      </motion.div>
+                    </Link>
+                  )}
                   
                   {onRefer && (
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
