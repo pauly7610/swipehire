@@ -16,6 +16,10 @@ import DealBreakerModal from '@/components/matching/DealBreakerModal';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
 import ReferCandidateModal from '@/components/referral/ReferCandidateModal';
+import DayInLifePreview from '@/components/readiness/DayInLifePreview';
+import ApplicationReadinessGate from '@/components/readiness/ApplicationReadinessGate';
+import CompanyInsightCard from '@/components/insights/CompanyInsightCard';
+import FitConfidenceScore from '@/components/confidence/FitConfidenceScore';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -40,6 +44,8 @@ export default function SwipeJobs() {
   const [showDealBreakerModal, setShowDealBreakerModal] = useState(false);
   const [pendingDealBreakerSwipe, setPendingDealBreakerSwipe] = useState(null);
   const [showReferModal, setShowReferModal] = useState(false);
+  const [showReadinessGate, setShowReadinessGate] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
@@ -382,7 +388,7 @@ export default function SwipeJobs() {
                   isFlipped={isFlipped}
                   onFlip={() => setIsFlipped(!isFlipped)}
                   matchScore={currentMatchScore}
-                  onQuickApply={() => setShowQuickApply(true)}
+                  onQuickApply={() => setShowReadinessGate(true)}
                   onRefer={() => setShowReferModal(true)}
                 />
 
@@ -437,12 +443,22 @@ export default function SwipeJobs() {
 
                   {/* Controls */}
                   {currentJob && (
-                    <SwipeControls
-                      onSwipe={triggerSwipe}
-                      onUndo={handleUndo}
-                      canUndo={swipeHistory.length > 0}
-                      isPremium={candidate?.is_premium}
-                    />
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={() => setShowInsights(true)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        View Job Intelligence
+                      </Button>
+
+                      <SwipeControls
+                        onSwipe={triggerSwipe}
+                        onUndo={handleUndo}
+                        canUndo={swipeHistory.length > 0}
+                        isPremium={candidate?.is_premium}
+                      />
+                    </div>
                   )}
 
         {/* Progress */}
@@ -524,6 +540,39 @@ export default function SwipeJobs() {
 
               {/* Onboarding Tooltip */}
               <OnboardingTooltip pageName="SwipeJobs" />
+
+              {/* Insights Modal */}
+              {showInsights && currentJob && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowInsights(false)}>
+                  <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-4">
+                      <FitConfidenceScore candidate={candidate} job={currentJob} />
+                      <CompanyInsightCard companyId={currentJob.company_id} jobId={currentJob.id} />
+                      <DayInLifePreview job={currentJob} company={currentCompany} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Application Readiness Gate */}
+              {showReadinessGate && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                  <div className="max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+                    <ApplicationReadinessGate
+                      candidate={candidate}
+                      job={currentJob}
+                      onProceed={() => {
+                        setShowReadinessGate(false);
+                        setShowQuickApply(true);
+                      }}
+                      onCancel={() => {
+                        setShowReadinessGate(false);
+                        navigate(createPageUrl('CandidateProfile'));
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               </div>
               );
               }
