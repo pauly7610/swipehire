@@ -16,6 +16,7 @@ import CompanyMediaGallery from '@/components/company/CompanyMediaGallery';
 import CompanyTeamSection from '@/components/company/CompanyTeamSection';
 import CompanyJobsList from '@/components/company/CompanyJobsList';
 import FollowCompanyButton from '@/components/networking/FollowCompanyButton';
+import CompanyInsightCard from '@/components/insights/CompanyInsightCard';
 
 export default function CompanyProfile() {
   const [searchParams] = useSearchParams();
@@ -208,6 +209,11 @@ export default function CompanyProfile() {
             <TabsTrigger value="gallery" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
               Life Here
             </TabsTrigger>
+            {!isOwnCompany && (
+              <TabsTrigger value="insights" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
+                Insights
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* About Tab */}
@@ -358,6 +364,13 @@ export default function CompanyProfile() {
           <TabsContent value="gallery">
             <CompanyMediaGallery media={company.media_gallery} companyName={company.name} />
           </TabsContent>
+
+          {/* Insights Tab - Only for candidates */}
+          {!isOwnCompany && (
+            <TabsContent value="insights">
+              <CompanyInsightCard companyId={company.id} jobId={null} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
