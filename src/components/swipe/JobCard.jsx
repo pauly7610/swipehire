@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer }) {
+  const [showInsights, setShowInsights] = useState(false);
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     if (min && max) {

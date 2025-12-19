@@ -6,7 +6,7 @@ import {
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
   Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search,
-  UserPlus, UserCheck, Clock, Filter, Video
+  UserPlus, UserCheck, Clock, Filter, Video, ExternalLink
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,13 +14,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 import FeedFilters from '@/components/video/FeedFilters';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 import AIVideoAssistant from '@/components/video/AIVideoAssistant';
+import RoleRealityTags from '@/components/video/RoleRealityTags';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
@@ -216,11 +217,14 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         )}
       </AnimatePresence>
 
-      {/* Type badge */}
-      <div className="absolute top-4 left-4 z-10">
-        <Badge className="bg-black/50 backdrop-blur-sm text-white border-0 text-xs">
+      {/* Type badge + Reality Tags */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+        <Badge className="bg-black/60 backdrop-blur-md text-white border-0 text-xs font-bold shadow-lg">
           {getTypeLabel(post.type)}
         </Badge>
+        {post.type === 'day_in_life' && (
+          <RoleRealityTags tags={['fast_paced', 'client_facing', 'high_autonomy']} />
+        )}
       </div>
 
       {/* Top right controls */}
@@ -369,34 +373,58 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
                       )}
                       </div>
 
-      {/* Bottom info */}
+      {/* Bottom info - Enhanced with CTA */}
       <div className="absolute bottom-4 left-3 right-16 text-white z-10">
+        {/* AI Intelligence Badge */}
+        {post.type === 'day_in_life' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-2 px-2 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-lg border border-white/20 inline-flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3 h-3 text-purple-300" />
+            <span className="text-[10px] font-bold text-white tracking-wide">AI INSIGHT</span>
+          </motion.div>
+        )}
+        
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-bold text-sm">@{authorName.replace(/\s/g, '').toLowerCase()}</span>
-          {post.author_type === 'employer' && <Building2 className="w-4 h-4" />}
+          <span className="font-bold text-sm drop-shadow-lg">@{authorName.replace(/\s/g, '').toLowerCase()}</span>
+          {post.author_type === 'employer' && <Building2 className="w-4 h-4 drop-shadow-lg" />}
         </div>
         {authorHeadline && (
-          <p className="text-xs text-white/80 mb-1">{authorHeadline}</p>
+          <p className="text-xs text-white/90 mb-1 font-semibold drop-shadow-md">{authorHeadline}</p>
         )}
-        <p className="text-sm mb-1 line-clamp-2">{post.caption}</p>
+        <p className="text-sm mb-1 line-clamp-2 drop-shadow-md">{post.caption}</p>
         {post.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 mb-2">
             {post.tags.slice(0, 3).map((tag, i) => (
-              <span key={i} className="text-xs text-pink-400">#{tag}</span>
+              <span key={i} className="text-xs text-pink-300 font-semibold drop-shadow-md">#{tag}</span>
             ))}
           </div>
         )}
-        {post.job_id && (
-          <Link to={createPageUrl('SwipeJobs')} onClick={(e) => e.stopPropagation()}>
-            <Button size="sm" className="mt-2 bg-pink-500 hover:bg-pink-600 text-white h-8 text-xs">
-              <Briefcase className="w-3 h-3 mr-1" /> View Job
-            </Button>
+        
+        {/* CTA: Bridge to Swipe Feed */}
+        {(post.type === 'day_in_life' || post.type === 'job_post') && (
+          <Link 
+            to={createPageUrl('SwipeJobs')} 
+            onClick={(e) => e.stopPropagation()}
+            className="inline-block"
+          >
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-3 py-1.5 bg-white/95 backdrop-blur-xl rounded-full shadow-lg inline-flex items-center gap-2 border border-white/40"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-pink-500" />
+              <span className="text-xs font-bold text-gray-800">View matching roles</span>
+              <ExternalLink className="w-3 h-3 text-gray-500" />
+            </motion.div>
           </Link>
         )}
         
         {/* Swipe hint */}
         {canSwipe && (
-          <p className="text-xs text-white/50 mt-2">← {swipeLabels.left} • {swipeLabels.right} →</p>
+          <p className="text-[10px] text-white/40 mt-2 font-semibold drop-shadow-md">← {swipeLabels.left} • {swipeLabels.right} →</p>
         )}
       </div>
       </motion.div>
@@ -1336,10 +1364,13 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         )}
       </div>
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/50 to-transparent">
+      {/* Header - High-Tech */}
+      <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/70 via-black/40 to-transparent">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-white font-bold text-xl">SwipeHire</h1>
+          <div>
+            <h1 className="text-white font-black text-xl tracking-tight drop-shadow-lg">Role Reality</h1>
+            <p className="text-white/60 text-[10px] font-bold tracking-wide">AI-POWERED INSIGHTS</p>
+          </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setShowSearch(!showSearch)}
