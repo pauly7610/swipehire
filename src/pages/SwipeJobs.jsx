@@ -316,7 +316,7 @@ export default function SwipeJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -327,36 +327,48 @@ export default function SwipeJobs() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
+        @keyframes subtle-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
       `}</style>
 
       <div className="max-w-md mx-auto">
-        {/* Header - Refined */}
+        {/* Header - High-Tech */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded-full mb-3 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-white to-gray-50/80 backdrop-blur-xl border border-gray-200/60 rounded-full mb-3 shadow-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-semibold text-gray-600">AI-Powered Matching</span>
+            <span className="text-xs font-bold tracking-wide text-gray-700">AI INTELLIGENCE</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Discover Opportunities</h1>
-          <p className="text-sm text-gray-500">Swipe right to apply instantly</p>
+          <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Discover Your Next Role</h1>
+          <p className="text-sm font-medium text-gray-500">Smart-ranked • Instant apply</p>
         </motion.div>
 
-        {/* Micro-feedback Toast */}
+        {/* Smart Micro-feedback Toast */}
         <AnimatePresence>
           {showSwipeFeedback && (
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
               className="absolute top-20 left-1/2 -translate-x-1/2 z-50"
             >
-              <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-lg backdrop-blur-md">
-                <p className="text-xs font-semibold text-gray-700">
-                  {swipeFeedbackDirection === 'right' ? '✓ Strong apply' : '✓ Passed'}
-                </p>
+              <div className="bg-white/95 backdrop-blur-xl border border-gray-200/60 rounded-2xl px-5 py-3 shadow-2xl">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${swipeFeedbackDirection === 'right' ? 'bg-green-500' : 'bg-gray-400'} animate-pulse`} />
+                  <p className="text-sm font-semibold text-gray-800">
+                    {swipeFeedbackDirection === 'right' 
+                      ? currentMatchScore >= 80 ? '✨ Strong apply' : '✓ Applied' 
+                      : '✓ Passed'}
+                  </p>
+                  {swipeFeedbackDirection === 'right' && currentMatchScore < 80 && currentMatchScore >= 60 && (
+                    <span className="text-xs text-gray-500">Good fit, 1 skill gap</span>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
@@ -460,20 +472,22 @@ export default function SwipeJobs() {
           )}
         </div>
 
-        {/* Deal Breaker Warnings - Refined */}
+        {/* Intelligence Layer - Compact Warnings */}
                   {dealBreakerWarnings.length > 0 && (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-3 bg-white border border-amber-200/60 rounded-xl shadow-sm"
+                      className="mb-4 p-3 bg-white/80 backdrop-blur-md border border-amber-200/60 rounded-2xl shadow-lg"
                     >
                       <div className="flex items-center gap-2 text-amber-700 mb-2">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="font-semibold text-xs">Requirements Note</span>
+                        <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="font-bold text-xs tracking-wide">REQUIREMENTS CHECK</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {dealBreakerWarnings.map((warning, i) => (
-                          <Badge key={i} className="bg-amber-50 text-amber-700 text-[10px] border-0">
+                          <Badge key={i} className="bg-amber-50 text-amber-700 text-[10px] font-semibold border-0 px-2 py-1">
                             {warning.text}
                           </Badge>
                         ))}
@@ -481,16 +495,33 @@ export default function SwipeJobs() {
                     </motion.div>
                   )}
 
-                  {/* Controls */}
+                  {/* Controls - High-Tech */}
                   {currentJob && (
                     <div className="space-y-3">
-                      <Button 
-                        onClick={() => setShowInsights(true)}
-                        variant="outline"
-                        className="w-full border-gray-300 hover:border-gray-400 text-gray-700 font-semibold text-sm shadow-sm"
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex gap-2"
                       >
-                        View Intelligence
-                      </Button>
+                        <Button 
+                          onClick={() => setShowInsights(true)}
+                          variant="outline"
+                          className="flex-1 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          View Intelligence
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            await trackInterestSignal(user.id, candidate.id, currentJob.id, 'save');
+                            // TODO: Implement save functionality
+                          }}
+                          variant="outline"
+                          className="px-4 border-gray-300 hover:border-pink-400 hover:bg-pink-50 text-gray-700 hover:text-pink-600 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
+                        >
+                          <Heart className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
 
                       <SwipeControls
                         onSwipe={triggerSwipe}
@@ -498,7 +529,6 @@ export default function SwipeJobs() {
                         canUndo={swipeHistory.length > 0}
                         isPremium={candidate?.is_premium}
                         onInteraction={async (type) => {
-                          // Track button interactions
                           if (type === 'view' && currentJob) {
                             await trackInterestSignal(user.id, candidate.id, currentJob.id, 'click');
                           }
