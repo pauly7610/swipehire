@@ -16,6 +16,7 @@ import DealBreakerModal from '@/components/matching/DealBreakerModal';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
 import ReferCandidateModal from '@/components/referral/ReferCandidateModal';
+import { trackInterestSignal, useJobDwellTracking } from '@/components/engagement/InterestTracker';
 import DayInLifePreview from '@/components/readiness/DayInLifePreview';
 import ApplicationReadinessGate from '@/components/readiness/ApplicationReadinessGate';
 import CompanyInsightCard from '@/components/insights/CompanyInsightCard';
@@ -103,6 +104,9 @@ export default function SwipeJobs() {
   const currentJob = jobs[currentIndex];
   const currentCompany = (currentJob && companies[currentJob.company_id]) || null;
 
+  // Track dwell time on current job
+  useJobDwellTracking(user?.id, candidate?.id, currentJob?.id);
+
   // Check deal breakers and calculate match score for current job
   useEffect(() => {
     if (currentJob && candidate && currentJob.company_id) {
@@ -125,6 +129,14 @@ export default function SwipeJobs() {
 
   const handleSwipe = async (direction, feedback = null) => {
     if (!currentJob || !user) return;
+
+    // Track interest signal
+    if (direction === 'right' || direction === 'super') {
+      await trackInterestSignal(user.id, candidate.id, currentJob.id, 'swipe_right', {
+        match_score: currentMatchScore,
+        is_super: direction === 'super'
+      });
+    }
 
     // Track analytics
     analytics.track('Job Swiped', {
@@ -483,6 +495,12 @@ export default function SwipeJobs() {
                         onUndo={handleUndo}
                         canUndo={swipeHistory.length > 0}
                         isPremium={candidate?.is_premium}
+                        onInteraction={async (type) => {
+                          // Track button interactions
+                          if (type === 'view' && currentJob) {
+                            await trackInterestSignal(user.id, candidate.id, currentJob.id, 'click');
+                          }
+                        }}
                       />
                     </div>
                   )}

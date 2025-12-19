@@ -35,6 +35,7 @@ import ResumeBuilder from '@/components/profile/ResumeBuilder';
 import AICareerCoach from '@/components/candidate/AICareerCoach';
 import CalendarIntegration from '@/components/calendar/CalendarIntegration';
 import ImageCropper from '@/components/shared/ImageCropper';
+import JobPreferences from '@/components/candidate/JobPreferences';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -1025,6 +1026,16 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="tools" className="space-y-6">
+            {/* Job Alert Preferences */}
+            <JobPreferences 
+              candidate={candidate}
+              onUpdate={async (preferences) => {
+                await base44.entities.Candidate.update(candidate.id, preferences);
+                setCandidate({ ...candidate, ...preferences });
+                setEditData({ ...editData, ...preferences });
+              }}
+            />
+
             {/* Profile Enrichment */}
             <ProfileEnrichmentPanel 
               candidate={candidate}
