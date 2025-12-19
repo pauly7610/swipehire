@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { Briefcase, MapPin, Building2, Zap, Loader2, Upload, FileText, Video, X, CheckCircle2, StopCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { evaluateCandidate, rankApplicationsForJob } from '@/components/evaluation/CandidateEvaluator';
 
 export default function QuickApplyModal({ open, onOpenChange, job, company, candidate, user, onApply }) {
   const [step, setStep] = useState(1); // 1: cover letter, 2: resume, 3: video
@@ -90,7 +91,7 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
       }
 
       // Create application
-      await base44.entities.Application.create({
+      const application = await base44.entities.Application.create({
         candidate_id: candidate.id,
         job_id: job.id,
         company_id: company.id,
@@ -100,6 +101,14 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
         applied_via: 'direct',
         status: 'applied'
       });
+
+      // Auto-trigger AI evaluation
+      try {
+        await evaluateCandidate(application, candidate, job);
+        await rankApplicationsForJob(job.id);
+      } catch (evalError) {
+        console.error('AI evaluation failed:', evalError);
+      }
 
       // Create swipe
       await base44.entities.Swipe.create({
