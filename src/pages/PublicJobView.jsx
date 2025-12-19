@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import QuickApplyModal from '@/components/candidate/QuickApplyModal';
+import CompanyInsightCard from '@/components/insights/CompanyInsightCard';
+import DayInLifePreview from '@/components/readiness/DayInLifePreview';
+import FitConfidenceScore from '@/components/confidence/FitConfidenceScore';
 
 export default function PublicJobView() {
   const [searchParams] = useSearchParams();
@@ -324,6 +327,17 @@ export default function PublicJobView() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Fit Confidence - Only for authenticated candidates */}
+              {isAuthenticated && candidate && (
+                <FitConfidenceScore candidate={candidate} job={job} />
+              )}
+
+              {/* Day in Life Preview */}
+              <DayInLifePreview job={job} company={company} />
+
+              {/* Company Insights */}
+              <CompanyInsightCard companyId={company?.id} jobId={job.id} />
             </div>
           </div>
         </motion.div>

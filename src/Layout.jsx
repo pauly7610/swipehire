@@ -242,6 +242,7 @@ export default function Layout({ children, currentPageName }) {
                     { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: true },
                     { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
                     { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
                     { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
                     { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
                   ];
