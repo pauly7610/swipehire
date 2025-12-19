@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Building2, ChevronRight, ChevronLeft, Upload, X, Plus, FileText, Loader2, Users } from 'lucide-react';
-import JobTitleSelect from '@/components/shared/JobTitleSelect';
-import LocationSelect from '@/components/shared/LocationSelect';
-import IndustrySelect from '@/components/shared/IndustrySelect';
+import OnboardingWizard from './OnboardingWizard';
 
 export default function Onboarding() {
+  // This page now redirects to the new OnboardingWizard
+  return <OnboardingWizard />;
+}
+
+// Legacy component preserved below for reference
+function OnboardingLegacy() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [step, setStep] = useState(1);
@@ -712,3 +709,6 @@ export default function Onboarding() {
     </div>
   );
 }
+
+// Export legacy for backwards compatibility if needed
+export { OnboardingLegacy };
