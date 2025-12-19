@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
 import CandidateSuggestions from '@/components/matching/CandidateSuggestions';
+import { triggerJobAlerts } from '@/components/jobs/JobPublishHandler';
 
 export default function ManageJobs() {
   const navigate = useNavigate();
@@ -65,8 +66,18 @@ export default function ManageJobs() {
   };
 
   const toggleJobStatus = async (job) => {
+    const wasInactive = !job.is_active;
     await base44.entities.Job.update(job.id, { is_active: !job.is_active });
     setJobs(jobs.map(j => j.id === job.id ? { ...j, is_active: !j.is_active } : j));
+    
+    // If activating job, trigger email alerts
+    if (wasInactive) {
+      triggerJobAlerts(job.id).then(result => {
+        if (result.success) {
+          toast.success(`Job activated! Sent to ${result.count} candidates.`);
+        }
+      });
+    }
   };
 
   const deleteJob = async (jobId) => {
