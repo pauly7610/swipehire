@@ -744,12 +744,12 @@ export default function ATS() {
           
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[300px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                placeholder="Boolean search: React AND Senior NOT Junior"
+                placeholder="Search candidates... (try: React AND Senior)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-full"
+                className="pl-10 h-11 rounded-xl border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
             </div>
             
@@ -768,7 +768,7 @@ export default function ATS() {
             </Button>
             
             <Select value={selectedJob} onValueChange={setSelectedJob}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 h-11 rounded-xl border-gray-200">
                 <SelectValue placeholder="Filter by job" />
               </SelectTrigger>
               <SelectContent>
@@ -781,18 +781,18 @@ export default function ATS() {
 
             {selectedMatches.size > 0 && (
               <>
-                <Badge className="bg-pink-500 text-white">{selectedMatches.size} selected</Badge>
-                <Button onClick={() => setShowMassMessageDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Badge className="bg-pink-500 text-white px-3 py-2 rounded-xl">{selectedMatches.size} selected</Badge>
+                <Button onClick={() => setShowMassMessageDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 shadow-sm">
                   <Mail className="w-4 h-4 mr-2" /> Message {selectedMatches.size}
                 </Button>
-                <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white">
+                <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white rounded-xl h-11 shadow-md">
                   Move {selectedMatches.size}
                 </Button>
               </>
             )}
 
-            <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50">
-              <Trophy className="w-4 h-4 mr-2" /> Compare Candidates
+            <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl h-11">
+              <Trophy className="w-4 h-4 mr-2" /> Compare
             </Button>
           </div>
         </div>
@@ -809,38 +809,37 @@ export default function ATS() {
         )}
 
         {/* Search Mode Toggle */}
-        <div className="mb-4 flex items-center gap-4">
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex-1">
-            <strong>Boolean Search:</strong> Use AND, OR, NOT operators. Example: "React AND TypeScript NOT Junior" or "-intern" to exclude. 
-            <span className="text-blue-600 ml-1">• Search includes skills, experience, bio, and candidates with resumes</span>
-          </div>
-          <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
-            <Button
-              size="sm"
-              variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
-              onClick={() => setSearchMode('pipeline')}
-              className={searchMode === 'pipeline' ? 'swipe-gradient text-white' : ''}
-            >
-              My Pipeline
-            </Button>
-            <Button
-              size="sm"
-              variant={searchMode === 'all' ? 'default' : 'ghost'}
-              onClick={() => setSearchMode('all')}
-              className={searchMode === 'all' ? 'swipe-gradient text-white' : ''}
-            >
-              <Users className="w-4 h-4 mr-1" /> All SwipeHire
-            </Button>
-          </div>
+        <div className="mb-6 flex items-center gap-3 bg-white rounded-2xl p-1.5 border-2 border-gray-100 shadow-sm w-fit">
+          <Button
+            size="sm"
+            variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
+            onClick={() => setSearchMode('pipeline')}
+            className={`rounded-xl ${searchMode === 'pipeline' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+          >
+            My Pipeline
+          </Button>
+          <Button
+            size="sm"
+            variant={searchMode === 'all' ? 'default' : 'ghost'}
+            onClick={() => setSearchMode('all')}
+            className={`rounded-xl ${searchMode === 'all' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+          >
+            <Users className="w-4 h-4 mr-2" /> All SwipeHire
+          </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          {PIPELINE_STAGES.map(stage => (
-            <Card key={stage.id} className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-2xl font-bold text-gray-900">{getMatchesByStage(stage.id).length}</p>
-                <p className="text-sm text-gray-500">{stage.label}</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6">
+          {PIPELINE_STAGES.map((stage, idx) => (
+            <Card key={stage.id} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-white to-gray-50">
+              <CardContent className="p-4 md:p-5">
+                <div className={`w-10 h-10 rounded-xl ${stage.color.replace('text-', 'bg-').replace('100', '100')} flex items-center justify-center mb-3`}>
+                  <span className="text-xl font-bold">{getMatchesByStage(stage.id).length}</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-900">{stage.label}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {((getMatchesByStage(stage.id).length / filteredMatches.length) * 100 || 0).toFixed(0)}% of pipeline
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -848,22 +847,17 @@ export default function ATS() {
 
         {/* View Toggle */}
         <Tabs value={viewMode} onValueChange={setViewMode} className="mb-6">
-          <TabsList className="bg-white rounded-xl p-1 shadow-sm">
-            <TabsTrigger value="pipeline" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+          <TabsList className="bg-white rounded-2xl p-1.5 shadow-sm border-2 border-gray-100">
+            <TabsTrigger value="pipeline" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6">
               Pipeline View
             </TabsTrigger>
-            <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
+            <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6">
               List View
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Helper Text */}
-        {searchMode === 'pipeline' && selectedMatches.size === 0 && filteredMatches.length > 0 && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-            💡 <strong>Tip:</strong> Check the boxes next to candidates to select them for mass actions (messaging, moving stages, etc.)
-          </div>
-        )}
+
 
         {/* Pipeline View with Drag & Drop */}
         {viewMode === 'pipeline' && searchMode === 'pipeline' && (
@@ -871,9 +865,10 @@ export default function ATS() {
             <div className="flex gap-4 overflow-x-auto pb-4">
               {PIPELINE_STAGES.map(stage => (
                 <div key={stage.id} className="flex-shrink-0 w-72">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">{stage.label}</h3>
-                    <Badge className={stage.color}>{getMatchesByStage(stage.id).length}</Badge>
+                  <div className="flex items-center gap-2 mb-3 px-2">
+                    <div className={`w-2 h-2 rounded-full ${stage.color.replace('100', '500').replace('text-', 'bg-')}`} />
+                    <h3 className="font-semibold text-gray-900 flex-1">{stage.label}</h3>
+                    <Badge className={`${stage.color} rounded-full px-2.5 shadow-sm`}>{getMatchesByStage(stage.id).length}</Badge>
                   </div>
                   
                   <Droppable droppableId={stage.id}>
@@ -899,11 +894,11 @@ export default function ATS() {
                                   className={`${snapshot.isDragging ? 'shadow-xl rotate-2' : ''}`}
                                 >
                                   <Card 
-                                    className={`cursor-pointer hover:shadow-md transition-all border-0 ${
-                                      selectedMatches.has(match.id) ? 'ring-2 ring-pink-500' : ''
+                                    className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white ${
+                                      selectedMatches.has(match.id) ? 'ring-2 ring-pink-500 shadow-md' : 'hover:scale-[1.02]'
                                     }`}
                                   >
-                                    <CardContent className="p-3">
+                                    <CardContent className="p-4">
                                      <div className="flex items-start gap-2 mb-3">
                                        <div 
                                          className="mt-1 flex-shrink-0"
@@ -983,22 +978,22 @@ export default function ATS() {
                                       </div>
 
                                       {/* Quick Actions */}
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             confirmMoveCandidate(match.id, stage.id, 'screening', user?.full_name);
                                           }}
-                                          className="flex-1 text-xs py-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors font-medium"
+                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-md transition-all font-medium"
                                         >
-                                          ✓ Pass
+                                          ✓ Advance
                                         </button>
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleQuickReject(match);
                                           }}
-                                          className="flex-1 text-xs py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium"
+                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:shadow-md transition-all font-medium"
                                         >
                                           ✕ Reject
                                         </button>
@@ -1013,8 +1008,12 @@ export default function ATS() {
                                         {provided.placeholder}
                         
                         {getMatchesByStage(stage.id).length === 0 && (
-                          <div className="text-center py-8 text-gray-400 text-sm">
-                            Drop candidates here
+                          <div className="text-center py-12">
+                            <div className={`w-16 h-16 rounded-2xl ${stage.color.replace('text-', 'bg-').replace('700', '100')} mx-auto mb-3 flex items-center justify-center`}>
+                              <Users className={`w-8 h-8 ${stage.color.replace('bg-', 'text-').replace('100', '400')}`} />
+                            </div>
+                            <p className="text-gray-400 text-sm font-medium">No candidates</p>
+                            <p className="text-gray-300 text-xs mt-1">Drag & drop here</p>
                           </div>
                         )}
                       </div>
@@ -1027,12 +1026,12 @@ export default function ATS() {
         )}
 
         {/* Global Search Results */}
-        {searchMode === 'all' && searchQuery.trim() && (
-          <Card className="border-0 shadow-sm mb-6">
-            <CardHeader>
+        {searchMode === 'all' && (
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden mb-6">
+            <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-pink-500" />
-                All SwipeHire Candidates ({globalSearchResults.length} found)
+                <Search className="w-5 h-5" />
+                Search Results ({globalSearchResults.length} candidates found)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -1180,10 +1179,10 @@ export default function ATS() {
 
         {/* List View */}
         {viewMode === 'list' && searchMode === 'pipeline' && (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                   <tr>
                     <th className="w-10 p-4">
                       <input
@@ -1199,14 +1198,14 @@ export default function ATS() {
                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                       />
                     </th>
-                    <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Job</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Stage</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Match</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Tags</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Resume</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Applied</th>
-                    <th className="text-left p-4 font-medium text-gray-600">Actions</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Candidate</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Job</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Stage</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Match</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Tags</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Resume</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Applied</th>
+                    <th className="text-left p-4 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1218,7 +1217,7 @@ export default function ATS() {
                   const stage = PIPELINE_STAGES.find(s => s.id === currentStage);
 
                   return (
-                    <tr key={match.id} className="border-b hover:bg-gray-50">
+                    <tr key={match.id} className="border-b hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 transition-colors">
                      <td 
                        className="p-4"
                        onClick={(e) => {
@@ -1230,7 +1229,7 @@ export default function ATS() {
                          type="checkbox"
                          checked={selectedMatches.has(match.id)}
                          onChange={() => {}}
-                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors pointer-events-none"
+                         className="w-5 h-5 rounded-md border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors pointer-events-none"
                        />
                      </td>
                        <td className="p-4 cursor-pointer" onClick={(e) => {
@@ -1253,7 +1252,7 @@ export default function ATS() {
                         </td>
                         <td className="p-4 text-gray-600">{job?.title}</td>
                         <td className="p-4">
-                          <Badge className={stage?.color}>{stage?.label}</Badge>
+                          <Badge className={`${stage?.color} rounded-full shadow-sm`}>{stage?.label}</Badge>
                         </td>
                         <td className="p-4">
                           <span className="font-medium text-pink-600">{match.match_score || '-'}%</span>
@@ -1295,9 +1294,9 @@ export default function ATS() {
                                 e.stopPropagation();
                                 confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name);
                               }}
-                              className="bg-green-100 text-green-700 hover:bg-green-200 border-0"
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-md border-0 rounded-lg"
                             >
-                              ✓ Pass
+                              ✓ Advance
                             </Button>
                             <Button
                               size="sm"
@@ -1305,7 +1304,7 @@ export default function ATS() {
                                 e.stopPropagation();
                                 handleQuickReject(match);
                               }}
-                              className="bg-red-100 text-red-700 hover:bg-red-200 border-0"
+                              className="bg-gradient-to-r from-red-500 to-rose-500 text-white hover:shadow-md border-0 rounded-lg"
                             >
                               ✕ Reject
                             </Button>
