@@ -32,6 +32,7 @@ import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
 import AdvancedSearchFilters from '@/components/ats/AdvancedSearchFilters';
 import BooleanSearchParser from '@/components/ats/BooleanSearchParser';
+import RankedCandidateList from '@/components/evaluation/RankedCandidateList';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -909,6 +910,13 @@ export default function ATS() {
               Pipeline View
             </TabsTrigger>
             <TabsTrigger 
+              value="ranked" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              AI Rankings
+            </TabsTrigger>
+            <TabsTrigger 
               value="list" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6"
               onClick={(e) => e.stopPropagation()}
@@ -1241,6 +1249,41 @@ export default function ATS() {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {/* AI Ranked View */}
+        {viewMode === 'ranked' && (
+          <div className="space-y-4">
+            <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900">AI-Powered Candidate Rankings</h3>
+                    <p className="text-sm text-gray-600">
+                      Strict, evidence-based evaluations to prioritize review • No candidates blocked
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {selectedJob === 'all' ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">Select a job to view AI-ranked candidates</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <RankedCandidateList 
+                job={jobs.find(j => j.id === selectedJob)} 
+                onUpdate={loadData}
+              />
+            )}
+          </div>
         )}
 
         {/* List View */}
