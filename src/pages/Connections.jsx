@@ -86,7 +86,7 @@ export default function Connections() {
     const connection = await base44.entities.Connection.create({
       requester_id: user.id,
       receiver_id: targetUserId,
-      status: 'pending'
+      status: 'accepted'
     });
     setConnections([...connections, connection]);
   };
