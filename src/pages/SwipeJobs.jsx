@@ -21,6 +21,9 @@ import DayInLifePreview from '@/components/readiness/DayInLifePreview';
 import ApplicationReadinessGate from '@/components/readiness/ApplicationReadinessGate';
 import CompanyInsightCard from '@/components/insights/CompanyInsightCard';
 import FitConfidenceScore from '@/components/confidence/FitConfidenceScore';
+import { sendMatchNotificationEmails } from '@/components/email/EmailAutomation';
+import { Button } from '@/components/ui/button';
+import { Zap, Heart } from 'lucide-react';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -222,6 +225,9 @@ export default function SwipeJobs() {
 
           setMatchData({ match, job: currentJob, company: company, candidate });
           setShowMatch(true);
+          
+          // Send match notification emails
+          await sendMatchNotificationEmails(match, currentJob, company, candidate);
         }
       }
     }
