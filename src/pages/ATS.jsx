@@ -899,25 +899,25 @@ export default function ATS() {
                                     }`}
                                   >
                                     <CardContent className="p-4">
-                                     <div className="flex items-start gap-2 mb-3">
-                                       <div 
-                                         className="mt-1 flex-shrink-0"
-                                         onMouseDown={(e) => e.stopPropagation()}
-                                         onClick={(e) => {
-                                           e.stopPropagation();
-                                           toggleSelectMatch(match.id);
-                                         }}
-                                       >
-                                         <input
-                                           type="checkbox"
-                                           checked={selectedMatches.has(match.id)}
-                                           onChange={() => {}}
-                                           className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors pointer-events-none"
-                                         />
-                                       </div>
-                                       <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
-                                         <GripVertical className="w-4 h-4 text-gray-400" />
-                                       </div>
+                                    <div className="flex items-start gap-2 mb-3">
+                                      <label 
+                                        className="mt-1 flex-shrink-0 cursor-pointer flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-colors"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedMatches.has(match.id)}
+                                          onChange={(e) => {
+                                            e.stopPropagation();
+                                            toggleSelectMatch(match.id);
+                                          }}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                                        />
+                                      </label>
+                                      <div {...provided.dragHandleProps} className="pt-1 cursor-grab flex-shrink-0">
+                                        <GripVertical className="w-4 h-4 text-gray-400" />
+                                      </div>
                                        <div 
                                          className="flex-1 min-w-0 cursor-pointer" 
                                          onClick={(e) => {
@@ -1045,27 +1045,29 @@ export default function ATS() {
                   <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="w-10 p-4" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            const newSet = new Set(selectedMatches);
-                            globalSearchResults.forEach(c => {
-                              const match = matches.find(m => m.candidate_id === c.id);
-                              if (match) newSet.add(match.id);
-                            });
-                            setSelectedMatches(newSet);
-                          } else {
-                            const candidateIds = globalSearchResults.map(c => c.id);
-                            const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
-                              const match = matches.find(m => m.id === matchId);
-                              return !candidateIds.includes(match?.candidate_id);
-                            }));
-                            setSelectedMatches(newSet);
-                          }
-                        }}
-                        className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                      />
+                      <label className="cursor-pointer flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const newSet = new Set(selectedMatches);
+                              globalSearchResults.forEach(c => {
+                                const match = matches.find(m => m.candidate_id === c.id);
+                                if (match) newSet.add(match.id);
+                              });
+                              setSelectedMatches(newSet);
+                            } else {
+                              const candidateIds = globalSearchResults.map(c => c.id);
+                              const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
+                                const match = matches.find(m => m.id === matchId);
+                                return !candidateIds.includes(match?.candidate_id);
+                              }));
+                              setSelectedMatches(newSet);
+                            }
+                          }}
+                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                        />
+                      </label>
                     </th>
                       <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
                       <th className="text-left p-4 font-medium text-gray-600">Skills</th>
@@ -1085,27 +1087,26 @@ export default function ATS() {
                       
                       return (
                         <tr key={candidate.id} className="border-b hover:bg-gray-50">
-                         <td 
-                           className="p-4"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             if (match) {
-                               toggleSelectMatch(match.id);
-                             }
-                           }}
-                         >
-                           <div className="flex items-center justify-center">
+                         <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                           <label className="flex items-center justify-center cursor-pointer">
                              <input
                                type="checkbox"
                                checked={match ? selectedMatches.has(match.id) : false}
-                               onChange={() => {}}
-                               className="w-6 h-6 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors pointer-events-none"
+                               disabled={!match}
+                               onChange={(e) => {
+                                 e.stopPropagation();
+                                 if (match) {
+                                   toggleSelectMatch(match.id);
+                                 }
+                               }}
+                               onClick={(e) => e.stopPropagation()}
+                               className="w-6 h-6 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                style={{
                                  accentColor: '#f97316',
                                  backgroundColor: match && selectedMatches.has(match.id) ? '#f97316' : 'white'
                                }}
                              />
-                           </div>
+                           </label>
                          </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
@@ -1183,8 +1184,9 @@ export default function ATS() {
             <CardContent className="p-0">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                  <tr>
-                    <th className="w-10 p-4">
+                <tr>
+                  <th className="w-10 p-4">
+                    <label className="cursor-pointer flex items-center justify-center">
                       <input
                         type="checkbox"
                         onChange={(e) => {
@@ -1197,7 +1199,8 @@ export default function ATS() {
                         checked={selectedMatches.size > 0 && selectedMatches.size === filteredMatches.length}
                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
                       />
-                    </th>
+                    </label>
+                  </th>
                     <th className="text-left p-4 font-semibold text-gray-700">Candidate</th>
                     <th className="text-left p-4 font-semibold text-gray-700">Job</th>
                     <th className="text-left p-4 font-semibold text-gray-700">Stage</th>
@@ -1218,19 +1221,19 @@ export default function ATS() {
 
                   return (
                     <tr key={match.id} className="border-b hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 transition-colors">
-                     <td 
-                       className="p-4"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         toggleSelectMatch(match.id);
-                       }}
-                     >
-                       <input
-                         type="checkbox"
-                         checked={selectedMatches.has(match.id)}
-                         onChange={() => {}}
-                         className="w-5 h-5 rounded-md border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors pointer-events-none"
-                       />
+                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                       <label className="cursor-pointer flex items-center justify-center">
+                         <input
+                           type="checkbox"
+                           checked={selectedMatches.has(match.id)}
+                           onChange={(e) => {
+                             e.stopPropagation();
+                             toggleSelectMatch(match.id);
+                           }}
+                           onClick={(e) => e.stopPropagation()}
+                           className="w-5 h-5 rounded-md border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                         />
+                       </label>
                      </td>
                        <td className="p-4 cursor-pointer" onClick={(e) => {
                          e.stopPropagation();
