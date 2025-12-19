@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { scheduleDigestEmails, checkInactiveUsers } from './EmailAutomation';
+import { scheduleDigestEmails, checkInactiveUsers, sendEngagementNudges, sendReferralActivation } from './EmailAutomation';
 
 /**
  * Email Scheduler Component
@@ -17,6 +17,12 @@ export default function EmailScheduler() {
         
         // Check for inactive users and send re-engagement emails
         await checkInactiveUsers();
+        
+        // Send engagement nudges for opened job alerts with no action
+        await sendEngagementNudges();
+        
+        // Send referral activation emails to passive candidates
+        await sendReferralActivation();
       } catch (error) {
         console.error('Email scheduler error:', error);
       }
@@ -38,4 +44,6 @@ export default function EmailScheduler() {
 export async function triggerEmailChecks() {
   await scheduleDigestEmails();
   await checkInactiveUsers();
+  await sendEngagementNudges();
+  await sendReferralActivation();
 }
