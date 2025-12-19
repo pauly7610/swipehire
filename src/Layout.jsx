@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/shared/Logo';
 import { usePageTracking } from '@/components/analytics/Analytics';
+import EmailScheduler from '@/components/email/EmailScheduler';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -416,6 +417,9 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Interview Notifications */}
               {!hideLayout && <InterviewNotification />}
+
+              {/* Email Scheduler - runs in background */}
+              {!hideLayout && user && <EmailScheduler />}
               </div>
               );
               }
