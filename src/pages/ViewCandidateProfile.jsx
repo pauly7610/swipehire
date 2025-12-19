@@ -12,6 +12,7 @@ import {
 import { motion } from 'framer-motion';
 import ResumeViewer from '@/components/profile/ResumeViewer';
 import QuickMessageDialog from '@/components/networking/QuickMessageDialog';
+import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,7 @@ export default function ViewCandidateProfile() {
   const [showResumeViewer, setShowResumeViewer] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [company, setCompany] = useState(null);
+  const [readiness, setReadiness] = useState(null);
 
   useEffect(() => {
     loadCandidate();
@@ -49,6 +51,12 @@ export default function ViewCandidateProfile() {
         const companies = await base44.entities.Company.filter({ user_id: user.id });
         if (companies.length > 0) {
           setCompany(companies[0]);
+          
+          // Load readiness data for recruiter
+          const [readinessData] = await base44.entities.ApplicationReadiness.filter({
+            candidate_id: candidateId
+          }, '-created_date', 1);
+          setReadiness(readinessData);
         }
       }
       
@@ -396,9 +404,18 @@ export default function ViewCandidateProfile() {
           </motion.div>
         )}
 
+        {/* Recruiter Signals - Only show to recruiters */}
+        {company && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <div className="mb-6">
+              <RecruiterSignalPanel candidate={candidate} readiness={readiness} />
+            </div>
+          </motion.div>
+        )}
+
         {/* Video Intro */}
         {candidate.video_intro_url && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -415,7 +432,7 @@ export default function ViewCandidateProfile() {
 
         {/* Culture Preferences */}
         {candidate.culture_preferences?.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Culture Preferences</CardTitle>
@@ -433,7 +450,7 @@ export default function ViewCandidateProfile() {
 
         {/* Portfolio Projects */}
         {candidate.portfolio_projects?.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Portfolio Projects</CardTitle>
@@ -472,7 +489,7 @@ export default function ViewCandidateProfile() {
 
         {/* Education */}
         {candidate.education?.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Education</CardTitle>
@@ -501,7 +518,7 @@ export default function ViewCandidateProfile() {
 
         {/* Certifications */}
         {candidate.certifications?.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Certifications</CardTitle>
@@ -524,7 +541,7 @@ export default function ViewCandidateProfile() {
 
         {/* Awards */}
         {candidate.awards?.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
             <Card className="mb-6 border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Awards & Honors</CardTitle>
@@ -569,7 +586,7 @@ export default function ViewCandidateProfile() {
 
         {/* Resume */}
         {candidate.resume_url && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}>
             <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-pink-50 to-orange-50">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
