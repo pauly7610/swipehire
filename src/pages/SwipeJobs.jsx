@@ -215,9 +215,16 @@ export default function SwipeJobs() {
     setIsFlipped(false);
     setCurrentIndex(currentIndex + 1);
     x.set(0);
-  };
 
-  const handleUndo = async () => {
+    // Show micro-feedback (optional, dismissible, non-blocking)
+    if ((swipeCount + 1) % 3 === 0) {
+      setSwipeFeedbackDirection(direction);
+      setShowSwipeFeedback(true);
+      setTimeout(() => setShowSwipeFeedback(false), 3000);
+    }
+    };
+
+    const handleUndo = async () => {
     if (swipeHistory.length === 0) return;
     const lastSwipe = swipeHistory[swipeHistory.length - 1];
     
@@ -295,7 +302,7 @@ export default function SwipeJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50/30 via-white to-orange-50/30 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -306,25 +313,40 @@ export default function SwipeJobs() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .card-float:hover {
-          animation: float 2s ease-in-out infinite;
-        }
       `}</style>
 
       <div className="max-w-md mx-auto">
-        {/* Header */}
+        {/* Header - Refined */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Discover Jobs</h1>
-          <p className="text-gray-600 font-medium">Swipe right on opportunities you love ❤️</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded-full mb-3 shadow-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-semibold text-gray-600">AI-Powered Matching</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Discover Opportunities</h1>
+          <p className="text-sm text-gray-500">Swipe right to apply instantly</p>
         </motion.div>
+
+        {/* Micro-feedback Toast */}
+        <AnimatePresence>
+          {showSwipeFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-20 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-lg backdrop-blur-md">
+                <p className="text-xs font-semibold text-gray-700">
+                  {swipeFeedbackDirection === 'right' ? '✓ Strong apply' : '✓ Passed'}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Card Stack */}
         <div className="relative h-[520px] mb-8"
@@ -414,42 +436,46 @@ export default function SwipeJobs() {
               </motion.div>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-lg">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center mb-4">
-                <Inbox className="w-10 h-10 text-pink-500" />
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-4">
+                <Inbox className="w-10 h-10 text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No More Jobs</h3>
-              <p className="text-gray-500">Check back later for new opportunities!</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">You're All Caught Up</h3>
+              <p className="text-sm text-gray-500">We'll notify you when new matches arrive</p>
             </div>
           )}
         </div>
 
-        {/* Deal Breaker Warnings */}
+        {/* Deal Breaker Warnings - Refined */}
                   {dealBreakerWarnings.length > 0 && (
-                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-3 bg-white border border-amber-200/60 rounded-xl shadow-sm"
+                    >
                       <div className="flex items-center gap-2 text-amber-700 mb-2">
                         <AlertTriangle className="w-4 h-4" />
-                        <span className="font-medium text-sm">Deal Breaker Warnings</span>
+                        <span className="font-semibold text-xs">Requirements Note</span>
                       </div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {dealBreakerWarnings.map((warning, i) => (
-                          <Badge key={i} variant="secondary" className="bg-amber-100 text-amber-700 text-xs">
+                          <Badge key={i} className="bg-amber-50 text-amber-700 text-[10px] border-0">
                             {warning.text}
                           </Badge>
                         ))}
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Controls */}
                   {currentJob && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <Button 
                         onClick={() => setShowInsights(true)}
                         variant="outline"
-                        className="w-full"
+                        className="w-full border-gray-300 hover:border-gray-400 text-gray-700 font-semibold text-sm shadow-sm"
                       >
-                        View Job Intelligence
+                        View Intelligence
                       </Button>
 
                       <SwipeControls
@@ -461,10 +487,22 @@ export default function SwipeJobs() {
                     </div>
                   )}
 
-        {/* Progress */}
+        {/* Progress - Refined */}
         {jobs.length > 0 && (
-          <div className="mt-6 text-center text-sm text-gray-400">
-            {currentIndex + 1} of {jobs.length} jobs
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <div className="flex gap-1">
+              {[...Array(Math.min(jobs.length, 5))].map((_, i) => (
+                <div 
+                  key={i}
+                  className={`h-1 rounded-full transition-all ${
+                    i === currentIndex ? 'w-6 bg-pink-500' : 'w-1 bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-400 font-medium">
+              {currentIndex + 1}/{jobs.length}
+            </span>
           </div>
         )}
       </div>

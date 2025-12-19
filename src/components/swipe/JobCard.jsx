@@ -15,6 +15,10 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
     return min ? `$${format(min)}+` : 'Competitive';
   };
 
+  // Intelligence signals
+  const roleReadiness = matchScore >= 85 ? 'high' : matchScore >= 70 ? 'medium' : 'low';
+  const companySignal = company?.size ? 'verified' : 'standard';
+
   return (
     <div className="relative w-full h-full">
       <AnimatePresence mode="wait">
@@ -24,27 +28,47 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             initial={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: 90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 w-full h-full bg-gradient-to-br from-white via-white to-gray-50 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col backdrop-blur-xl"
+            style={{ 
+              boxShadow: '0 8px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)',
+              backdropFilter: 'blur(10px)'
+            }}
           >
             {/* Hero Section with Company Branding */}
-            <div className="relative h-36 md:h-32 bg-gradient-to-br from-pink-500/10 via-orange-500/10 to-purple-500/10 flex items-center px-4 md:px-6">
-              {/* Match Score Badge */}
-              {matchScore && (
-                <motion.div 
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="absolute top-4 right-4 z-10"
-                >
-                  <div className={`px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md ${
-                    matchScore >= 80 ? 'bg-green-500/90' : matchScore >= 65 ? 'bg-amber-500/90' : 'bg-gray-500/90'
-                  }`}>
-                    <span className="font-bold text-white text-sm">
-                      {matchScore}%
+            <div className="relative h-36 md:h-32 bg-gradient-to-br from-pink-500/5 via-orange-500/5 to-purple-500/5 flex items-center px-4 md:px-6 border-b border-gray-100">
+              {/* AI Intelligence Signals - Top Right */}
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                {/* Fit Confidence Meter */}
+                {matchScore && (
+                  <motion.div 
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.15, type: "spring", stiffness: 300 }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-gray-200"
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      matchScore >= 80 ? 'bg-green-500' : matchScore >= 65 ? 'bg-amber-500' : 'bg-gray-400'
+                    } animate-pulse`} />
+                    <span className="text-[10px] font-semibold text-gray-600">
+                      {matchScore >= 80 ? 'Strong Fit' : matchScore >= 65 ? 'Good Fit' : 'Potential'}
                     </span>
-                  </div>
+                  </motion.div>
+                )}
+                
+                {/* Role Readiness Indicator */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                  className="w-8 h-8 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-gray-200 flex items-center justify-center"
+                  title={`Role readiness: ${roleReadiness}`}
+                >
+                  <TrendingUp className={`w-4 h-4 ${
+                    roleReadiness === 'high' ? 'text-green-600' : 
+                    roleReadiness === 'medium' ? 'text-amber-600' : 'text-gray-400'
+                  }`} />
                 </motion.div>
-              )}
+              </div>
 
               {company?.id && (
                 <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`} className="relative z-20">
@@ -109,75 +133,86 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               </div>
             </div>
 
+            {/* AI Insight Label */}
+            <div className="px-4 md:px-6 pt-3 pb-0">
+              <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
+                <Zap className="w-3 h-3" />
+                <span>AI-POWERED MATCH</span>
+              </div>
+            </div>
+
             {/* Content Section */}
-            <div className="flex-1 px-4 md:px-6 py-3 md:py-4 overflow-y-auto"
+            <div className="flex-1 px-4 md:px-6 py-2 md:py-3 overflow-y-auto"
               style={{ 
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#FF005C20 transparent'
               }}
             >
 
-              {/* Quick Info Cards */}
-              <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
+              {/* Quick Info Cards - Refined Layout */}
+              <div className="grid grid-cols-3 gap-2 mb-3 md:mb-4">
                 <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl md:rounded-2xl p-2.5 md:p-3 border border-green-100"
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
                 >
-                  <div className="flex items-center gap-1.5 md:gap-2 mb-1">
-                    <DollarSign className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                    <span className="text-[10px] md:text-xs text-green-600 font-medium">Salary</span>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <DollarSign className="w-3 h-3 text-green-600" />
+                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Salary</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-xs md:text-sm leading-tight">
+                  <p className="font-bold text-gray-900 text-[11px] leading-tight">
                     {formatSalary(job.salary_min, job.salary_max, job.salary_type)}
                   </p>
                 </motion.div>
 
                 <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl md:rounded-2xl p-2.5 md:p-3 border border-blue-100"
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
                 >
-                  <div className="flex items-center gap-1.5 md:gap-2 mb-1">
-                    <Briefcase className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
-                    <span className="text-[10px] md:text-xs text-blue-600 font-medium">Type</span>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <Briefcase className="w-3 h-3 text-blue-600" />
+                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Type</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-xs md:text-sm capitalize leading-tight">
+                  <p className="font-bold text-gray-900 text-[11px] capitalize leading-tight">
                     {job.job_type?.replace('-', ' ') || 'Full-time'}
                   </p>
                 </motion.div>
-              </div>
 
-              <motion.div 
-                whileHover={{ scale: 1.01 }}
-                className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-xl md:rounded-2xl p-2.5 md:p-3 border border-pink-100 mb-3 md:mb-4"
-              >
-                <div className="flex items-center gap-1.5 md:gap-2 mb-1">
-                  <MapPin className="w-3 h-3 md:w-4 md:h-4 text-pink-600" />
-                  <span className="text-[10px] md:text-xs text-pink-600 font-medium">Location</span>
-                </div>
-                <p className="font-bold text-gray-900 text-xs md:text-sm leading-tight">{job.location || 'Remote'}</p>
-              </motion.div>
+                <motion.div 
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
+                >
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <MapPin className="w-3 h-3 text-pink-600" />
+                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Location</span>
+                  </div>
+                  <p className="font-bold text-gray-900 text-[11px] leading-tight truncate">{job.location || 'Remote'}</p>
+                </motion.div>
+              </div>
 
               {/* Required Skills */}
               <div className="mb-3 md:mb-4">
-                <h4 className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Required Skills</h4>
-                <div className="flex flex-wrap gap-1.5 md:gap-2">
+                <h4 className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Key Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
                   {job.skills_required?.slice(0, 6).map((skill, i) => (
                     <motion.div
                       key={i}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.05 * i }}
+                      transition={{ delay: 0.03 * i, type: "spring", stiffness: 400 }}
                     >
                       <Badge 
-                        className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-2 py-1 md:px-3 md:py-1.5 shadow-sm text-[10px] md:text-xs"
+                        className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-2.5 py-1 shadow-sm text-[10px] font-semibold"
                       >
                         {skill}
                       </Badge>
                     </motion.div>
                   ))}
                   {job.skills_required?.length > 6 && (
-                    <Badge variant="outline" className="border-pink-200 text-pink-600">
-                      +{job.skills_required.length - 6}
+                    <Badge variant="outline" className="border-gray-300 text-gray-600 text-[10px]">
+                      +{job.skills_required.length - 6} more
                     </Badge>
                   )}
                 </div>
@@ -193,31 +228,31 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               )}
             </div>
 
-            {/* Bottom Action Bar */}
-            <div className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
-              <div className="flex items-center gap-2 md:gap-3">
+            {/* Bottom Action Bar - Enhanced */}
+            <div className="px-4 md:px-6 py-3 md:py-4 bg-white border-t border-gray-100">
+              <div className="flex items-center gap-2">
                 {onQuickApply && (
                   <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     className="flex-1"
                   >
                     <Button
                       onClick={(e) => { e.stopPropagation(); onQuickApply(); }}
-                      className="w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transition-all h-10 md:h-auto text-sm md:text-base"
+                      className="w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all h-10 text-sm font-semibold"
                     >
-                      <Zap className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> Quick Apply
+                      <Zap className="w-4 h-4 mr-2" /> Quick Apply
                     </Button>
                   </motion.div>
                 )}
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={onFlip}
-                  className="flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-700 hover:border-gray-400 transition-all shadow-sm"
                 >
-                  <span className="text-xs md:text-sm font-medium">Details</span>
-                  <ChevronDown className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs font-semibold">More</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
                 </motion.button>
               </div>
             </div>
