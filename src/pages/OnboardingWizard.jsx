@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Loader2, User, Users, Save, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, User, Users, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import PhotoUpload from '@/components/onboarding/PhotoUpload';
 import ExperienceForm from '@/components/onboarding/ExperienceForm';
@@ -45,6 +45,8 @@ export default function OnboardingWizard() {
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
+  const [draftId, setDraftId] = useState(null);
+  const [savingError, setSavingError] = useState(null);
 
   // Candidate data
   const [candidateData, setCandidateData] = useState({
@@ -99,7 +101,7 @@ export default function OnboardingWizard() {
         const hasCompany = companyCheck.length > 0;
         const selectedRole = localStorage.getItem('swipehire_selected_role');
 
-        // Redirect if already has profile
+        // Redirect if already has complete profile
         if (hasCandidate || hasCompany) {
           const viewMode = hasCompany ? 'employer' : 'candidate';
           localStorage.setItem('swipehire_view_mode', viewMode);
@@ -107,17 +109,20 @@ export default function OnboardingWizard() {
           return;
         }
 
-        // Load draft from localStorage
-        const draft = localStorage.getItem('onboarding_draft_v2');
-        if (draft) {
+        // Load draft from localStorage (immediate recovery)
+        const localDraft = localStorage.getItem('onboarding_draft_v2');
+        if (localDraft) {
           try {
-            const parsed = JSON.parse(draft);
+            const parsed = JSON.parse(localDraft);
             if (parsed.userType) setUserType(parsed.userType);
-            if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+            if (parsed.currentStep && parsed.currentStep > 1) setCurrentStep(parsed.currentStep);
             if (parsed.candidateData) setCandidateData(parsed.candidateData);
             if (parsed.recruiterData) setRecruiterData(parsed.recruiterData);
             if (parsed.companyData) setCompanyData(parsed.companyData);
-          } catch {}
+            if (parsed.draftId) setDraftId(parsed.draftId);
+          } catch (err) {
+            console.error('Failed to load local draft:', err);
+          }
         }
 
         // Handle role selection from previous page
@@ -141,27 +146,47 @@ export default function OnboardingWizard() {
     };
   }, [navigate]);
 
-  // Auto-save draft with debounce
+  // Auto-save draft with debounce - both localStorage AND sessionStorage for redundancy
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (userType && currentStep > 1) {
-        setAutoSaving(true);
-        const draft = {
-          userType,
-          currentStep,
-          candidateData: userType === 'candidate' ? candidateData : null,
-          recruiterData: userType === 'employer' ? recruiterData : null,
-          companyData: userType === 'employer' ? companyData : null,
-          timestamp: new Date().toISOString(),
-        };
+    if (!userType || currentStep <= 1) return;
+
+    const timer = setTimeout(async () => {
+      setAutoSaving(true);
+      setSavingError(null);
+
+      const draft = {
+        userType,
+        currentStep,
+        candidateData: userType === 'candidate' ? candidateData : null,
+        recruiterData: userType === 'employer' ? recruiterData : null,
+        companyData: userType === 'employer' ? companyData : null,
+        draftId,
+        timestamp: new Date().toISOString(),
+      };
+
+      try {
+        // Save to localStorage
         localStorage.setItem('onboarding_draft_v2', JSON.stringify(draft));
+        // Redundant save to sessionStorage
+        sessionStorage.setItem('onboarding_draft_v2', JSON.stringify(draft));
         
-        setTimeout(() => setAutoSaving(false), 500);
+        // Track save event
+        analytics.track('Onboarding Draft Saved', {
+          userType,
+          step: currentStep,
+          hasData: true
+        });
+
+        setTimeout(() => setAutoSaving(false), 800);
+      } catch (err) {
+        console.error('Failed to save draft:', err);
+        setSavingError('Failed to save progress');
+        setAutoSaving(false);
       }
-    }, 1000);
+    }, 1200);
 
     return () => clearTimeout(timer);
-  }, [candidateData, recruiterData, companyData, userType, currentStep]);
+  }, [candidateData, recruiterData, companyData, userType, currentStep, draftId]);
 
   const steps = userType === 'candidate' ? CANDIDATE_STEPS : RECRUITER_STEPS;
   const totalSteps = steps.length;
@@ -174,13 +199,13 @@ export default function OnboardingWizard() {
         case 2:
           return true; // Photo optional
         case 3:
-          return candidateData.headline && candidateData.bio && candidateData.location;
+          return !!(candidateData.headline?.trim() && candidateData.bio?.trim() && candidateData.location?.trim());
         case 4:
-          return candidateData.experience?.length > 0;
+          return Array.isArray(candidateData.experience) && candidateData.experience.length > 0;
         case 5:
           return true; // Education optional
         case 6:
-          return candidateData.skills?.length >= 3;
+          return Array.isArray(candidateData.skills) && candidateData.skills.length >= 3;
         case 7:
           return true; // Resume optional
         case 8:
@@ -193,9 +218,9 @@ export default function OnboardingWizard() {
         case 1:
           return !!userType;
         case 2:
-          return recruiterData.recruiter_name && recruiterData.title;
+          return !!(recruiterData.recruiter_name?.trim() && recruiterData.title?.trim());
         case 3:
-          return companyData.name && companyData.industry;
+          return !!(companyData.name?.trim() && companyData.industry?.trim());
         case 4:
           return true;
         default:
@@ -204,8 +229,16 @@ export default function OnboardingWizard() {
     }
   };
 
-  const handleNext = () => {
-    if (!canProceed()) return;
+  const handleNext = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (!canProceed()) {
+      console.warn('Cannot proceed - validation failed');
+      return;
+    }
     
     analytics.track('Onboarding Step Completed', {
       userType,
@@ -219,25 +252,50 @@ export default function OnboardingWizard() {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (loading) return;
+    
     setLoading(true);
+    setSavingError(null);
 
     try {
       if (userType === 'candidate') {
+        // Validate required fields
+        if (!candidateData.headline || !candidateData.bio || !candidateData.location) {
+          throw new Error('Missing required fields');
+        }
+
         const profileData = {
           user_id: user.id,
-          ...candidateData,
-          skills: candidateData.skills.map(s => typeof s === 'string' ? s : s.skill),
+          photo_url: candidateData.photo_url || '',
+          headline: candidateData.headline,
+          bio: candidateData.bio,
+          location: candidateData.location,
+          industry: candidateData.industry || '',
+          experience: candidateData.experience || [],
+          education: candidateData.education || [],
+          skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s : s.skill),
+          resume_url: candidateData.resume_url || '',
         };
 
-        await base44.entities.Candidate.create(profileData);
+        const newCandidate = await base44.entities.Candidate.create(profileData);
 
         analytics.track('Onboarding Completed', {
           userType: 'candidate',
@@ -247,10 +305,10 @@ export default function OnboardingWizard() {
           hasResume: !!candidateData.resume_url
         });
 
-        // Wait for profile to be created
+        // Verify creation with retry
         let profileFound = false;
-        for (let i = 0; i < 10; i++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        for (let i = 0; i < 12; i++) {
+          await new Promise(resolve => setTimeout(resolve, 400));
           const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
           if (candidates.length > 0) {
             profileFound = true;
@@ -261,30 +319,47 @@ export default function OnboardingWizard() {
         if (profileFound) {
           localStorage.setItem('swipehire_view_mode', 'candidate');
           localStorage.removeItem('onboarding_draft_v2');
+          sessionStorage.removeItem('onboarding_draft_v2');
           navigate(createPageUrl('SwipeJobs'), { replace: true });
+        } else {
+          throw new Error('Profile creation verification timeout');
         }
       } else {
+        // Validate required fields
+        if (!recruiterData.recruiter_name || !recruiterData.title) {
+          throw new Error('Missing recruiter information');
+        }
+        if (!companyData.name || !companyData.industry) {
+          throw new Error('Missing company information');
+        }
+
         // Save recruiter info
         await base44.auth.updateMe({
           recruiter_name: recruiterData.recruiter_name,
           recruiter_title: recruiterData.title,
-          recruiter_photo: recruiterData.photo_url,
+          recruiter_photo: recruiterData.photo_url || '',
         });
 
         // Create company
-        await base44.entities.Company.create({
+        const newCompany = await base44.entities.Company.create({
           user_id: user.id,
-          ...companyData,
+          name: companyData.name,
+          industry: companyData.industry,
+          location: companyData.location || '',
+          website: companyData.website || '',
+          size: companyData.size || '11-50',
+          logo_url: companyData.logo_url || '',
         });
 
         analytics.track('Onboarding Completed', {
-          userType: 'employer'
+          userType: 'employer',
+          hasLogo: !!companyData.logo_url
         });
 
-        // Wait for company to be created
+        // Verify creation with retry
         let companyFound = false;
-        for (let i = 0; i < 10; i++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        for (let i = 0; i < 12; i++) {
+          await new Promise(resolve => setTimeout(resolve, 400));
           const companies = await base44.entities.Company.filter({ user_id: user.id });
           if (companies.length > 0) {
             companyFound = true;
@@ -295,28 +370,67 @@ export default function OnboardingWizard() {
         if (companyFound) {
           localStorage.setItem('swipehire_view_mode', 'employer');
           localStorage.removeItem('onboarding_draft_v2');
+          sessionStorage.removeItem('onboarding_draft_v2');
           navigate(createPageUrl('EmployerDashboard'), { replace: true });
+        } else {
+          throw new Error('Company creation verification timeout');
         }
       }
     } catch (error) {
-      console.error('Failed to complete onboarding:', error);
-      alert('Failed to create profile. Please try again.');
+      console.error('Onboarding completion failed:', error);
+      setSavingError(error.message || 'Failed to create profile. Please try again.');
+      
+      analytics.track('Onboarding Failed', {
+        userType,
+        step: currentStep,
+        error: error.message
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleResumeParsed = (parsedData) => {
-    // Merge parsed data with existing data (don't overwrite)
-    setCandidateData(prev => ({
-      ...prev,
-      headline: prev.headline || parsedData.headline || '',
-      bio: prev.bio || parsedData.summary || '',
-      location: prev.location || parsedData.location || '',
-      skills: prev.skills?.length > 0 ? prev.skills : (parsedData.skills || []).map(s => ({ skill: s, proficiency: 'intermediate' })),
-      experience: prev.experience?.length > 0 ? prev.experience : parsedData.experience || [],
-      education: prev.education?.length > 0 ? prev.education : parsedData.education || [],
-    }));
+    if (!parsedData) return;
+
+    // Show preview and let user confirm what to import
+    const updates = {};
+    
+    // Only suggest updates for empty fields
+    if (!candidateData.headline && parsedData.headline) {
+      updates.headline = parsedData.headline;
+    }
+    if (!candidateData.bio && parsedData.summary) {
+      updates.bio = parsedData.summary;
+    }
+    if (!candidateData.location && parsedData.location) {
+      updates.location = parsedData.location;
+    }
+    if ((!candidateData.skills || candidateData.skills.length === 0) && parsedData.skills?.length > 0) {
+      updates.skills = parsedData.skills.map(s => ({ skill: s, proficiency: 'intermediate' }));
+    }
+    if ((!candidateData.experience || candidateData.experience.length === 0) && parsedData.experience?.length > 0) {
+      // Add unique IDs to parsed experience
+      updates.experience = parsedData.experience.map(exp => ({
+        ...exp,
+        id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random()}`
+      }));
+    }
+    if ((!candidateData.education || candidateData.education.length === 0) && parsedData.education?.length > 0) {
+      updates.education = parsedData.education;
+    }
+
+    // Apply updates (non-destructive)
+    if (Object.keys(updates).length > 0) {
+      setCandidateData(prev => ({
+        ...prev,
+        ...updates
+      }));
+
+      analytics.track('Resume Auto-Fill Applied', {
+        fieldsUpdated: Object.keys(updates)
+      });
+    }
   };
 
   const renderStep = () => {
@@ -715,6 +829,17 @@ export default function OnboardingWizard() {
         
         input, textarea, select, button {
           -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+        
+        button:not(:disabled) {
+          cursor: pointer;
+          pointer-events: auto;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+          outline: 2px solid #FF005C;
+          outline-offset: 2px;
         }
       `}</style>
 
@@ -725,9 +850,17 @@ export default function OnboardingWizard() {
 
       {/* Auto-save indicator */}
       {autoSaving && (
-        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
           <Save className="w-4 h-4" />
           <span className="text-sm font-medium">Saved</span>
+        </div>
+      )}
+
+      {/* Error indicator */}
+      {savingError && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <AlertCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">{savingError}</span>
         </div>
       )}
 
@@ -771,8 +904,9 @@ export default function OnboardingWizard() {
                 <Button
                   onClick={handleComplete}
                   disabled={loading || !canProceed()}
-                  className="swipe-gradient text-white rounded-xl px-8 shadow-lg disabled:opacity-50"
+                  className="swipe-gradient text-white rounded-xl px-8 shadow-lg disabled:opacity-50 active:scale-95 transition-transform touch-manipulation"
                   type="button"
+                  style={{ pointerEvents: loading ? 'none' : 'auto' }}
                 >
                   {loading ? (
                     <>
@@ -789,9 +923,11 @@ export default function OnboardingWizard() {
               ) : (
                 <Button
                   onClick={handleNext}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNext(e)}
                   disabled={!canProceed()}
-                  className="swipe-gradient text-white rounded-xl px-8 shadow-lg disabled:opacity-50"
+                  className="swipe-gradient text-white rounded-xl px-8 shadow-lg disabled:opacity-50 active:scale-95 transition-transform touch-manipulation"
                   type="button"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   Continue
                   <ChevronRight className="w-5 h-5 ml-2" />

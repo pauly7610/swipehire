@@ -11,7 +11,8 @@ export default function ExperienceForm({ experiences = [], onChange }) {
   const [errors, setErrors] = useState({});
 
   const addExperience = () => {
-    onChange([...experiences, {
+    const newExp = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random()}`,
       company: '',
       title: '',
       location: '',
@@ -19,22 +20,32 @@ export default function ExperienceForm({ experiences = [], onChange }) {
       end_date: '',
       current: false,
       description: ''
-    }]);
+    };
+    onChange([...experiences, newExp]);
   };
 
   const updateExperience = (index, field, value) => {
-    const updated = [...experiences];
-    updated[index] = { ...updated[index], [field]: value };
-    
-    // Clear end_date if marked as current
-    if (field === 'current' && value) {
-      updated[index].end_date = '';
-    }
+    const updated = experiences.map((exp, i) => {
+      if (i !== index) return exp;
+      
+      const updatedExp = { ...exp, [field]: value };
+      
+      // Clear end_date if marked as current
+      if (field === 'current' && value) {
+        updatedExp.end_date = '';
+      }
+      
+      return updatedExp;
+    });
     
     onChange(updated);
     
-    // Clear validation error
-    setErrors({ ...errors, [index]: undefined });
+    // Clear validation error for this specific entry
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[index];
+      return newErrors;
+    });
   };
 
   const removeExperience = (index) => {
@@ -87,7 +98,7 @@ export default function ExperienceForm({ experiences = [], onChange }) {
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
               {experiences.map((exp, index) => (
-                <Draggable key={index} draggableId={`exp-${index}`} index={index}>
+                <Draggable key={exp.id || index} draggableId={exp.id || `exp-${index}`} index={index}>
                   {(provided, snapshot) => (
                     <Card
                       ref={provided.innerRef}

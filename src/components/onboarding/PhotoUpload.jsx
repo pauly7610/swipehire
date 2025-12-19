@@ -15,15 +15,18 @@ export default function PhotoUpload({ value, onChange, required = false }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.match(/image\/(jpeg|jpg|png|heic)/)) {
+    // Validate file type (including HEIC for iOS)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
       alert('Please upload a JPG, PNG, or HEIC image');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('Image must be less than 10MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -35,18 +38,36 @@ export default function PhotoUpload({ value, onChange, required = false }) {
     setUploading(true);
     setShowCropper(false);
 
-    try {
-      const file = new File([croppedBlob], 'profile-photo.jpg', { type: 'image/jpeg' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      setPreview(file_url);
-      onChange(file_url);
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Failed to upload photo. Please try again.');
-    } finally {
-      setUploading(false);
-      setSelectedFile(null);
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const file = new File([croppedBlob], 'profile-photo.jpg', { type: 'image/jpeg' });
+        const result = await base44.integrations.Core.UploadFile({ file });
+        
+        // Verify upload succeeded
+        if (!result?.file_url) {
+          throw new Error('Upload succeeded but no URL returned');
+        }
+        
+        setPreview(result.file_url);
+        onChange(result.file_url);
+        setUploading(false);
+        setSelectedFile(null);
+        return;
+      } catch (error) {
+        console.error(`Upload attempt ${4 - retries} failed:`, error);
+        retries--;
+        
+        if (retries === 0) {
+          alert('Failed to upload photo after 3 attempts. Please check your connection and try again.');
+          setUploading(false);
+          setSelectedFile(null);
+          return;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
   };
 

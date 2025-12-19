@@ -16,28 +16,54 @@ export default function ResumeUpload({ value, onChange, onParsed }) {
     // Validate file type
     if (!file.name.match(/\.(pdf|doc|docx)$/i)) {
       alert('Please upload a PDF or DOC file');
+      e.target.value = '';
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Resume must be less than 5MB');
+      e.target.value = '';
       return;
     }
 
     setUploading(true);
     setParseError(null);
 
-    try {
-      // Upload file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onChange(file_url);
+    let uploadRetries = 3;
+    let fileUrl = null;
 
-      // Parse resume
+    // Upload with retry
+    while (uploadRetries > 0) {
+      try {
+        const result = await base44.integrations.Core.UploadFile({ file });
+        if (result?.file_url) {
+          fileUrl = result.file_url;
+          onChange(fileUrl);
+          break;
+        }
+        throw new Error('No file URL returned');
+      } catch (error) {
+        console.error(`Upload attempt ${4 - uploadRetries} failed:`, error);
+        uploadRetries--;
+        if (uploadRetries === 0) {
+          alert('Failed to upload resume after 3 attempts. Please check your connection.');
+          setUploading(false);
+          e.target.value = '';
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    setUploading(false);
+
+    // Parse resume (non-blocking, failures won't prevent upload success)
+    if (fileUrl) {
       setParsing(true);
       try {
         const parseResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
-          file_url,
+          file_url: fileUrl,
           json_schema: {
             type: 'object',
             properties: {
@@ -80,18 +106,14 @@ export default function ResumeUpload({ value, onChange, onParsed }) {
         if (parseResult.status === 'success' && parseResult.output) {
           onParsed?.(parseResult.output);
         } else {
-          setParseError('Could not parse resume. You can still manually fill in your information.');
+          setParseError('Resume uploaded but auto-fill not available. Fill in manually.');
         }
       } catch (parseErr) {
         console.error('Resume parse failed:', parseErr);
-        setParseError('Could not parse resume. You can still manually fill in your information.');
+        setParseError('Resume uploaded but auto-fill not available. Fill in manually.');
+      } finally {
+        setParsing(false);
       }
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Failed to upload resume. Please try again.');
-    } finally {
-      setUploading(false);
-      setParsing(false);
     }
   };
 
