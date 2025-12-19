@@ -37,6 +37,7 @@ import FavoriteCandidates from './pages/FavoriteCandidates';
 import FollowedCompanies from './pages/FollowedCompanies';
 import BrowseCandidates from './pages/BrowseCandidates';
 import Referrals from './pages/Referrals';
+import CRM from './pages/CRM';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "FollowedCompanies": FollowedCompanies,
     "BrowseCandidates": BrowseCandidates,
     "Referrals": Referrals,
+    "CRM": CRM,
 }
 
 export const pagesConfig = {
