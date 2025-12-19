@@ -49,7 +49,7 @@ export default function SplashScreen({ onComplete }) {
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692f38af6fdc92b66c9e69ba/04083b079_swipehire_no_bg.png" 
             alt="SwipeHire" 
-            className="w-64 h-auto md:w-80 md:h-auto mx-auto"
+            className="w-48 h-48 md:w-56 md:h-56 mx-auto object-contain"
           />
         </motion.div>
 
@@ -62,12 +62,10 @@ export default function SplashScreen({ onComplete }) {
           }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="swipe-gradient-text">SwipeHire</span>
-          </h1>
-          <p className="text-gray-600 text-lg leading-relaxed mb-8">
-            Swipe right on jobs you love. Match with companies that want you. 
-            Land interviews faster than ever.
+          <p className="text-gray-600 text-xl md:text-2xl leading-relaxed mb-8 font-medium">
+            Swipe right on jobs you love.<br/>
+            Match with companies that want you.<br/>
+            <span className="swipe-gradient-text font-bold">Land interviews faster than ever.</span>
           </p>
         </motion.div>
 
