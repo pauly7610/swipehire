@@ -727,10 +727,25 @@ export default function ATS() {
   const filteredMatches = getFilteredMatches();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6 relative">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+        }
+        
+        /* Ensure all interactive elements are clickable */
+        input, button, select, textarea, [role="button"], [role="checkbox"] {
+          cursor: pointer;
+          pointer-events: auto;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+          outline: none;
+        }
+        
+        /* Prevent any overlay issues */
+        .relative {
+          position: relative;
         }
       `}</style>
 
@@ -744,22 +759,58 @@ export default function ATS() {
           
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[300px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
               <Input
                 placeholder="Search candidates... (try: React AND Senior)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 rounded-xl border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (searchMode === 'all') {
+                      searchAllCandidates();
+                    }
+                  }
+                }}
+                className="pl-10 pr-24 h-11 rounded-xl border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent relative z-0"
+                autoComplete="off"
               />
+              {searchQuery && (
+                <>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors z-20"
+                    type="button"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                  <Button
+                    onClick={() => {
+                      if (searchMode === 'all') {
+                        searchAllCandidates();
+                      }
+                    }}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-3 swipe-gradient text-white rounded-lg text-sm font-medium z-20"
+                    type="button"
+                  >
+                    Search
+                  </Button>
+                </>
+              )}
             </div>
             
             <Button 
               variant="outline" 
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`${showAdvancedFilters ? 'bg-pink-50 border-pink-300 text-pink-700' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowAdvancedFilters(!showAdvancedFilters);
+              }}
+              className={`h-11 rounded-xl border-gray-200 relative z-0 ${showAdvancedFilters ? 'bg-pink-50 border-pink-300 text-pink-700' : ''}`}
+              type="button"
             >
               <Filter className="w-4 h-4 mr-2" />
-              Advanced Filters
+              Filters
               {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length > 0 && (
                 <Badge className="ml-2 bg-pink-500 text-white">
                   {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length}
@@ -767,11 +818,13 @@ export default function ATS() {
               )}
             </Button>
             
-            <Select value={selectedJob} onValueChange={setSelectedJob}>
-              <SelectTrigger className="w-48 h-11 rounded-xl border-gray-200">
+            <Select value={selectedJob} onValueChange={(value) => {
+              setSelectedJob(value);
+            }}>
+              <SelectTrigger className="w-48 h-11 rounded-xl border-gray-200 relative z-0">
                 <SelectValue placeholder="Filter by job" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50">
                 <SelectItem value="all">All Jobs</SelectItem>
                 {jobs.map(job => (
                   <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
@@ -782,16 +835,41 @@ export default function ATS() {
             {selectedMatches.size > 0 && (
               <>
                 <Badge className="bg-pink-500 text-white px-3 py-2 rounded-xl">{selectedMatches.size} selected</Badge>
-                <Button onClick={() => setShowMassMessageDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 shadow-sm">
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowMassMessageDialog(true);
+                  }} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 shadow-sm"
+                  type="button"
+                >
                   <Mail className="w-4 h-4 mr-2" /> Message {selectedMatches.size}
                 </Button>
-                <Button onClick={() => setShowBulkMoveDialog(true)} className="swipe-gradient text-white rounded-xl h-11 shadow-md">
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowBulkMoveDialog(true);
+                  }} 
+                  className="swipe-gradient text-white rounded-xl h-11 shadow-md"
+                  type="button"
+                >
                   Move {selectedMatches.size}
                 </Button>
               </>
             )}
 
-            <Button onClick={() => setShowCompare(true)} variant="outline" className="border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl h-11">
+            <Button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowCompare(true);
+              }} 
+              variant="outline" 
+              className="border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl h-11"
+              type="button"
+            >
               <Trophy className="w-4 h-4 mr-2" /> Compare
             </Button>
           </div>
@@ -808,24 +886,46 @@ export default function ATS() {
           </div>
         )}
 
-        {/* Search Mode Toggle */}
-        <div className="mb-6 flex items-center gap-3 bg-white rounded-2xl p-1.5 border-2 border-gray-100 shadow-sm w-fit">
-          <Button
-            size="sm"
-            variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
-            onClick={() => setSearchMode('pipeline')}
-            className={`rounded-xl ${searchMode === 'pipeline' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
-          >
-            My Pipeline
-          </Button>
-          <Button
-            size="sm"
-            variant={searchMode === 'all' ? 'default' : 'ghost'}
-            onClick={() => setSearchMode('all')}
-            className={`rounded-xl ${searchMode === 'all' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
-          >
-            <Users className="w-4 h-4 mr-2" /> All SwipeHire
-          </Button>
+        {/* Search Mode Toggle + Boolean Help */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 bg-white rounded-2xl p-1.5 border-2 border-gray-100 shadow-sm">
+            <Button
+              size="sm"
+              variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSearchMode('pipeline');
+              }}
+              className={`rounded-xl ${searchMode === 'pipeline' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+              type="button"
+            >
+              My Pipeline
+            </Button>
+            <Button
+              size="sm"
+              variant={searchMode === 'all' ? 'default' : 'ghost'}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSearchMode('all');
+              }}
+              className={`rounded-xl ${searchMode === 'all' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+              type="button"
+            >
+              <Users className="w-4 h-4 mr-2" /> All SwipeHire
+            </Button>
+          </div>
+          
+          {/* Boolean Search Help */}
+          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
+            <span className="font-medium">Boolean Search:</span>
+            <code className="px-2 py-1 bg-gray-100 rounded text-xs">AND</code>
+            <code className="px-2 py-1 bg-gray-100 rounded text-xs">OR</code>
+            <code className="px-2 py-1 bg-gray-100 rounded text-xs">NOT</code>
+            <span className="text-gray-400">•</span>
+            <span className="text-xs text-gray-400">Press Enter to search</span>
+          </div>
         </div>
 
         {/* Stats */}
@@ -846,12 +946,22 @@ export default function ATS() {
         </div>
 
         {/* View Toggle */}
-        <Tabs value={viewMode} onValueChange={setViewMode} className="mb-6">
+        <Tabs value={viewMode} onValueChange={(value) => {
+          setViewMode(value);
+        }} className="mb-6">
           <TabsList className="bg-white rounded-2xl p-1.5 shadow-sm border-2 border-gray-100">
-            <TabsTrigger value="pipeline" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6">
+            <TabsTrigger 
+              value="pipeline" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6"
+              onClick={(e) => e.stopPropagation()}
+            >
               Pipeline View
             </TabsTrigger>
-            <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6">
+            <TabsTrigger 
+              value="list" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6"
+              onClick={(e) => e.stopPropagation()}
+            >
               List View
             </TabsTrigger>
           </TabsList>
@@ -981,19 +1091,23 @@ export default function ATS() {
                                       <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                                         <button
                                           onClick={(e) => {
+                                            e.preventDefault();
                                             e.stopPropagation();
                                             confirmMoveCandidate(match.id, stage.id, 'screening', user?.full_name);
                                           }}
-                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-md transition-all font-medium"
+                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-md transition-all font-medium cursor-pointer"
+                                          type="button"
                                         >
                                           ✓ Advance
                                         </button>
                                         <button
                                           onClick={(e) => {
+                                            e.preventDefault();
                                             e.stopPropagation();
                                             handleQuickReject(match);
                                           }}
-                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:shadow-md transition-all font-medium"
+                                          className="flex-1 text-xs py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:shadow-md transition-all font-medium cursor-pointer"
+                                          type="button"
                                         >
                                           ✕ Reject
                                         </button>
@@ -1294,20 +1408,24 @@ export default function ATS() {
                             <Button
                               size="sm"
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name);
                               }}
                               className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-md border-0 rounded-lg"
+                              type="button"
                             >
                               ✓ Advance
                             </Button>
                             <Button
                               size="sm"
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 handleQuickReject(match);
                               }}
                               className="bg-gradient-to-r from-red-500 to-rose-500 text-white hover:shadow-md border-0 rounded-lg"
+                              type="button"
                             >
                               ✕ Reject
                             </Button>
