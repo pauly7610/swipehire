@@ -41,6 +41,7 @@ import CRM from './pages/CRM';
 import OnboardingWizard from './pages/OnboardingWizard';
 import InterviewPrep from './pages/InterviewPrep';
 import JobAlertManager from './pages/JobAlertManager';
+import QADashboard from './pages/QADashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -88,6 +89,7 @@ export const PAGES = {
     "OnboardingWizard": OnboardingWizard,
     "InterviewPrep": InterviewPrep,
     "JobAlertManager": JobAlertManager,
+    "QADashboard": QADashboard,
 }
 
 export const pagesConfig = {
