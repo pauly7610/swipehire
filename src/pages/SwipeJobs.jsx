@@ -47,6 +47,8 @@ export default function SwipeJobs() {
   const [showReferModal, setShowReferModal] = useState(false);
   const [showReadinessGate, setShowReadinessGate] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [showSwipeFeedback, setShowSwipeFeedback] = useState(false);
+  const [swipeFeedbackDirection, setSwipeFeedbackDirection] = useState(null);
 
   const { checkDealBreakers, calculateMatchScore } = useAIMatching();
   const x = useMotionValue(0);
