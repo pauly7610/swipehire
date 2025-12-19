@@ -1,8 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, Zap, RotateCcw } from 'lucide-react';
 
-export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium }) {
+export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onInteraction }) {
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        onSwipe('left');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        onSwipe('right');
+      } else if (e.key === 'ArrowUp' && isPremium) {
+        e.preventDefault();
+        onSwipe('super');
+      } else if ((e.key === 'z' && (e.metaKey || e.ctrlKey)) && canUndo) {
+        e.preventDefault();
+        onUndo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [onSwipe, onUndo, canUndo, isPremium]);
+  
   return (
     <div className="flex items-center justify-center gap-4">
       {/* Undo Button */}
