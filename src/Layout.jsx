@@ -26,6 +26,7 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     let isMounted = true;
+    let notificationInterval = null;
 
     const loadUser = async () => {
       try {
@@ -33,6 +34,7 @@ export default function Layout({ children, currentPageName }) {
         if (!isMounted) return;
 
         if (!isAuth) {
+          console.log('[Layout] Not authenticated');
           setUser(null);
           setLoading(false);
           return;
@@ -41,6 +43,7 @@ export default function Layout({ children, currentPageName }) {
         const currentUser = await base44.auth.me();
         if (!isMounted) return;
 
+        console.log('[Layout] User loaded:', currentUser.email);
         setUser(currentUser);
 
         const [candidates, companies] = await Promise.all([
@@ -79,12 +82,19 @@ export default function Layout({ children, currentPageName }) {
           if (!isMounted) return;
           setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
         } catch (notifError) {
-          console.error('Error loading notifications:', notifError);
+          console.error('[Layout] Error loading notifications:', notifError);
         }
       } catch (e) {
-        console.error('Auth error:', e);
-        if (isMounted) {
-          setUser(null);
+        console.error('[Layout] Auth error:', e);
+        
+        // Only clear user on explicit auth failures, not network errors
+        if (e?.response?.status === 401 || e?.message?.includes('unauthorized')) {
+          console.warn('[Layout] 401/Unauthorized - clearing user');
+          if (isMounted) {
+            setUser(null);
+          }
+        } else {
+          console.log('[Layout] Non-auth error, keeping session');
         }
       } finally {
         if (isMounted) {
@@ -93,24 +103,34 @@ export default function Layout({ children, currentPageName }) {
       }
     };
 
-    loadUser();
-
-    const interval = setInterval(async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        const [unreadNotifs, unreadMessages] = await Promise.all([
-          base44.entities.Notification.filter({ user_id: currentUser.id, is_read: false }),
-          base44.entities.DirectMessage.filter({ receiver_id: currentUser.id, is_read: false })
-        ]);
-        if (isMounted) {
-          setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+    // Start periodic notification checks only after user is loaded
+    const startNotificationPolling = (userId) => {
+      notificationInterval = setInterval(async () => {
+        try {
+          const [unreadNotifs, unreadMessages] = await Promise.all([
+            base44.entities.Notification.filter({ user_id: userId, is_read: false }),
+            base44.entities.DirectMessage.filter({ receiver_id: userId, is_read: false })
+          ]);
+          if (isMounted) {
+            setUnreadInboxCount(unreadNotifs.length + unreadMessages.length);
+          }
+        } catch (e) {
+          // Silently fail for notification polling
         }
-      } catch (e) {}
-    }, 5000);
+      }, 30000); // Reduced to 30 seconds
+    };
+
+    loadUser().then(() => {
+      if (isMounted && user?.id) {
+        startNotificationPolling(user.id);
+      }
+    });
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (notificationInterval) {
+        clearInterval(notificationInterval);
+      }
     };
   }, [currentPageName, navigate]);
 
