@@ -38,6 +38,7 @@ import FollowedCompanies from './pages/FollowedCompanies';
 import BrowseCandidates from './pages/BrowseCandidates';
 import Referrals from './pages/Referrals';
 import CRM from './pages/CRM';
+import OnboardingWizard from './pages/OnboardingWizard';
 import __Layout from './Layout.jsx';
 
 
@@ -82,6 +83,7 @@ export const PAGES = {
     "BrowseCandidates": BrowseCandidates,
     "Referrals": Referrals,
     "CRM": CRM,
+    "OnboardingWizard": OnboardingWizard,
 }
 
 export const pagesConfig = {
