@@ -30,6 +30,7 @@ import DetailedMatchInsights from '@/components/matching/DetailedMatchInsights';
 import MatchFeedbackForm from '@/components/matching/MatchFeedbackForm';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
+import AdvancedSearchFilters from '@/components/ats/AdvancedSearchFilters';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -93,6 +94,19 @@ export default function ATS() {
   const [showMassMessageDialog, setShowMassMessageDialog] = useState(false);
   const [massEmailSubject, setMassEmailSubject] = useState('');
   const [massEmailBody, setMassEmailBody] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    skills: [],
+    location: '',
+    experienceLevel: '',
+    experienceYearsMin: 0,
+    experienceYearsMax: 20,
+    hasResume: false,
+    hasVideo: false,
+    salaryMin: 0,
+    salaryMax: 500000,
+    educationLevel: ''
+  });
 
   useEffect(() => {
     loadData();
@@ -560,45 +574,120 @@ export default function ATS() {
     return filtered;
   };
 
-  // Search all candidates in SwipeHire (not just matched ones)
-  const searchAllCandidates = () => {
-    if (!searchQuery.trim()) {
-      setGlobalSearchResults([]);
-      return;
-    }
-    
-    const terms = parseSearchQuery(searchQuery);
-    const results = allCandidatesList.filter(candidate => {
+  // Apply advanced filters
+  const applyAdvancedFilters = (candidates) => {
+    return candidates.filter(candidate => {
       const user = users[candidate.user_id];
-      const searchableText = [
-        user?.full_name || '',
-        user?.email || '',
-        candidate?.headline || '',
-        candidate?.location || '',
-        candidate?.bio || '',
-        ...(candidate?.skills || []),
-        ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
-        candidate?.resume_url ? 'resume has_resume' : ''
-      ].join(' ').toLowerCase();
       
-      // Check NOT terms first
-      for (const term of terms.not) {
-        if (searchableText.includes(term)) return false;
+      // Skills filter
+      if (advancedFilters.skills?.length > 0) {
+        const candidateSkills = (candidate?.skills || []).map(s => s.toLowerCase());
+        const hasAllSkills = advancedFilters.skills.every(skill => 
+          candidateSkills.some(cs => cs.includes(skill.toLowerCase()))
+        );
+        if (!hasAllSkills) return false;
       }
       
-      // Check AND terms
-      for (const term of terms.and) {
-        if (!searchableText.includes(term)) return false;
+      // Location filter
+      if (advancedFilters.location) {
+        const loc = (candidate?.location || '').toLowerCase();
+        if (!loc.includes(advancedFilters.location.toLowerCase())) return false;
       }
       
-      // Check OR terms
-      if (terms.or.length > 0) {
-        const hasAnyOr = terms.or.some(term => searchableText.includes(term));
-        if (!hasAnyOr) return false;
+      // Experience level filter
+      if (advancedFilters.experienceLevel) {
+        if (candidate?.experience_level !== advancedFilters.experienceLevel) return false;
+      }
+      
+      // Years of experience filter
+      if (candidate?.experience_years) {
+        if (candidate.experience_years < advancedFilters.experienceYearsMin || 
+            candidate.experience_years > advancedFilters.experienceYearsMax) {
+          return false;
+        }
+      }
+      
+      // Salary filter
+      if (candidate?.salary_expectation_min) {
+        if (candidate.salary_expectation_min < advancedFilters.salaryMin || 
+            candidate.salary_expectation_min > advancedFilters.salaryMax) {
+          return false;
+        }
+      }
+      
+      // Has resume filter
+      if (advancedFilters.hasResume && !candidate?.resume_url) return false;
+      
+      // Has video filter
+      if (advancedFilters.hasVideo && !candidate?.video_intro_url) return false;
+      
+      // Education filter
+      if (advancedFilters.educationLevel && candidate?.education?.length > 0) {
+        const hasEducation = candidate.education.some(edu => {
+          const degree = (edu.degree || '').toLowerCase();
+          switch (advancedFilters.educationLevel) {
+            case 'high_school': return degree.includes('high school');
+            case 'associate': return degree.includes('associate');
+            case 'bachelor': return degree.includes('bachelor');
+            case 'master': return degree.includes('master');
+            case 'phd': return degree.includes('phd') || degree.includes('doctorate');
+            default: return true;
+          }
+        });
+        if (!hasEducation) return false;
       }
       
       return true;
     });
+  };
+
+  // Search all candidates in SwipeHire (not just matched ones)
+  const searchAllCandidates = () => {
+    if (!searchQuery.trim() && Object.values(advancedFilters).every(v => !v || (Array.isArray(v) && v.length === 0))) {
+      setGlobalSearchResults([]);
+      return;
+    }
+    
+    let results = [...allCandidatesList];
+    
+    // Apply boolean search if query exists
+    if (searchQuery.trim()) {
+      const terms = parseSearchQuery(searchQuery);
+      results = results.filter(candidate => {
+        const user = users[candidate.user_id];
+        const searchableText = [
+          user?.full_name || '',
+          user?.email || '',
+          candidate?.headline || '',
+          candidate?.location || '',
+          candidate?.bio || '',
+          ...(candidate?.skills || []),
+          ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
+          candidate?.resume_url ? 'resume has_resume' : ''
+        ].join(' ').toLowerCase();
+        
+        // Check NOT terms first
+        for (const term of terms.not) {
+          if (searchableText.includes(term)) return false;
+        }
+        
+        // Check AND terms
+        for (const term of terms.and) {
+          if (!searchableText.includes(term)) return false;
+        }
+        
+        // Check OR terms
+        if (terms.or.length > 0) {
+          const hasAnyOr = terms.or.some(term => searchableText.includes(term));
+          if (!hasAnyOr) return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Apply advanced filters
+    results = applyAdvancedFilters(results);
     
     setGlobalSearchResults(results);
   };
@@ -607,7 +696,7 @@ export default function ATS() {
     if (searchMode === 'all') {
       searchAllCandidates();
     }
-  }, [searchQuery, searchMode, allCandidatesList]);
+  }, [searchQuery, searchMode, allCandidatesList, advancedFilters]);
 
   const getCandidateMatchStatus = (candidateId) => {
     const match = matches.find(m => m.candidate_id === candidateId);
@@ -654,15 +743,29 @@ export default function ATS() {
           </div>
           
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative">
+            <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Boolean search: React AND Senior NOT Junior"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-80"
+                className="pl-9 w-full"
               />
             </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`${showAdvancedFilters ? 'bg-pink-50 border-pink-300 text-pink-700' : ''}`}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Advanced Filters
+              {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length > 0 && (
+                <Badge className="ml-2 bg-pink-500 text-white">
+                  {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length}
+                </Badge>
+              )}
+            </Button>
             
             <Select value={selectedJob} onValueChange={setSelectedJob}>
               <SelectTrigger className="w-48">
@@ -693,6 +796,17 @@ export default function ATS() {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Filters Sidebar */}
+        {showAdvancedFilters && (
+          <div className="mb-6">
+            <AdvancedSearchFilters
+              filters={advancedFilters}
+              onFiltersChange={setAdvancedFilters}
+              onSaveSearch={() => {}}
+            />
+          </div>
+        )}
 
         {/* Search Mode Toggle */}
         <div className="mb-4 flex items-center gap-4">
