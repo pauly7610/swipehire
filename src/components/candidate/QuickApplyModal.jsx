@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { Briefcase, MapPin, Building2, Zap, Loader2, Upload, FileText, Video, X, CheckCircle2, StopCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { evaluateCandidate, rankApplicationsForJob } from '@/components/evaluation/CandidateEvaluator';
+import { evaluateApplication } from '@/components/evaluation/AutoEvaluator';
 
 export default function QuickApplyModal({ open, onOpenChange, job, company, candidate, user, onApply }) {
   const [step, setStep] = useState(1); // 1: cover letter, 2: resume, 3: video
@@ -102,10 +102,9 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
         status: 'applied'
       });
 
-      // Auto-trigger AI evaluation
+      // Auto-trigger AI evaluation and ranking
       try {
-        await evaluateCandidate(application, candidate, job);
-        await rankApplicationsForJob(job.id);
+        await evaluateApplication(application.id);
       } catch (evalError) {
         console.error('AI evaluation failed:', evalError);
       }
