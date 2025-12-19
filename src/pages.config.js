@@ -39,6 +39,7 @@ import BrowseCandidates from './pages/BrowseCandidates';
 import Referrals from './pages/Referrals';
 import CRM from './pages/CRM';
 import OnboardingWizard from './pages/OnboardingWizard';
+import InterviewPrep from './pages/InterviewPrep';
 import __Layout from './Layout.jsx';
 
 
@@ -84,6 +85,7 @@ export const PAGES = {
     "Referrals": Referrals,
     "CRM": CRM,
     "OnboardingWizard": OnboardingWizard,
+    "InterviewPrep": InterviewPrep,
 }
 
 export const pagesConfig = {

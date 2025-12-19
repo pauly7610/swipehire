@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Filter, MapPin, Briefcase, Star, X, Loader2, Heart, User, MessageCircle, GitBranch, Send } from 'lucide-react';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
+import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
 
 export default function BrowseCandidates() {
   const navigate = useNavigate();
@@ -40,6 +41,8 @@ export default function BrowseCandidates() {
   const [selectedPipeline, setSelectedPipeline] = useState('matched');
   const [jobs, setJobs] = useState([]);
   const [sending, setSending] = useState(false);
+  const [readinessMap, setReadinessMap] = useState({});
+  const [selectedCandidateForSignals, setSelectedCandidateForSignals] = useState(null);
 
   // Get unique values for filters
   const [industries, setIndustries] = useState([]);
@@ -76,11 +79,12 @@ export default function BrowseCandidates() {
       setCompany(companyData);
 
       // Load all data in parallel for better performance
-      const [allCandidates, favs, companyJobs, allUsers] = await Promise.all([
+      const [allCandidates, favs, companyJobs, allUsers, readinessData] = await Promise.all([
         base44.entities.Candidate.list(),
         base44.entities.FavoriteCandidate.filter({ company_id: companyData.id }),
         base44.entities.Job.filter({ company_id: companyData.id, is_active: true }),
-        base44.entities.User.list()
+        base44.entities.User.list(),
+        base44.entities.ApplicationReadiness.list()
       ]);
 
       // Create users map
@@ -91,6 +95,13 @@ export default function BrowseCandidates() {
       setCandidates(allCandidates);
       setFavorites(favs);
       setJobs(companyJobs);
+
+      // Map readiness data
+      const readMap = {};
+      readinessData.forEach(r => {
+        readMap[r.candidate_id] = r;
+      });
+      setReadinessMap(readMap);
 
       // Extract unique values for filters
       const uniqueIndustries = [...new Set(allCandidates.map(c => c.industry).filter(Boolean))];
@@ -600,6 +611,19 @@ export default function BrowseCandidates() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Recruiter Signals Button */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCandidateForSignals(candidate);
+                      }}
+                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                    >
+                      Insights
+                    </Button>
+
                     {/* Favorite Button */}
                     <button
                       onClick={(e) => {
@@ -736,6 +760,21 @@ export default function BrowseCandidates() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recruiter Signals Modal */}
+      <Dialog open={!!selectedCandidateForSignals} onOpenChange={() => setSelectedCandidateForSignals(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Candidate Intelligence</DialogTitle>
+          </DialogHeader>
+          {selectedCandidateForSignals && (
+            <RecruiterSignalPanel 
+              candidate={selectedCandidateForSignals}
+              readiness={readinessMap[selectedCandidateForSignals.id]}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
