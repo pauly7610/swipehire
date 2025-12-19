@@ -59,11 +59,11 @@ export default function AdminPanel() {
 
       const [allCandidates, allCompanies, allJobs, allVideos, allUsers, allFeedback] = await Promise.all([
         base44.entities.Candidate.list(),
-        base44.entities.Company.list('-created_date'),
-        base44.entities.Job.list('-created_date'),
-        base44.entities.VideoPost.list('-created_date'),
+        base44.entities.Company.list(),
+        base44.entities.Job.list(),
+        base44.entities.VideoPost.list(),
         base44.entities.User.list(),
-        base44.entities.RecruiterFeedback.list('-created_date')
+        base44.entities.RecruiterFeedback.list()
       ]);
 
       setCandidates(allCandidates);
