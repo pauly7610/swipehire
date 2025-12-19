@@ -31,6 +31,7 @@ import MatchFeedbackForm from '@/components/matching/MatchFeedbackForm';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
 import AdvancedSearchFilters from '@/components/ats/AdvancedSearchFilters';
+import BooleanSearchParser from '@/components/ats/BooleanSearchParser';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -107,6 +108,8 @@ export default function ATS() {
     salaryMax: 500000,
     educationLevel: ''
   });
+  const [searchValidation, setSearchValidation] = useState({ valid: true, error: null });
+  const booleanParser = React.useRef(new BooleanSearchParser()).current;
 
   useEffect(() => {
     loadData();
@@ -497,67 +500,15 @@ export default function ATS() {
     setNoteText('');
   };
 
-  // Boolean search parser
-  const parseSearchQuery = (query) => {
-    const terms = { and: [], or: [], not: [] };
-    const parts = query.split(/\s+/);
-    let currentOperator = 'and';
-    
-    parts.forEach(part => {
-      const upperPart = part.toUpperCase();
-      if (upperPart === 'AND') {
-        currentOperator = 'and';
-      } else if (upperPart === 'OR') {
-        currentOperator = 'or';
-      } else if (upperPart === 'NOT' || part.startsWith('-')) {
-        currentOperator = 'not';
-        if (part.startsWith('-') && part.length > 1) {
-          terms.not.push(part.substring(1).toLowerCase());
-        }
-      } else if (part.trim()) {
-        terms[currentOperator].push(part.toLowerCase());
-        if (currentOperator !== 'and') currentOperator = 'and';
-      }
-    });
-    
-    return terms;
-  };
-
-  const matchesSearchTerms = (match, terms) => {
-    const candidate = candidates[match.candidate_id];
-    const user = candidate ? users[candidate.user_id] : null;
-    const job = jobs.find(j => j.id === match.job_id);
-    
-    const searchableText = [
-      user?.full_name || '',
-      user?.email || '',
-      candidate?.headline || '',
-      candidate?.location || '',
-      candidate?.bio || '',
-      ...(candidate?.skills || []),
-      ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
-      candidate?.resume_url ? 'resume' : '',
-      job?.title || ''
-    ].join(' ').toLowerCase();
-    
-    // Check NOT terms first (must not contain)
-    for (const term of terms.not) {
-      if (searchableText.includes(term)) return false;
+  // Validate search query on change
+  React.useEffect(() => {
+    if (searchQuery.trim()) {
+      const validation = booleanParser.validate(searchQuery);
+      setSearchValidation(validation);
+    } else {
+      setSearchValidation({ valid: true, error: null });
     }
-    
-    // Check AND terms (must contain all)
-    for (const term of terms.and) {
-      if (!searchableText.includes(term)) return false;
-    }
-    
-    // Check OR terms (must contain at least one, if any OR terms exist)
-    if (terms.or.length > 0) {
-      const hasAnyOr = terms.or.some(term => searchableText.includes(term));
-      if (!hasAnyOr) return false;
-    }
-    
-    return true;
-  };
+  }, [searchQuery]);
 
   const getFilteredMatches = () => {
     let filtered = matches;
@@ -567,8 +518,11 @@ export default function ATS() {
     }
     
     if (searchQuery.trim() && searchMode === 'pipeline') {
-      const terms = parseSearchQuery(searchQuery);
-      filtered = filtered.filter(m => matchesSearchTerms(m, terms));
+      filtered = filtered.filter(m => {
+        const candidate = candidates[m.candidate_id];
+        const user = candidate ? users[candidate.user_id] : null;
+        return booleanParser.search(searchQuery, candidate, user);
+      });
     }
     
     return filtered;
@@ -652,42 +606,22 @@ export default function ATS() {
     
     // Apply boolean search if query exists
     if (searchQuery.trim()) {
-      const terms = parseSearchQuery(searchQuery);
       results = results.filter(candidate => {
         const user = users[candidate.user_id];
-        const searchableText = [
-          user?.full_name || '',
-          user?.email || '',
-          candidate?.headline || '',
-          candidate?.location || '',
-          candidate?.bio || '',
-          ...(candidate?.skills || []),
-          ...(candidate?.experience?.map(e => `${e.title} ${e.company} ${e.description || ''}`) || []),
-          candidate?.resume_url ? 'resume has_resume' : ''
-        ].join(' ').toLowerCase();
-        
-        // Check NOT terms first
-        for (const term of terms.not) {
-          if (searchableText.includes(term)) return false;
-        }
-        
-        // Check AND terms
-        for (const term of terms.and) {
-          if (!searchableText.includes(term)) return false;
-        }
-        
-        // Check OR terms
-        if (terms.or.length > 0) {
-          const hasAnyOr = terms.or.some(term => searchableText.includes(term));
-          if (!hasAnyOr) return false;
-        }
-        
-        return true;
+        return booleanParser.search(searchQuery, candidate, user);
       });
     }
     
     // Apply advanced filters
     results = applyAdvancedFilters(results);
+    
+    // Track search analytics
+    analytics.track('ATS Search Executed', {
+      query: searchQuery,
+      mode: searchMode,
+      resultsCount: results.length,
+      hasAdvancedFilters: Object.values(advancedFilters).some(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false))
+    });
     
     setGlobalSearchResults(results);
   };
@@ -761,7 +695,7 @@ export default function ATS() {
             <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
               <Input
-                placeholder="Search candidates... (try: React AND Senior)"
+                placeholder='Try: "Senior Engineer" AND (React OR Vue) NOT Junior'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -772,15 +706,29 @@ export default function ATS() {
                     }
                   }
                 }}
-                className="pl-10 pr-24 h-11 rounded-xl border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent relative z-0"
+                className={`pl-10 pr-24 h-11 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent relative z-0 ${
+                  searchValidation.valid ? 'border-gray-200' : 'border-red-300 bg-red-50'
+                }`}
                 autoComplete="off"
+                aria-label="Boolean search candidates"
+                aria-invalid={!searchValidation.valid}
+                aria-describedby={searchValidation.valid ? undefined : 'search-error'}
               />
+              {!searchValidation.valid && (
+                <div id="search-error" className="absolute left-0 top-full mt-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                  {searchValidation.error}
+                </div>
+              )}
               {searchQuery && (
                 <>
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchValidation({ valid: true, error: null });
+                    }}
                     className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors z-20"
                     type="button"
+                    aria-label="Clear search"
                   >
                     <X className="w-4 h-4 text-gray-400" />
                   </button>
@@ -790,8 +738,10 @@ export default function ATS() {
                         searchAllCandidates();
                       }
                     }}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-3 swipe-gradient text-white rounded-lg text-sm font-medium z-20"
+                    disabled={!searchValidation.valid}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-3 swipe-gradient text-white rounded-lg text-sm font-medium z-20 disabled:opacity-50 disabled:cursor-not-allowed"
                     type="button"
+                    aria-label="Execute search"
                   >
                     Search
                   </Button>
@@ -918,13 +868,14 @@ export default function ATS() {
           </div>
           
           {/* Boolean Search Help */}
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
-            <span className="font-medium">Boolean Search:</span>
-            <code className="px-2 py-1 bg-gray-100 rounded text-xs">AND</code>
-            <code className="px-2 py-1 bg-gray-100 rounded text-xs">OR</code>
-            <code className="px-2 py-1 bg-gray-100 rounded text-xs">NOT</code>
+          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+            <span className="font-semibold text-gray-700">Boolean:</span>
+            <code className="px-2 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded text-xs font-mono">AND</code>
+            <code className="px-2 py-1 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 rounded text-xs font-mono">OR</code>
+            <code className="px-2 py-1 bg-gradient-to-r from-red-50 to-red-100 text-red-700 rounded text-xs font-mono">NOT</code>
+            <code className="px-2 py-1 bg-gradient-to-r from-green-50 to-green-100 text-green-700 rounded text-xs font-mono">"..."</code>
             <span className="text-gray-400">•</span>
-            <span className="text-xs text-gray-400">Press Enter to search</span>
+            <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">Enter</kbd>
           </div>
         </div>
 
