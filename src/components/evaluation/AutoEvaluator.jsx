@@ -164,8 +164,8 @@ export async function updateJobRankings(jobId) {
     
     // Create a map of application_id -> evaluation
     const evalMap = {};
-    evaluations.forEach(eval => {
-      evalMap[eval.application_id] = eval;
+    evaluations.forEach(evaluation => {
+      evalMap[evaluation.application_id] = evaluation;
     });
 
     // Score and sort applications
