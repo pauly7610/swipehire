@@ -254,6 +254,14 @@ export default function BrowseJobs() {
                 </SelectContent>
               </Select>
               
+              <Button
+                variant="outline"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="w-full h-11"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                More Filters
+                <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
               </Button>
 
               {/* Advanced Filters */}
