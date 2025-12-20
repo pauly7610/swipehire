@@ -153,8 +153,10 @@ export default function RecruiterProfile() {
     setUploadingLogo(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: croppedFile });
-      await base44.entities.Company.update(company.id, { logo_url: file_url });
-      setCompany({ ...company, logo_url: file_url });
+      if (company?.id) {
+        await base44.entities.Company.update(company.id, { logo_url: file_url });
+        setCompany({ ...company, logo_url: file_url });
+      }
     } catch (err) {
       console.error('Logo upload failed:', err);
     }
@@ -190,7 +192,7 @@ export default function RecruiterProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -202,7 +204,7 @@ export default function RecruiterProfile() {
 
       <div className="max-w-2xl mx-auto px-4 -mt-16">
         {/* Recruiter Personal Profile Card */}
-        <Card className="shadow-xl border-0 mb-6 overflow-visible">
+        <Card className="shadow-xl border-0 dark:bg-slate-900 dark:border-slate-800 mb-6 overflow-visible">
           <CardContent className="pt-0 pb-4 md:pb-6">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
               <div className="relative -mt-16 md:-mt-12 flex-shrink-0">
@@ -237,14 +239,14 @@ export default function RecruiterProfile() {
 
             {/* Recruiter Info */}
             <div className="mt-4">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{user?.full_name}</h1>
-              <p className="text-sm md:text-base text-gray-600 mt-1">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{user?.full_name}</h1>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 mt-1">
                 {user?.title || 'Recruiter'}
                 {user?.workplace && <span className="text-gray-500"> @ {user.workplace}</span>}
               </p>
-              {user?.bio && <p className="text-gray-500 text-sm mt-2 leading-relaxed">{user.bio}</p>}
+              {user?.bio && <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 leading-relaxed">{user.bio}</p>}
               
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-3 text-gray-500 text-xs md:text-sm">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-3 text-gray-500 dark:text-gray-400 text-xs md:text-sm">
                 {user?.email && (
                   <span className="flex items-center gap-1">
                     <Mail className="w-3 h-3 md:w-4 md:h-4" />
@@ -271,26 +273,26 @@ export default function RecruiterProfile() {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-3 md:flex md:gap-6 gap-4 mt-4 pt-4 border-t">
+            <div className="grid grid-cols-3 md:flex md:gap-6 gap-4 mt-4 pt-4 border-t dark:border-slate-700">
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{videos.length}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Videos</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{videos.length}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Videos</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{followers}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Followers</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{followers}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Followers</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.views}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Views</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{videoStats.views}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Views</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{jobs.filter(j => j.is_active).length}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Active Jobs</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{jobs.filter(j => j.is_active).length}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Active Jobs</p>
               </div>
               <div className="text-center">
                 <RecruiterRating rating={averageRating} size="sm" showNumber={false} />
-                <p className="text-[10px] md:text-xs text-gray-500 mt-0.5">{reviewCount} Reviews</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mt-0.5">{reviewCount} Reviews</p>
               </div>
             </div>
           </CardContent>
@@ -300,7 +302,7 @@ export default function RecruiterProfile() {
 
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-4 md:space-y-6">
-          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm overflow-x-auto flex-nowrap">
+          <TabsList className="w-full bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm overflow-x-auto flex-nowrap">
             <TabsTrigger value="about" className="flex-shrink-0 px-3 md:flex-1 text-xs md:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
               About
             </TabsTrigger>
@@ -324,19 +326,19 @@ export default function RecruiterProfile() {
           </TabsList>
 
           <TabsContent value="about" className="space-y-4 md:space-y-6">
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle className="text-base md:text-lg">About Me</CardTitle>
+                <CardTitle className="text-base md:text-lg dark:text-white">About Me</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm md:text-base text-gray-600 leading-relaxed">{user?.bio || 'No bio yet.'}</p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">{user?.bio || 'No bio yet.'}</p>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="company" className="space-y-4 md:space-y-6">
             {/* Company Header */}
-            <Card className="shadow-sm border-0">
+            <Card className="shadow-sm border-0 dark:bg-slate-900 dark:border-slate-800">
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div className="relative group flex-shrink-0">
@@ -345,7 +347,7 @@ export default function RecruiterProfile() {
                         <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-pink-500 animate-spin" />
                       </div>
                     ) : company?.logo_url ? (
-                      <img src={company.logo_url} alt={company.name} className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover" />
+                      <img src={company.logo_url} alt={company?.name || 'Company'} className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover" />
                     ) : (
                       <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
                         <Building2 className="w-6 h-6 md:w-8 md:h-8 text-pink-400" />
@@ -357,9 +359,9 @@ export default function RecruiterProfile() {
                     </label>
                   </div>
                   <div className="flex-1 min-w-0">
-                   <h3 className="text-lg md:text-xl font-bold text-gray-900 truncate">{company?.name || 'Company'}</h3>
-                   <p className="text-xs md:text-sm text-gray-500 truncate">{company?.industry || ''}</p>
-                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-2 text-xs md:text-sm text-gray-400">
+                   <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white truncate">{company?.name || 'Company'}</h3>
+                   <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">{company?.industry || ''}</p>
+                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-2 text-xs md:text-sm text-gray-400 dark:text-gray-500">
                       {company?.location && (
                         <span className="flex items-center gap-1 truncate">
                           <MapPin className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" /> 
@@ -382,7 +384,7 @@ export default function RecruiterProfile() {
                 </div>
                 
                 {/* Company Social Links */}
-                <div className="flex gap-2 mt-4 pt-4 border-t">
+                <div className="flex gap-2 mt-4 pt-4 border-t dark:border-slate-700">
                   {company?.website && (
                     <a href={company.website} target="_blank" rel="noopener noreferrer">
                       <Button variant="ghost" size="sm">
@@ -403,33 +405,33 @@ export default function RecruiterProfile() {
 
             {/* Description */}
             {company?.description && (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">About the Company</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">About the Company</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{company.description}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{company.description}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Mission */}
             {company?.mission && (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Our Mission</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Our Mission</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{company.mission}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{company.mission}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Culture Traits */}
             {company?.culture_traits?.length > 0 && (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Company Culture</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Company Culture</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -445,9 +447,9 @@ export default function RecruiterProfile() {
 
             {/* Benefits */}
             {company?.benefits?.length > 0 && (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardHeader>
-                  <CardTitle className="text-lg">Benefits & Perks</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">Benefits & Perks</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -464,10 +466,10 @@ export default function RecruiterProfile() {
 
           <TabsContent value="videos" className="space-y-4">
             {videos.length === 0 ? (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="py-12 text-center">
-                  <Video className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm md:text-base text-gray-500">No videos posted yet</p>
+                  <Video className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">No videos posted yet</p>
                   <Link to={createPageUrl('VideoFeed')}>
                     <Button className="mt-4 swipe-gradient text-white h-10 md:h-auto text-sm md:text-base">
                       Post Your First Video
@@ -503,10 +505,10 @@ export default function RecruiterProfile() {
 
           <TabsContent value="jobs" className="space-y-3 md:space-y-4">
             {jobs.filter(j => j.is_active).length === 0 ? (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="py-12 text-center">
-                  <Briefcase className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm md:text-base text-gray-500">No active job postings</p>
+                  <Briefcase className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">No active job postings</p>
                   <Link to={createPageUrl('PostJob')}>
                     <Button className="mt-4 swipe-gradient text-white h-10 md:h-auto text-sm md:text-base">
                       Post a Job
@@ -516,15 +518,15 @@ export default function RecruiterProfile() {
               </Card>
             ) : (
               jobs.filter(j => j.is_active).map((job) => (
-                <Card key={job.id} className="hover:shadow-md transition-shadow">
+                <Card key={job.id} className="hover:shadow-md transition-shadow dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="py-3 md:py-4">
                     <div className="flex items-start gap-3 md:gap-4">
-                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
-                        <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-pink-500" />
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 dark:from-pink-900/30 dark:to-orange-900/30 flex items-center justify-center flex-shrink-0">
+                        <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-pink-500 dark:text-pink-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">{job.title}</h3>
-                        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-1 text-xs md:text-sm text-gray-500">
+                        <h3 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white truncate">{job.title}</h3>
+                        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                           <span className="truncate">{job.location || 'Remote'}</span>
                           <Badge variant="secondary" className="capitalize text-xs w-fit">
                             {job.job_type?.replace('-', ' ')}
@@ -561,39 +563,39 @@ export default function RecruiterProfile() {
           </TabsContent>
 
           <TabsContent value="edit" className="space-y-4 md:space-y-6">
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle className="text-base md:text-lg">Edit Your Profile</CardTitle>
+                <CardTitle className="text-base md:text-lg dark:text-white">Edit Your Profile</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 md:space-y-4">
                 <div>
-                  <Label className="text-sm">Full Name</Label>
+                  <Label className="text-sm dark:text-gray-300">Full Name</Label>
                   <Input value={editData.full_name || ''} onChange={(e) => setEditData({ ...editData, full_name: e.target.value })} className="mt-1 h-11" />
                 </div>
                 <div>
-                  <Label className="text-sm">Title / Role</Label>
+                  <Label className="text-sm dark:text-gray-300">Title / Role</Label>
                   <Input placeholder="e.g., Senior Technical Recruiter" value={editData.title || ''} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="mt-1 h-11" />
                 </div>
                 <div>
-                  <Label className="text-sm">Current Workplace</Label>
+                  <Label className="text-sm dark:text-gray-300">Current Workplace</Label>
                   <Input placeholder="Where do you work?" value={editData.workplace || ''} onChange={(e) => setEditData({ ...editData, workplace: e.target.value })} className="mt-1 h-11" />
                 </div>
                 <div>
-                  <Label className="text-sm">Bio</Label>
+                  <Label className="text-sm dark:text-gray-300">Bio</Label>
                   <Textarea placeholder="Tell candidates about yourself..." value={editData.bio || ''} onChange={(e) => setEditData({ ...editData, bio: e.target.value })} className="mt-1" rows={4} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-sm">Phone</Label>
+                    <Label className="text-sm dark:text-gray-300">Phone</Label>
                     <Input placeholder="+1 (555) 000-0000" value={editData.phone || ''} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} className="mt-1 h-11" />
                   </div>
                   <div>
-                    <Label className="text-sm">Years Recruiting</Label>
+                    <Label className="text-sm dark:text-gray-300">Years Recruiting</Label>
                     <Input type="number" placeholder="5" value={editData.years_recruiting || ''} onChange={(e) => setEditData({ ...editData, years_recruiting: e.target.value })} className="mt-1 h-11" />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm">LinkedIn URL</Label>
+                  <Label className="text-sm dark:text-gray-300">LinkedIn URL</Label>
                   <Input placeholder="https://linkedin.com/in/..." value={editData.linkedin_url || ''} onChange={(e) => setEditData({ ...editData, linkedin_url: e.target.value })} className="mt-1 h-11" />
                 </div>
                 
