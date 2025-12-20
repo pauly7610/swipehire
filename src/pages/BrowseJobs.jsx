@@ -216,31 +216,30 @@ export default function BrowseJobs() {
                     <Briefcase className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="part-time">Part-time</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="full-time">Full-time</SelectItem>
+                    <SelectItem value="part-time">Part-time</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="remote">Remote</SelectItem>
+                    <SelectItem value="internship">Internship</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 <Select value={filters.experienceLevel} onValueChange={(v) => setFilters({...filters, experienceLevel: v})}>
                   <SelectTrigger>
                     <Users className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="Level" />
                   </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="entry">Entry</SelectItem>
-                      <SelectItem value="mid">Mid</SelectItem>
-                      <SelectItem value="senior">Senior</SelectItem>
-                      <SelectItem value="lead">Lead</SelectItem>
-                      <SelectItem value="executive">Executive</SelectItem>
-                    </SelectContent>
-                  </Select>
-
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="entry">Entry</SelectItem>
+                    <SelectItem value="mid">Mid</SelectItem>
+                    <SelectItem value="senior">Senior</SelectItem>
+                    <SelectItem value="lead">Lead</SelectItem>
+                    <SelectItem value="executive">Executive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -248,13 +247,11 @@ export default function BrowseJobs() {
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="match">Best Match</SelectItem>
-                      <SelectItem value="recent">Most Recent</SelectItem>
-                      <SelectItem value="salary">Highest Salary</SelectItem>
-                    </SelectContent>
-                  </Select>
-
+                <SelectContent>
+                  <SelectItem value="match">Best Match</SelectItem>
+                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="salary">Highest Salary</SelectItem>
+                </SelectContent>
               </Select>
               
               <Button
