@@ -36,7 +36,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             }}
           >
             {/* Hero Section with Company Branding */}
-            <div className="relative h-36 md:h-32 bg-gradient-to-br from-pink-500/5 via-orange-500/5 to-purple-500/5 flex items-center px-4 md:px-6 border-b border-gray-100">
+            <div className="relative h-32 bg-gradient-to-br from-pink-500/5 via-orange-500/5 to-purple-500/5 flex items-center px-5 border-b border-gray-100">
               {/* AI Intelligence Signals - Top Right */}
               <div className="absolute top-3 right-3 flex items-center gap-2">
                 {/* Fit Confidence Meter */}
@@ -79,79 +79,58 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                     whileTap={{ scale: 0.95 }}
                     src={company.logo_url} 
                     alt={company.name} 
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover shadow-xl border-3 md:border-4 border-white"
+                    className="w-16 h-16 rounded-2xl object-cover shadow-xl border-4 border-white"
                   />
                 ) : (
                   <motion.div 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-xl border-3 md:border-4 border-white"
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-xl border-4 border-white"
                   >
-                    <Building2 className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                    <Building2 className="w-8 h-8 text-white" />
                   </motion.div>
                   )}
                 </Link>
               )}
               {!company?.id && (
-                <div className="relative z-20">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-xl border-3 md:border-4 border-white">
-                    <Building2 className="w-8 h-8 md:w-10 md:h-10 text-white" />
-                  </div>
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-xl border-4 border-white">
+                  <Building2 className="w-8 h-8 text-white" />
                 </div>
               )}
               
-              <div className="absolute bottom-3 md:bottom-4 left-4 md:left-6 right-4 md:right-6">
+              <div className="absolute bottom-3 left-5 right-5">
                 <motion.h3 
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1 line-clamp-1"
+                  className="text-xl font-bold text-gray-900 mb-0.5 line-clamp-1"
                 >
                   {job.title}
                 </motion.h3>
-                {company?.id ? (
-                  <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
-                    <motion.span 
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.15 }}
-                    className="text-sm md:text-base text-gray-600 font-medium hover:text-pink-500 transition-colors inline-flex items-center gap-1"
-                  >
-                      {company.name || 'Company'}
-                      <ExternalLink className="w-3 h-3" />
-                    </motion.span>
-                  </Link>
-                ) : (
+                <Link to={company?.id ? createPageUrl('CompanyProfile') + `?id=${company.id}` : '#'}>
                   <motion.span 
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.15 }}
-                    className="text-sm md:text-base text-gray-600 font-medium"
+                    className="text-sm text-gray-600 font-medium hover:text-pink-500 transition-colors inline-flex items-center gap-1"
                   >
-                    Company
+                    {company?.name || 'Company'}
+                    {company?.id && <ExternalLink className="w-3 h-3" />}
                   </motion.span>
-                )}
-              </div>
-            </div>
-
-            {/* AI Insight Label */}
-            <div className="px-4 md:px-6 pt-3 pb-0">
-              <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                <Zap className="w-3 h-3" />
-                <span>AI-POWERED MATCH</span>
+                </Link>
               </div>
             </div>
 
             {/* Content Section */}
-            <div className="flex-1 px-4 md:px-6 py-2 md:py-3 overflow-y-auto"
+            <div className="flex-1 px-5 py-3 overflow-y-auto"
               style={{ 
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#FF005C20 transparent'
               }}
             >
 
-              {/* Quick Info Cards - Refined Layout */}
-              <div className="grid grid-cols-3 gap-2 mb-3 md:mb-4">
+              {/* Quick Info Cards */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
                 <motion.div 
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 400 }}
@@ -194,8 +173,8 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               </div>
 
               {/* Required Skills */}
-              <div className="mb-3 md:mb-4">
-                <h4 className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Key Skills</h4>
+              <div className="mb-3">
+                <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Key Skills</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {job.skills_required?.slice(0, 6).map((skill, i) => (
                     <motion.div
@@ -221,16 +200,16 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
 
               {/* Job Description Preview */}
               {job.description && (
-                <div className="mb-3 md:mb-4">
-                  <p className="text-xs md:text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                <div className="mb-3">
+                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                     {job.description}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Bottom Action Bar - Enhanced */}
-            <div className="px-4 md:px-6 py-3 md:py-4 bg-white border-t border-gray-100">
+            {/* Bottom Action Bar - Thumb Reachable */}
+            <div className="px-5 py-4 bg-white border-t border-gray-100">
               <div className="flex items-center gap-2">
                 {onQuickApply && (
                   <motion.div 

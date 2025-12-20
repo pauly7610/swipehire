@@ -182,40 +182,40 @@ export default function BrowseJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <style>{`
         .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
       `}</style>
 
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto px-4 pt-4 md:pt-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Browse All Jobs</h1>
-          <p className="text-gray-500">{filteredJobs.length} open positions</p>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Browse Jobs</h1>
+          <p className="text-sm text-gray-500">{filteredJobs.length} positions</p>
         </div>
 
         {/* Search & Filters */}
-        <Card className="border-0 shadow-sm mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4">
-              {/* Main Search and Quick Filters */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    placeholder="Search jobs, skills, companies..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                
-                <div className="flex gap-2 flex-wrap">
-                  <Select value={filters.jobType} onValueChange={(v) => setFilters({...filters, jobType: v})}>
-                    <SelectTrigger className="w-[130px]">
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Job Type" />
-                    </SelectTrigger>
+        <Card className="border-0 shadow-sm mb-4">
+          <CardContent className="p-3">
+            <div className="space-y-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Search jobs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11"
+                />
+              </div>
+              
+              {/* Mobile-First Filters */}
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={filters.jobType} onValueChange={(v) => setFilters({...filters, jobType: v})}>
+                  <SelectTrigger>
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="full-time">Full-time</SelectItem>
@@ -226,11 +226,11 @@ export default function BrowseJobs() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={filters.experienceLevel} onValueChange={(v) => setFilters({...filters, experienceLevel: v})}>
-                    <SelectTrigger className="w-[140px]">
-                      <Users className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Experience" />
-                    </SelectTrigger>
+                <Select value={filters.experienceLevel} onValueChange={(v) => setFilters({...filters, experienceLevel: v})}>
+                  <SelectTrigger>
+                    <Users className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Level" />
+                  </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Levels</SelectItem>
                       <SelectItem value="entry">Entry</SelectItem>
@@ -241,11 +241,13 @@ export default function BrowseJobs() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[130px]">
-                      <Filter className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
+              </div>
+              
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="match">Best Match</SelectItem>
                       <SelectItem value="recent">Most Recent</SelectItem>
@@ -253,17 +255,18 @@ export default function BrowseJobs() {
                     </SelectContent>
                   </Select>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className="gap-2"
-                  >
-                    <Filter className="w-4 h-4" />
-                    Advanced
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-                  </Button>
-                </div>
-              </div>
+              </Select>
+              
+              <Button
+                variant="outline"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="w-full h-11"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                More Filters
+                <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              </Button>
+            </div>
 
               {/* Advanced Filters */}
               {showAdvancedFilters && (

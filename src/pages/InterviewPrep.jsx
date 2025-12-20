@@ -103,117 +103,51 @@ export default function InterviewPrep() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-4 pt-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Interview Preparation</h1>
-          <p className="text-gray-600">Practice and improve your interview skills with AI coaching</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Interview Prep</h1>
+          <p className="text-sm text-gray-600">AI coaching for success</p>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mx-auto mb-2">
-                <Video className="w-6 h-6 text-purple-500" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{sessions.length}</p>
-              <p className="text-xs text-gray-500">Total Sessions</p>
+            <CardContent className="p-3 text-center">
+              <p className="text-3xl font-bold text-purple-600">{sessions.length}</p>
+              <p className="text-xs text-gray-500">Sessions</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-2">
-                <CheckCircle className="w-6 h-6 text-green-500" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{completedSessions.length}</p>
-              <p className="text-xs text-gray-500">Completed</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center mx-auto mb-2">
-                <Award className="w-6 h-6 text-pink-500" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{avgScore}%</p>
+            <CardContent className="p-3 text-center">
+              <p className="text-3xl font-bold text-pink-600">{avgScore}%</p>
               <p className="text-xs text-gray-500">Avg Score</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                <TrendingUp className="w-6 h-6 text-blue-500" />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {completedSessions.length >= 3 ? 'Ready' : 'Building'}
-              </p>
-              <p className="text-xs text-gray-500">Readiness</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Start */}
-        <Card className="mb-8 border-0 shadow-sm overflow-hidden">
-          <div className="swipe-gradient p-6 text-white">
-            <h2 className="text-2xl font-bold mb-2">Start New Practice Session</h2>
-            <p className="text-white/90">Get AI-powered feedback on your interview answers</p>
+        {/* Quick Start - Mobile Optimized */}
+        <Card className="mb-6 border-0 shadow-sm">
+          <div className="swipe-gradient p-4">
+            <h2 className="text-lg font-bold text-white mb-1">Start Practice</h2>
+            <p className="text-sm text-white/90">AI feedback on your answers</p>
           </div>
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-3 gap-4">
-              <Button
-                onClick={() => {
-                  setSelectedJob(null);
-                  setShowCoach(true);
-                }}
-                className="h-auto py-6 flex-col gap-2"
-                variant="outline"
-              >
-                <Video className="w-8 h-8 text-purple-500" />
-                <div>
-                  <p className="font-semibold">General Practice</p>
-                  <p className="text-xs text-gray-500">Common interview questions</p>
-                </div>
-              </Button>
-
-              <Button
-                onClick={() => {
-                  setSelectedJob(null);
-                  setShowCoach(true);
-                }}
-                className="h-auto py-6 flex-col gap-2 swipe-gradient text-white"
-              >
-                <Zap className="w-8 h-8" />
-                <div>
-                  <p className="font-semibold">Mixed Session</p>
-                  <p className="text-xs text-white/80">Behavioral + Technical</p>
-                </div>
-              </Button>
-
-              <Button
-                onClick={() => {
-                  setSelectedJob(null);
-                  setShowCoach(true);
-                }}
-                className="h-auto py-6 flex-col gap-2"
-                variant="outline"
-              >
-                <BookOpen className="w-8 h-8 text-blue-500" />
-                <div>
-                  <p className="font-semibold">Role-Specific</p>
-                  <p className="text-xs text-gray-500">Practice for a specific job</p>
-                </div>
-              </Button>
-            </div>
+          <CardContent className="p-3 space-y-2">
+            <Button
+              onClick={() => { setSelectedJob(null); setShowCoach(true); }}
+              className="w-full h-14 swipe-gradient text-white"
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Start Session
+            </Button>
           </CardContent>
         </Card>
 

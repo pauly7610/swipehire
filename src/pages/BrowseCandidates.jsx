@@ -315,55 +315,63 @@ export default function BrowseCandidates() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 pt-4">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Candidates</h1>
-          <p className="text-gray-600">Search and discover talented professionals</p>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Candidates</h1>
+          <p className="text-sm text-gray-600">{filteredCandidates.length} found</p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Search by name, title, skills, or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
-                />
-              </div>
+        {/* Search and Filters - Mobile First */}
+        <Card className="mb-4">
+          <CardContent className="p-3 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                placeholder="Search candidates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11"
+              />
+            </div>
 
-              {/* Filter Button */}
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="entry">Entry</SelectItem>
+                  <SelectItem value="mid">Mid</SelectItem>
+                  <SelectItem value="senior">Senior</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Recent</SelectItem>
+                  <SelectItem value="experience">Experience</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="h-12"
+                className="h-11"
               >
-                <Filter className="w-5 h-5 mr-2" />
-                Filters
-                {(experienceLevel !== 'all' || industryFilter !== 'all' || locationFilter !== 'all' || skillFilter || minExperience || maxExperience) && (
-                  <Badge className="ml-2 bg-pink-500">Active</Badge>
-                )}
+                <Filter className="w-4 h-4" />
               </Button>
-
-              {/* Clear Filters */}
-              {(searchQuery || experienceLevel !== 'all' || industryFilter !== 'all' || locationFilter !== 'all' || skillFilter || minExperience || maxExperience) && (
-                <Button variant="ghost" onClick={clearFilters} className="h-12">
-                  <X className="w-5 h-5 mr-2" />
-                  Clear
-                </Button>
-              )}
             </div>
 
             {/* Expanded Filters */}

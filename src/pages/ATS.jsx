@@ -662,7 +662,7 @@ export default function ATS() {
   const filteredMatches = getFilteredMatches();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 relative">
+    <div className="min-h-screen bg-gray-50 pb-24 relative">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -684,146 +684,68 @@ export default function ATS() {
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Applicant Tracking</h1>
-            <p className="text-gray-500">{filteredMatches.length} candidates in pipeline</p>
+      <div className="max-w-7xl mx-auto px-4 pt-4">
+        {/* Header - Mobile Optimized */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">ATS</h1>
+          <p className="text-sm text-gray-500">{filteredMatches.length} candidates</p>
+        </div>
+        
+        {/* Search - Mobile First */}
+        <div className="mb-4 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+            <Input
+              placeholder="Search candidates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11"
+            />
           </div>
           
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[300px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
-              <Input
-                placeholder='Try: "Senior Engineer" AND (React OR Vue) NOT Junior'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (searchMode === 'all') {
-                      searchAllCandidates();
-                    }
-                  }
-                }}
-                className={`pl-10 pr-24 h-11 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent relative z-0 ${
-                  searchValidation.valid ? 'border-gray-200' : 'border-red-300 bg-red-50'
-                }`}
-                autoComplete="off"
-                aria-label="Boolean search candidates"
-                aria-invalid={!searchValidation.valid}
-                aria-describedby={searchValidation.valid ? undefined : 'search-error'}
-              />
-              {!searchValidation.valid && (
-                <div id="search-error" className="absolute left-0 top-full mt-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                  {searchValidation.error}
-                </div>
-              )}
-              {searchQuery && (
-                <>
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSearchValidation({ valid: true, error: null });
-                    }}
-                    className="absolute right-14 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors z-20"
-                    type="button"
-                    aria-label="Clear search"
-                  >
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <Button
-                    onClick={() => {
-                      if (searchMode === 'all') {
-                        searchAllCandidates();
-                      }
-                    }}
-                    disabled={!searchValidation.valid}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-3 swipe-gradient text-white rounded-lg text-sm font-medium z-20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    type="button"
-                    aria-label="Execute search"
-                  >
-                    Search
-                  </Button>
-                </>
-              )}
-            </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowAdvancedFilters(!showAdvancedFilters);
-              }}
-              className={`h-11 rounded-xl border-gray-200 relative z-0 ${showAdvancedFilters ? 'bg-pink-50 border-pink-300 text-pink-700' : ''}`}
-              type="button"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-              {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length > 0 && (
-                <Badge className="ml-2 bg-pink-500 text-white">
-                  {Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false)).length}
-                </Badge>
-              )}
-            </Button>
-            
-            <Select value={selectedJob} onValueChange={(value) => {
-              setSelectedJob(value);
-            }}>
-              <SelectTrigger className="w-48 h-11 rounded-xl border-gray-200 relative z-0">
-                <SelectValue placeholder="Filter by job" />
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={selectedJob} onValueChange={setSelectedJob}>
+              <SelectTrigger>
+                <Briefcase className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="All Jobs" />
               </SelectTrigger>
-              <SelectContent className="z-50">
+              <SelectContent>
                 <SelectItem value="all">All Jobs</SelectItem>
                 {jobs.map(job => (
                   <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            {selectedMatches.size > 0 && (
-              <>
-                <Badge className="bg-pink-500 text-white px-3 py-2 rounded-xl">{selectedMatches.size} selected</Badge>
-                <Button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowMassMessageDialog(true);
-                  }} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 shadow-sm"
-                  type="button"
-                >
-                  <Mail className="w-4 h-4 mr-2" /> Message {selectedMatches.size}
-                </Button>
-                <Button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowBulkMoveDialog(true);
-                  }} 
-                  className="swipe-gradient text-white rounded-xl h-11 shadow-md"
-                  type="button"
-                >
-                  Move {selectedMatches.size}
-                </Button>
-              </>
-            )}
-
+            
             <Button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowCompare(true);
-              }} 
               variant="outline" 
-              className="border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl h-11"
-              type="button"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`${showAdvancedFilters ? 'bg-pink-50 border-pink-300 text-pink-700' : ''}`}
             >
-              <Trophy className="w-4 h-4 mr-2" /> Compare
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
             </Button>
           </div>
+
+          {selectedMatches.size > 0 && (
+            <div className="col-span-2 flex gap-2">
+              <Button 
+                onClick={() => setShowMassMessageDialog(true)} 
+                className="flex-1 swipe-gradient text-white h-11"
+                size="sm"
+              >
+                Message {selectedMatches.size}
+              </Button>
+              <Button 
+                onClick={() => setShowBulkMoveDialog(true)} 
+                variant="outline"
+                size="sm"
+                className="h-11"
+              >
+                Move
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Advanced Filters Sidebar */}

@@ -195,24 +195,12 @@ export default function RecruiterProfile() {
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
-        .swipe-gradient-text {
-          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
       `}</style>
 
       {/* Header Banner */}
-      {company?.cover_image_url ? (
-        <div className="h-40 md:h-32 relative">
-          <img src={company.cover_image_url} alt="" className="w-full h-full object-cover" />
-        </div>
-      ) : (
-        <div className="swipe-gradient h-40 md:h-32" />
-      )}
+      <div className="swipe-gradient h-32" />
 
-      <div className="max-w-2xl mx-auto px-4 md:px-6 -mt-20 md:-mt-16">
+      <div className="max-w-2xl mx-auto px-4 -mt-16">
         {/* Recruiter Personal Profile Card */}
         <Card className="shadow-xl border-0 mb-6 overflow-visible">
           <CardContent className="pt-0 pb-4 md:pb-6">

@@ -140,18 +140,18 @@ export default function Referrals() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 pt-4">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Referrals</h1>
-          <p className="text-sm md:text-base text-gray-600">Track your referrals and earn rewards</p>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
+          <p className="text-sm text-gray-600">Earn rewards</p>
         </div>
 
         {/* Stats Cards */}

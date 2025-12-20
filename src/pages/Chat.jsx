@@ -244,15 +244,15 @@ export default function Chat() {
   const hasActiveInterview = interviews.some(i => ['scheduled', 'confirmed'].includes(i.status));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
       `}</style>
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
+      {/* Header - Safe Area */}
+      <div className="bg-white border-b border-gray-200 p-4 safe-area-top z-10">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <Link to={createPageUrl('Matches')} className="p-2 hover:bg-gray-100 rounded-full">
             <ArrowLeft className="w-6 h-6 text-gray-600" />

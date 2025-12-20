@@ -217,11 +217,13 @@ export default function EmployerChat() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
+        .safe-area-top { padding-top: env(safe-area-inset-top); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
       `}</style>
 
       {/* Send Interview Slots Modal */}
@@ -235,8 +237,8 @@ export default function EmployerChat() {
         onSent={handleSlotsSent}
       />
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
+      {/* Header - Safe Area */}
+      <div className="bg-white border-b border-gray-200 p-4 safe-area-top z-10">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <Link to={createPageUrl('EmployerMatches')} className="p-2 hover:bg-gray-100 rounded-full">
             <ArrowLeft className="w-6 h-6 text-gray-600" />
@@ -449,8 +451,8 @@ export default function EmployerChat() {
         </div>
       </div>
 
-      {/* Input */}
-      <div className="bg-white border-t border-gray-200 p-4 sticky bottom-0">
+      {/* Input - Safe Area Bottom */}
+      <div className="bg-white border-t border-gray-200 p-4 pb-safe">
         <div className="max-w-2xl mx-auto">
           <form 
             onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
@@ -460,12 +462,12 @@ export default function EmployerChat() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 h-12 rounded-full border-gray-200 px-4"
+              className="flex-1 h-12 rounded-full text-base"
             />
             <Button 
               type="submit" 
               disabled={!newMessage.trim() || sending}
-              className="w-12 h-12 rounded-full swipe-gradient p-0"
+              className="w-12 h-12 rounded-full swipe-gradient p-0 flex-shrink-0"
             >
               {sending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
