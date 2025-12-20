@@ -336,18 +336,17 @@ export default function BrowseCandidates() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <Input
-                  placeholder="Search candidates... Use AND, OR, NOT for boolean search"
+                  placeholder="Search candidates..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-11"
+                  className="pl-10 h-11 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                 />
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 px-1">
-                <span className="font-semibold text-gray-700 dark:text-gray-300">Boolean:</span>
-                <code className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded font-mono">AND</code>
-                <code className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded font-mono">OR</code>
-                <code className="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded font-mono">NOT</code>
-                <code className="px-1.5 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded font-mono">"..."</code>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400 px-1">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Quick search:</span>
+                <code className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded font-mono">Python AND React</code>
+                <code className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded font-mono">Senior OR Lead</code>
+                <code className="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded font-mono">NOT Remote</code>
               </div>
             </div>
 
