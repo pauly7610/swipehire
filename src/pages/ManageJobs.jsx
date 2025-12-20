@@ -112,7 +112,7 @@ export default function ManageJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -123,8 +123,8 @@ export default function ManageJobs() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
-            <p className="text-sm text-gray-500">{jobs.length} posted</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Jobs</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{jobs.length} posted</p>
           </div>
           <Link to={createPageUrl('PostJob')}>
             <Button className="swipe-gradient text-white h-11">
@@ -135,10 +135,10 @@ export default function ManageJobs() {
 
         {/* Jobs List */}
         {jobs.length === 0 ? (
-          <Card className="p-12 text-center border-0 shadow-lg">
-            <Briefcase className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No jobs posted yet</h3>
-            <p className="text-gray-500 mb-6">Create your first job posting to start finding candidates</p>
+          <Card className="p-12 text-center border-0 shadow-lg dark:bg-slate-900 dark:border-slate-800">
+            <Briefcase className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No jobs posted yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first job posting to start finding candidates</p>
             <Link to={createPageUrl('PostJob')}>
               <Button className="swipe-gradient text-white">
                 <Plus className="w-5 h-5 mr-2" /> Post Your First Job
@@ -154,24 +154,24 @@ export default function ManageJobs() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900 dark:border-slate-800">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       {/* Icon */}
                       <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                         job.is_active 
-                          ? 'bg-gradient-to-br from-pink-100 to-orange-100' 
-                          : 'bg-gray-100'
+                          ? 'bg-gradient-to-br from-pink-100 to-orange-100 dark:from-pink-900/30 dark:to-orange-900/30' 
+                          : 'bg-gray-100 dark:bg-slate-800'
                       }`}>
-                        <Briefcase className={`w-7 h-7 ${job.is_active ? 'text-pink-500' : 'text-gray-400'}`} />
+                        <Briefcase className={`w-7 h-7 ${job.is_active ? 'text-pink-500 dark:text-pink-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       </div>
 
                       {/* Content */}
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
-                            <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+                            <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
                                 {job.location || 'Remote'}
@@ -189,7 +189,7 @@ export default function ManageJobs() {
                           {/* Actions */}
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
                                 {job.is_active ? 'Active' : 'Paused'}
                               </span>
                               <Switch
@@ -255,24 +255,24 @@ export default function ManageJobs() {
                         )}
 
                         {/* Stats */}
-                        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
                           <Link 
                             to={createPageUrl('EmployerMatches') + `?jobId=${job.id}`}
-                            className="flex items-center gap-2 hover:bg-pink-50 px-2 py-1 rounded-lg transition-colors"
+                            className="flex items-center gap-2 hover:bg-pink-50 dark:hover:bg-pink-900/20 px-2 py-1 rounded-lg transition-colors"
                           >
-                            <Users className="w-5 h-5 text-pink-500" />
-                            <span className="font-semibold text-gray-900">{getMatchCount(job.id)}</span>
-                            <span className="text-gray-500 text-sm">matches</span>
+                            <Users className="w-5 h-5 text-pink-500 dark:text-pink-400" />
+                            <span className="font-semibold text-gray-900 dark:text-white">{getMatchCount(job.id)}</span>
+                            <span className="text-gray-500 dark:text-gray-400 text-sm">matches</span>
                           </Link>
                           <Link 
                             to={createPageUrl('SwipeCandidates') + `?jobId=${job.id}`}
-                            className="text-pink-500 hover:text-pink-600 text-sm font-medium"
+                            className="text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 text-sm font-medium"
                           >
                             Find Candidates →
                           </Link>
                           <button
                             onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
-                            className="ml-auto flex items-center gap-1 text-sm text-gray-500 hover:text-pink-500 transition-colors"
+                            className="ml-auto flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
                           >
                             <Sparkles className="w-4 h-4" />
                             AI Suggestions
@@ -289,9 +289,9 @@ export default function ManageJobs() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden border-t"
+                          className="overflow-hidden border-t dark:border-slate-700"
                         >
-                          <div className="p-4 bg-gray-50">
+                          <div className="p-4 bg-gray-50 dark:bg-slate-800">
                             <CandidateSuggestions job={job} company={company} />
                           </div>
                         </motion.div>

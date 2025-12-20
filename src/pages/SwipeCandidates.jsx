@@ -308,7 +308,7 @@ export default function SwipeCandidates() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-slate-950 dark:to-slate-900 p-4 md:p-8">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -318,14 +318,14 @@ export default function SwipeCandidates() {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Find Candidates</h1>
-          <p className="text-gray-500">Swipe right on talent you want to connect with</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Find Candidates</h1>
+          <p className="text-gray-500 dark:text-gray-400">Swipe right on talent you want to connect with</p>
         </div>
 
         {/* Job Selector */}
         <div className="mb-6">
           <Select value={selectedJobId} onValueChange={handleJobChange}>
-            <SelectTrigger className="w-full h-12 bg-white">
+            <SelectTrigger className="w-full h-12 bg-white dark:bg-slate-900 dark:border-slate-700">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-pink-500" />
                 <SelectValue placeholder="Select a job" />
@@ -348,10 +348,10 @@ export default function SwipeCandidates() {
           }}
         >
           {!selectedJobId ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-lg">
-              <Briefcase className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Select a Job</h3>
-              <p className="text-gray-500">Choose a job posting to start finding candidates</p>
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-lg">
+              <Briefcase className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a Job</h3>
+              <p className="text-gray-500 dark:text-gray-400">Choose a job posting to start finding candidates</p>
             </div>
           ) : currentCandidate ? (
             <>
@@ -433,10 +433,10 @@ export default function SwipeCandidates() {
               </motion.div>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-lg">
-              <Inbox className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No More Candidates</h3>
-              <p className="text-gray-500">Check back later for new applicants!</p>
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-lg">
+              <Inbox className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No More Candidates</h3>
+              <p className="text-gray-500 dark:text-gray-400">Check back later for new applicants!</p>
             </div>
           )}
         </div>
@@ -444,8 +444,8 @@ export default function SwipeCandidates() {
         {/* Favorite Button & Match Insights */}
                   {currentCandidate && selectedJobId && (
                     <div className="mb-4 space-y-3">
-                      <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm">
-                        <span className="text-sm text-gray-600">Save to favorites</span>
+                      <div className="flex items-center justify-between bg-white dark:bg-slate-900 dark:border-slate-800 rounded-xl p-3 shadow-sm">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Save to favorites</span>
                         <FavoriteCandidateButton 
                           candidateId={currentCandidate.id}
                           companyId={company?.id}
@@ -476,7 +476,7 @@ export default function SwipeCandidates() {
 
         {/* Progress */}
         {candidates.length > 0 && selectedJobId && (
-          <div className="mt-6 text-center text-sm text-gray-400">
+          <div className="mt-6 text-center text-sm text-gray-400 dark:text-gray-500">
             {currentIndex + 1} of {candidates.length} candidates
           </div>
         )}
