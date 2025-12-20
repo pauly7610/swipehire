@@ -228,7 +228,7 @@ class BooleanSearchParser {
     try {
       const ast = this.parse(query);
       
-      // Build comprehensive searchable text
+      // Build comprehensive searchable text INCLUDING RESUME CONTENT
       const searchableText = [
         user?.full_name || '',
         user?.email || '',
@@ -242,6 +242,9 @@ class BooleanSearchParser {
         ...(candidate?.certifications?.map(c => `${c.name || ''} ${c.issuer || ''}`) || []),
         candidate?.resume_url ? 'has_resume resume uploaded' : '',
         candidate?.video_intro_url ? 'has_video video_intro' : '',
+        // CRITICAL: Include parsed resume text for Boolean search inside resume content
+        candidate?.resume_parsed_text || '',
+        candidate?.resume_parsed_metadata ? this.extractMetadataText(candidate.resume_parsed_metadata) : '',
       ].join(' ').toLowerCase();
 
       return this.evaluate(ast, searchableText);
@@ -251,6 +254,21 @@ class BooleanSearchParser {
       const terms = query.toLowerCase().split(/\s+/);
       const text = searchableText.toLowerCase();
       return terms.every(term => text.includes(term));
+    }
+  }
+
+  // Extract searchable text from resume metadata JSON
+  extractMetadataText(metadataJson) {
+    try {
+      const metadata = typeof metadataJson === 'string' ? JSON.parse(metadataJson) : metadataJson;
+      return [
+        metadata.summary || '',
+        ...(metadata.skills || []),
+        ...(metadata.experience_highlights || []),
+        ...(metadata.education_highlights || [])
+      ].join(' ');
+    } catch {
+      return '';
     }
   }
 

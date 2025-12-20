@@ -33,6 +33,8 @@ import analytics from '@/components/analytics/Analytics';
 import AdvancedSearchFilters from '@/components/ats/AdvancedSearchFilters';
 import BooleanSearchParser from '@/components/ats/BooleanSearchParser';
 import RankedCandidateList from '@/components/evaluation/RankedCandidateList';
+import ResumeHoverPreview from '@/components/ats/ResumeHoverPreview';
+import ResumeHoverPreviewMobile from '@/components/ats/ResumeHoverPreviewMobile';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -111,9 +113,20 @@ export default function ATS() {
   });
   const [searchValidation, setSearchValidation] = useState({ valid: true, error: null });
   const booleanParser = React.useRef(new BooleanSearchParser()).current;
+  const [hoveredResume, setHoveredResume] = useState(null);
+  const [mobileResumePreview, setMobileResumePreview] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     loadData();
+    
+    // Detect mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const loadData = async () => {
@@ -972,25 +985,44 @@ export default function ATS() {
                                           )}
                                           
                                           {match.match_score && (
-                                            <div className="mt-2 flex items-center gap-2">
-                                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                                <div 
-                                                  className="h-full bg-gradient-to-r from-pink-500 to-orange-500 rounded-full"
-                                                  style={{ width: `${match.match_score}%` }}
-                                                />
-                                              </div>
-                                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{match.match_score}%</span>
-                                            </div>
+                                           <div className="mt-2 flex items-center gap-2">
+                                             <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                               <div 
+                                                 className="h-full bg-gradient-to-r from-pink-500 to-orange-500 rounded-full"
+                                                 style={{ width: `${match.match_score}%` }}
+                                               />
+                                             </div>
+                                             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{match.match_score}%</span>
+                                           </div>
                                           )}
-                                          
+
                                           <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 dark:text-gray-500">
-                                            <Clock className="w-3 h-3" />
-                                            {format(new Date(match.created_date), 'MMM d')}
-                                            {candidate?.resume_url && (
-                                              <Badge variant="outline" className="text-xs ml-auto">
-                                                <FileText className="w-3 h-3 mr-1" /> Resume
-                                              </Badge>
-                                            )}
+                                           <Clock className="w-3 h-3" />
+                                           {format(new Date(match.created_date), 'MMM d')}
+                                           {candidate?.resume_url && (
+                                             <div 
+                                               className="relative ml-auto"
+                                               onMouseEnter={() => !isMobile && setHoveredResume(match.id)}
+                                               onMouseLeave={() => !isMobile && setHoveredResume(null)}
+                                               onClick={(e) => {
+                                                 if (isMobile) {
+                                                   e.stopPropagation();
+                                                   setMobileResumePreview({ candidate, resumeUrl: candidate.resume_url });
+                                                 }
+                                               }}
+                                             >
+                                               <Badge variant="outline" className="text-xs cursor-pointer hover:bg-pink-50 dark:hover:bg-pink-900/20 hover:border-pink-300 dark:hover:border-pink-700 transition-colors">
+                                                 <FileText className="w-3 h-3 mr-1" /> Resume
+                                               </Badge>
+                                               {hoveredResume === match.id && !isMobile && (
+                                                 <ResumeHoverPreview 
+                                                   candidate={candidate} 
+                                                   resumeUrl={candidate.resume_url}
+                                                   position="right"
+                                                 />
+                                               )}
+                                             </div>
+                                           )}
                                           </div>
                                         </div>
                                       </div>
@@ -1174,15 +1206,35 @@ export default function ATS() {
                           </td>
                           <td className="p-4">
                             {candidate?.resume_url ? (
-                              <a 
-                                href={candidate.resume_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-lg text-sm hover:bg-green-100"
+                              <div 
+                                className="relative inline-block"
+                                onMouseEnter={() => !isMobile && setHoveredResume(candidate.id)}
+                                onMouseLeave={() => !isMobile && setHoveredResume(null)}
+                                onClick={(e) => {
+                                  if (isMobile) {
+                                    e.stopPropagation();
+                                    setMobileResumePreview({ candidate, resumeUrl: candidate.resume_url });
+                                  }
+                                }}
                               >
-                                <FileText className="w-4 h-4" />
-                                View
-                              </a>
+                                <a 
+                                  href={candidate.resume_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-sm hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
+                                  onClick={(e) => !isMobile && e.stopPropagation()}
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  View
+                                </a>
+                                {hoveredResume === candidate.id && !isMobile && (
+                                  <ResumeHoverPreview 
+                                    candidate={candidate} 
+                                    resumeUrl={candidate.resume_url}
+                                    position="left"
+                                  />
+                                )}
+                              </div>
                             ) : (
                               <span className="text-gray-400 dark:text-gray-500 text-sm">None</span>
                             )}
@@ -1344,16 +1396,35 @@ export default function ATS() {
                         </td>
                         <td className="p-4">
                           {candidate?.resume_url ? (
-                            <a 
-                              href={candidate.resume_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300"
-                              onClick={(e) => e.stopPropagation()}
+                            <div 
+                              className="relative inline-block"
+                              onMouseEnter={() => !isMobile && setHoveredResume(candidate.id)}
+                              onMouseLeave={() => !isMobile && setHoveredResume(null)}
+                              onClick={(e) => {
+                                if (isMobile) {
+                                  e.stopPropagation();
+                                  setMobileResumePreview({ candidate, resumeUrl: candidate.resume_url });
+                                }
+                              }}
                             >
-                              <FileText className="w-4 h-4" />
-                              <span className="text-sm">View</span>
-                            </a>
+                              <a 
+                                href={candidate.resume_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 cursor-pointer"
+                                onClick={(e) => !isMobile && e.stopPropagation()}
+                              >
+                                <FileText className="w-4 h-4" />
+                                <span className="text-sm">View</span>
+                              </a>
+                              {hoveredResume === candidate.id && !isMobile && (
+                                <ResumeHoverPreview 
+                                  candidate={candidate} 
+                                  resumeUrl={candidate.resume_url}
+                                  position="left"
+                                />
+                              )}
+                            </div>
                           ) : (
                             <span className="text-gray-400 dark:text-gray-500 text-sm">-</span>
                           )}
@@ -1960,6 +2031,17 @@ export default function ATS() {
 
       {/* Onboarding Tooltip */}
       <OnboardingTooltip pageName="ATS" />
+
+      {/* Mobile Resume Preview */}
+      {mobileResumePreview && (
+        <ResumeHoverPreviewMobile
+          open={!!mobileResumePreview}
+          onOpenChange={() => setMobileResumePreview(null)}
+          candidate={mobileResumePreview.candidate}
+          resumeUrl={mobileResumePreview.resumeUrl}
+          parsedText={mobileResumePreview.candidate?.resume_parsed_text}
+        />
+      )}
     </div>
   );
 }
