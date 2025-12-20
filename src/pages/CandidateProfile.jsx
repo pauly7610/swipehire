@@ -228,7 +228,7 @@ export default function CandidateProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -307,30 +307,30 @@ export default function CandidateProfile() {
             {/* Stats Row */}
             <div className="grid grid-cols-4 gap-3 md:flex md:gap-6 mt-4 mb-2">
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.posts}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Videos</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{videoStats.posts}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Videos</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{followers}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Followers</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{followers}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Followers</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.views}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Views</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{videoStats.views}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Views</p>
               </div>
               <div className="text-center">
-                <p className="text-lg md:text-xl font-bold text-gray-900">{videoStats.likes}</p>
-                <p className="text-[10px] md:text-xs text-gray-500">Likes</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{videoStats.likes}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Likes</p>
               </div>
             </div>
 
             {/* Info */}
             <div className="mt-4">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{user?.full_name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{user?.full_name}</h1>
               {editing ? (
                 <div className="space-y-3 mt-2">
                   <div>
-                    <Label className="text-sm text-gray-600">Industry</Label>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">Industry</Label>
                     <div className="flex gap-2 mt-1">
                       <IndustrySelect
                         value={editData.industry || ''}
@@ -352,7 +352,7 @@ export default function CandidateProfile() {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Job Title</Label>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">Job Title</Label>
                     <JobTitleSelect
                       value={editData.headline || ''}
                       onChange={(v) => setEditData({ ...editData, headline: v })}
@@ -368,7 +368,7 @@ export default function CandidateProfile() {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-600">Current Company</Label>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">Current Company</Label>
                     <Input
                       value={editData.current_company || ''}
                       onChange={(e) => setEditData({ ...editData, current_company: e.target.value })}
@@ -378,13 +378,13 @@ export default function CandidateProfile() {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {candidate?.headline || 'Add your job title'}
                   {candidate?.current_company && <span className="text-gray-500"> @ {candidate.current_company}</span>}
                 </p>
               )}
 
-              <div className="flex items-center gap-2 mt-2 text-gray-500">
+              <div className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400">
                 <MapPin className="w-4 h-4" />
                 {editing ? (
                   <Input
@@ -470,7 +470,7 @@ export default function CandidateProfile() {
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-4 md:space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="w-max md:w-full bg-white rounded-xl p-1 shadow-sm inline-flex md:grid md:grid-cols-7">
+            <TabsList className="w-max md:w-full bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm inline-flex md:grid md:grid-cols-7">
               <TabsTrigger value="about" className="px-3 md:px-4 text-xs md:text-sm whitespace-nowrap data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
                 About
               </TabsTrigger>
@@ -497,9 +497,9 @@ export default function CandidateProfile() {
 
           <TabsContent value="about" className="space-y-6">
             {/* Bio */}
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle className="text-lg">About Me</CardTitle>
+                <CardTitle className="text-lg dark:text-white">About Me</CardTitle>
               </CardHeader>
               <CardContent>
                 {editing ? (
@@ -510,7 +510,7 @@ export default function CandidateProfile() {
                     rows={4}
                   />
                 ) : (
-                  <p className="text-gray-600">{candidate?.bio || 'Add a bio to tell employers about yourself.'}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{candidate?.bio || 'Add a bio to tell employers about yourself.'}</p>
                 )}
               </CardContent>
             </Card>
@@ -525,9 +525,9 @@ export default function CandidateProfile() {
             )}
 
             {/* Skills */}
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
-                <CardTitle className="text-lg">Skills</CardTitle>
+                <CardTitle className="text-lg dark:text-white">Skills</CardTitle>
               </CardHeader>
               <CardContent>
                 {editing && (
@@ -726,9 +726,9 @@ export default function CandidateProfile() {
             )}
 
             {/* Video Intro */}
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg dark:text-white flex items-center gap-2">
                   <Video className="w-5 h-5 text-pink-500" />
                   Video Introduction
                 </CardTitle>
@@ -776,10 +776,10 @@ export default function CandidateProfile() {
 
           <TabsContent value="videos" className="space-y-4">
             {userVideos.length === 0 ? (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="py-12 text-center">
-                  <Video className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm md:text-base text-gray-500">No videos posted yet</p>
+                  <Video className="w-10 h-10 md:w-12 md:h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">No videos posted yet</p>
                 </CardContent>
               </Card>
             ) : (
@@ -821,7 +821,7 @@ export default function CandidateProfile() {
           </Button>
 
             {(editing ? editData.experience : candidate?.experience)?.map((exp, i) => (
-              <Card key={i}>
+              <Card key={i} className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center flex-shrink-0">
@@ -877,10 +877,10 @@ export default function CandidateProfile() {
             ))}
 
             {(!candidate?.experience || candidate.experience.length === 0) && !editing && (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="py-12 text-center">
-                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No experience added yet</p>
+                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No experience added yet</p>
                 </CardContent>
               </Card>
             )}

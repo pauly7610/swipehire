@@ -182,7 +182,7 @@ export default function BrowseJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
       `}</style>
@@ -190,17 +190,17 @@ export default function BrowseJobs() {
       <div className="max-w-5xl mx-auto px-4 pt-4 md:pt-8">
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Browse Jobs</h1>
-          <p className="text-sm text-gray-500">{filteredJobs.length} positions</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Browse Jobs</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{filteredJobs.length} positions</p>
         </div>
 
         {/* Search & Filters */}
-        <Card className="border-0 shadow-sm mb-4">
+        <Card className="border-0 shadow-sm mb-4 dark:bg-slate-900 dark:border-slate-800">
           <CardContent className="p-3">
             <div className="space-y-3">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <Input
                   placeholder="Search jobs..."
                   value={searchQuery}
@@ -270,11 +270,11 @@ export default function BrowseJobs() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="pt-4 border-t space-y-4 mt-3"
+                  className="pt-4 border-t dark:border-slate-700 space-y-4 mt-3"
                 >
                   {/* Salary Range */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Salary Range (yearly, in thousands)</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Salary Range (yearly, in thousands)</label>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
@@ -283,7 +283,7 @@ export default function BrowseJobs() {
                         onChange={(e) => setFilters({...filters, salaryMin: e.target.value})}
                         className="w-32"
                       />
-                      <span className="text-gray-400">to</span>
+                      <span className="text-gray-400 dark:text-gray-500">to</span>
                       <Input
                         type="number"
                         placeholder="Max (e.g., 150)"
@@ -291,13 +291,13 @@ export default function BrowseJobs() {
                         onChange={(e) => setFilters({...filters, salaryMax: e.target.value})}
                         className="w-32"
                       />
-                      <span className="text-sm text-gray-500">k/year</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">k/year</span>
                     </div>
                   </div>
 
                   {/* Skills Filter */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Required Skills</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Required Skills</label>
                     <div className="flex gap-2 mb-2">
                       <Input
                         placeholder="Add skill (e.g., React, Python)"
@@ -341,7 +341,7 @@ export default function BrowseJobs() {
                   {/* Company Size & Remote Options */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Company Size</label>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Company Size</label>
                       <Select value={filters.companySize} onValueChange={(v) => setFilters({...filters, companySize: v})}>
                         <SelectTrigger>
                           <Building2 className="w-4 h-4 mr-2" />
@@ -359,22 +359,22 @@ export default function BrowseJobs() {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Work Type</label>
-                      <label className="flex items-center gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Work Type</label>
+                      <label className="flex items-center gap-2 cursor-pointer p-3 border dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800">
                         <input
                           type="checkbox"
                           checked={filters.remoteOnly}
                           onChange={(e) => setFilters({...filters, remoteOnly: e.target.checked})}
                           className="w-4 h-4 rounded border-gray-300 text-pink-600 focus:ring-pink-500"
                         />
-                        <span className="text-sm text-gray-700">Remote Only</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Remote Only</span>
                       </label>
                     </div>
                   </div>
 
                   {/* Clear Filters */}
                   <div className="flex justify-between items-center pt-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {filteredJobs.length} jobs match your filters
                     </span>
                     <Button
@@ -402,10 +402,10 @@ export default function BrowseJobs() {
 
         {/* Jobs List */}
         {sortedJobs.length === 0 ? (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="py-12 text-center">
-              <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500">No jobs found matching your criteria</p>
+              <Briefcase className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No jobs found matching your criteria</p>
             </CardContent>
           </Card>
         ) : (
@@ -422,14 +422,14 @@ export default function BrowseJobs() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900 dark:border-slate-800">
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
                         {/* Company Logo */}
                         {company?.logo_url ? (
                           <img 
                             src={company.logo_url} 
-                            alt={company.name}
+                            alt={company?.name || 'Company'}
                             className="w-14 h-14 rounded-xl object-cover"
                           />
                         ) : (
@@ -442,8 +442,8 @@ export default function BrowseJobs() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
-                              <p className="text-gray-600">{company?.name}</p>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+                              <p className="text-gray-600 dark:text-gray-300">{company?.name}</p>
                             </div>
                             
                             {/* Match Score */}
@@ -456,7 +456,7 @@ export default function BrowseJobs() {
                           </div>
 
                           {/* Meta Info */}
-                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
                             {job.location && (
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
@@ -500,13 +500,13 @@ export default function BrowseJobs() {
                           )}
 
                           {/* Actions */}
-                          <div className="flex items-center gap-3 mt-4 pt-3 border-t">
+                          <div className="flex items-center gap-3 mt-4 pt-3 border-t dark:border-slate-700">
                             <Link to={createPageUrl('PublicJobView') + `?id=${job.id}`}>
                               <Button size="sm" className="swipe-gradient text-white">
                                 View Details
                               </Button>
                             </Link>
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               Posted {formatDistanceToNow(new Date(job.created_date), { addSuffix: true })}
                             </span>

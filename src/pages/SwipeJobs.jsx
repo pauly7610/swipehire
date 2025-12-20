@@ -367,7 +367,7 @@ export default function SwipeJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -391,12 +391,12 @@ export default function SwipeJobs() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-white to-gray-50/80 backdrop-blur-xl border border-gray-200/60 rounded-full mb-3 shadow-lg">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-white to-gray-50/80 dark:from-slate-800 dark:to-slate-900/80 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 rounded-full mb-3 shadow-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold tracking-wide text-gray-700">AI INTELLIGENCE</span>
+            <span className="text-xs font-bold tracking-wide text-gray-700 dark:text-gray-300">AI INTELLIGENCE</span>
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Discover Your Next Role</h1>
-          <p className="text-sm font-medium text-gray-500">Smart-ranked • Instant apply</p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-1 tracking-tight">Discover Your Next Role</h1>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Smart-ranked • Instant apply</p>
         </motion.div>
 
         {/* Smart Micro-feedback Toast */}
@@ -523,12 +523,12 @@ export default function SwipeJobs() {
               </motion.div>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-4">
-                <Inbox className="w-10 h-10 text-gray-400" />
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-100 dark:border-slate-800">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center mb-4">
+                <Inbox className="w-10 h-10 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">You're All Caught Up</h3>
-              <p className="text-sm text-gray-500">We'll notify you when new matches arrive</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">You're All Caught Up</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">We'll notify you when new matches arrive</p>
             </div>
           )}
         </div>
@@ -538,17 +538,17 @@ export default function SwipeJobs() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-3 bg-white/80 backdrop-blur-md border border-amber-200/60 rounded-2xl shadow-lg"
+                      className="mb-4 p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/60 dark:border-amber-900/40 rounded-2xl shadow-lg"
                     >
-                      <div className="flex items-center gap-2 text-amber-700 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                           <AlertTriangle className="w-3.5 h-3.5" />
                         </div>
                         <span className="font-bold text-xs tracking-wide">REQUIREMENTS CHECK</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {dealBreakerWarnings.map((warning, i) => (
-                          <Badge key={i} className="bg-amber-50 text-amber-700 text-[10px] font-semibold border-0 px-2 py-1">
+                          <Badge key={i} className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-[10px] font-semibold border-0 px-2 py-1">
                             {warning.text}
                           </Badge>
                         ))}
@@ -567,7 +567,7 @@ export default function SwipeJobs() {
                         <Button 
                           onClick={() => setShowInsights(true)}
                           variant="outline"
-                          className="flex-1 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
+                          className="flex-1 border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
                         >
                           <Zap className="w-4 h-4 mr-2" />
                           View Intelligence
@@ -575,7 +575,7 @@ export default function SwipeJobs() {
                         <Button
                           onClick={handleSave}
                           variant="outline"
-                          className="px-4 border-gray-300 hover:border-yellow-400 hover:bg-yellow-50 text-gray-700 hover:text-yellow-600 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
+                          className="px-4 border-gray-300 dark:border-slate-700 hover:border-yellow-400 dark:hover:border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-gray-700 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
@@ -609,7 +609,7 @@ export default function SwipeJobs() {
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-400 font-medium">
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
               {currentIndex + 1}/{jobs.length}
             </span>
           </div>
