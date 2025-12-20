@@ -263,7 +263,6 @@ export default function BrowseJobs() {
                 More Filters
                 <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
               </Button>
-            </div>
 
               {/* Advanced Filters */}
               {showAdvancedFilters && (
@@ -397,7 +396,6 @@ export default function BrowseJobs() {
                   </div>
                 </motion.div>
               )}
-            </div>
           </CardContent>
         </Card>
 
