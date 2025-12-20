@@ -17,7 +17,7 @@ import {
   XCircle, ArrowUpCircle, Loader2, Mail, Phone, MapPin,
   MoreVertical, Eye, UserPlus, Trash2, GripVertical, AlertTriangle,
   Download, ExternalLink, Trophy, Tag, Send, History, Activity,
-  Plus, X, Edit2, Copy
+  Plus, X, Edit2, Copy, TrendingUp
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
