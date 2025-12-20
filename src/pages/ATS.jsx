@@ -789,17 +789,6 @@ export default function ATS() {
               <Users className="w-4 h-4 mr-2" /> All SwipeHire
             </Button>
           </div>
-          
-          {/* Boolean Search Help */}
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
-            <span className="font-semibold text-gray-700 dark:text-gray-300">Boolean:</span>
-            <code className="px-2 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded text-xs font-mono">AND</code>
-            <code className="px-2 py-1 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 rounded text-xs font-mono">OR</code>
-            <code className="px-2 py-1 bg-gradient-to-r from-red-50 to-red-100 text-red-700 rounded text-xs font-mono">NOT</code>
-            <code className="px-2 py-1 bg-gradient-to-r from-green-50 to-green-100 text-green-700 rounded text-xs font-mono">"..."</code>
-            <span className="text-gray-400 dark:text-gray-600">•</span>
-            <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">Enter</kbd>
-          </div>
         </div>
 
         {/* Stats */}
