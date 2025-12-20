@@ -225,6 +225,13 @@ export default function SwipeCandidates() {
   const handleDragEnd = (event, info) => {
     const threshold = 80;
     const velocity = info.velocity.x;
+    const yOffset = info.offset.y;
+    
+    // Swipe up = Save to favorites
+    if (yOffset < -100 || info.velocity.y < -500) {
+      handleSave();
+      return;
+    }
     
     if (info.offset.x > threshold || velocity > 500) {
       triggerSwipe('right');
@@ -233,6 +240,26 @@ export default function SwipeCandidates() {
     } else {
       x.set(0);
     }
+  };
+
+  const handleSave = async () => {
+    if (!currentCandidate || !user || !company) return;
+    
+    await base44.entities.FavoriteCandidate.create({
+      company_id: company.id,
+      candidate_id: currentCandidate.id,
+      recruiter_user_id: user.id,
+      job_id: selectedJobId
+    });
+    
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl px-5 py-3 shadow-2xl z-50';
+    toast.innerHTML = '<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-500"></div><p class="text-sm font-semibold text-gray-800">⭐ Added to favorites</p></div>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+    
+    setCurrentIndex(currentIndex + 1);
+    x.set(0);
   };
 
   const triggerSwipe = (direction) => {
@@ -263,8 +290,19 @@ export default function SwipeCandidates() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4">
+        <div className="max-w-md mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded-lg w-2/3 mx-auto" />
+            <div className="h-12 bg-gray-200 rounded-xl" />
+            <div className="h-[540px] bg-gray-200 rounded-3xl" />
+            <div className="flex gap-4 justify-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -351,8 +389,8 @@ export default function SwipeCandidates() {
               <motion.div
                 className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
                 style={{ x, rotate, opacity }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
+                drag
+                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.2}
                 dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
                 onDragEnd={handleDragEnd}
@@ -432,6 +470,7 @@ export default function SwipeCandidates() {
                       onUndo={handleUndo}
                       canUndo={swipeHistory.length > 0}
                       isPremium={true}
+                      onSave={handleSave}
                     />
                   )}
 

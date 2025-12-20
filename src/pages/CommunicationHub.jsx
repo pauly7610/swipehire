@@ -329,42 +329,26 @@ export default function CommunicationHub() {
           />
         </div>
 
-        {/* Tabs */}
+        {/* Simplified Tabs - Mobile First */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm h-auto">
+          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm grid grid-cols-3">
             <TabsTrigger 
               value="all" 
-              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
             >
               All
-              {unreadCount > 0 && (
-                <Badge className="ml-1 bg-white/20 text-current text-xs">{unreadCount}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="messages" 
-              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-            >
-              <MessageCircle className="w-4 h-4 mr-1" />
-              Inbox
-            </TabsTrigger>
-            <TabsTrigger 
-              value="sent" 
-              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-            >
-              <ArrowRight className="w-4 h-4 mr-1" />
-              Sent
+              {unreadCount > 0 && <Badge className="ml-1 bg-white/20 text-xs">{unreadCount}</Badge>}
             </TabsTrigger>
             <TabsTrigger 
               value="interviews" 
-              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
             >
               <Calendar className="w-4 h-4 mr-1" />
-              Interviews
+              Calls
             </TabsTrigger>
             <TabsTrigger 
               value="updates" 
-              className="flex-1 rounded-lg py-2 text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
             >
               <Bell className="w-4 h-4 mr-1" />
               Updates

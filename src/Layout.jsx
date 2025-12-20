@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/shared/Logo';
 import { usePageTracking } from '@/components/analytics/Analytics';
 import EmailScheduler from '@/components/email/EmailScheduler';
-import ThemeToggle from '@/components/theme/ThemeToggle';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
-export default function Layout({ children, currentPageName }) {
+      export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
@@ -287,7 +287,8 @@ export default function Layout({ children, currentPageName }) {
   const navItems = userType === 'employer' ? employerNav : candidateNav;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ThemeProvider>
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       <style>{`
         :root {
                         --swipe-gradient: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -445,5 +446,6 @@ export default function Layout({ children, currentPageName }) {
               {/* Email Scheduler - runs in background */}
               {!hideLayout && user && <EmailScheduler />}
               </div>
+              </ThemeProvider>
               );
               }

@@ -11,7 +11,7 @@ import CandidateChatbot from '@/components/engagement/CandidateChatbot';
 import { Loader2, Inbox, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
-import QuickApplyModal from '@/components/candidate/QuickApplyModal';
+import QuickApplyBottomSheet from '@/components/candidate/QuickApplyBottomSheet';
 import DealBreakerModal from '@/components/matching/DealBreakerModal';
 import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
 import analytics from '@/components/analytics/Analytics';
@@ -64,6 +64,20 @@ export default function SwipeJobs() {
     loadData();
   }, []);
 
+  // PREFETCH next 3 cards
+  useEffect(() => {
+    if (!currentJob) return;
+    
+    const prefetchJobs = jobs.slice(currentIndex + 1, currentIndex + 4);
+    prefetchJobs.forEach(job => {
+      const company = companies[job.company_id];
+      if (company?.logo_url) {
+        const img = new Image();
+        img.src = company.logo_url;
+      }
+    });
+  }, [currentIndex, jobs, companies]);
+
   const loadData = async () => {
     try {
       const isAuth = await base44.auth.isAuthenticated();
@@ -82,21 +96,19 @@ export default function SwipeJobs() {
       }
       setCandidate(candidateData);
 
-      // Get already swiped jobs
-      const existingSwipes = await base44.entities.Swipe.filter({ 
-        swiper_id: currentUser.id,
-        swiper_type: 'candidate'
-      });
+      // PARALLEL DATA LOAD
+      const [existingSwipes, allJobs, allCompanies] = await Promise.all([
+        base44.entities.Swipe.filter({ swiper_id: currentUser.id, swiper_type: 'candidate' }),
+        base44.entities.Job.filter({ is_active: true }),
+        base44.entities.Company.list()
+      ]);
+
       const swipedIds = new Set(existingSwipes.map(s => s.target_id));
       setSwipedJobIds(swipedIds);
 
-      // Get active jobs
-      const allJobs = await base44.entities.Job.filter({ is_active: true });
       const availableJobs = allJobs.filter(j => !swipedIds.has(j.id));
       setJobs(availableJobs);
 
-      // Get companies
-      const allCompanies = await base44.entities.Company.list();
       const companyMap = {};
       allCompanies.forEach(c => { companyMap[c.id] = c; });
       setCompanies(companyMap);
@@ -270,6 +282,13 @@ export default function SwipeJobs() {
   const handleDragEnd = (event, info) => {
     const threshold = 80;
     const velocity = info.velocity.x;
+    const yOffset = info.offset.y;
+    
+    // Swipe up = Save for later
+    if (yOffset < -100 || info.velocity.y < -500) {
+      handleSave();
+      return;
+    }
     
     if (info.offset.x > threshold || velocity > 500) {
       triggerSwipe('right');
@@ -278,6 +297,21 @@ export default function SwipeJobs() {
     } else {
       x.set(0);
     }
+  };
+
+  const handleSave = async () => {
+    if (!currentJob || !user || !candidate) return;
+    await trackInterestSignal(user.id, candidate.id, currentJob.id, 'save');
+    
+    // Show feedback
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl px-5 py-3 shadow-2xl z-50';
+    toast.innerHTML = '<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-500"></div><p class="text-sm font-semibold text-gray-800">📌 Saved for later</p></div>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+    
+    setCurrentIndex(currentIndex + 1);
+    x.set(0);
   };
 
   const triggerSwipe = (direction) => {
@@ -315,8 +349,19 @@ export default function SwipeJobs() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4">
+        <div className="max-w-md mx-auto">
+          {/* Skeleton Loader */}
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded-lg w-3/4 mx-auto" />
+            <div className="h-[520px] bg-gray-200 rounded-3xl" />
+            <div className="flex gap-4 justify-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -422,8 +467,8 @@ export default function SwipeJobs() {
               <motion.div
                 className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
                 style={{ x, rotate, opacity }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
+                drag
+                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.2}
                 dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
                 onDragEnd={handleDragEnd}
@@ -464,6 +509,16 @@ export default function SwipeJobs() {
                   }}
                 >
                   <span className="text-green-500 font-bold text-2xl">APPLY</span>
+                </motion.div>
+                
+                {/* Swipe Up indicator */}
+                <motion.div
+                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-yellow-500/90 backdrop-blur-sm rounded-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 0.8, y: 0 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                >
+                  <span className="text-white font-bold text-xs">↑ SAVE</span>
                 </motion.div>
               </motion.div>
             </>
@@ -518,12 +573,9 @@ export default function SwipeJobs() {
                           View Intelligence
                         </Button>
                         <Button
-                          onClick={async () => {
-                            await trackInterestSignal(user.id, candidate.id, currentJob.id, 'save');
-                            // TODO: Implement save functionality
-                          }}
+                          onClick={handleSave}
                           variant="outline"
-                          className="px-4 border-gray-300 hover:border-pink-400 hover:bg-pink-50 text-gray-700 hover:text-pink-600 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
+                          className="px-4 border-gray-300 hover:border-yellow-400 hover:bg-yellow-50 text-gray-700 hover:text-yellow-600 font-bold text-sm shadow-lg h-11 rounded-xl transition-all"
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
@@ -534,6 +586,7 @@ export default function SwipeJobs() {
                         onUndo={handleUndo}
                         canUndo={swipeHistory.length > 0}
                         isPremium={candidate?.is_premium}
+                        onSave={handleSave}
                         onInteraction={async (type) => {
                           if (type === 'view' && currentJob) {
                             await trackInterestSignal(user.id, candidate.id, currentJob.id, 'click');
@@ -586,21 +639,15 @@ export default function SwipeJobs() {
                 onSkip={handleFeedbackSkip}
               />
 
-              {/* Quick Apply Modal */}
-              <QuickApplyModal
+              {/* Quick Apply Bottom Sheet */}
+              <QuickApplyBottomSheet
                 open={showQuickApply}
                 onOpenChange={setShowQuickApply}
                 job={currentJob}
                 company={currentCompany}
                 candidate={candidate}
                 user={user}
-                onApply={async (applyData) => {
-                  await handleSwipe('right', { 
-                    reason: 'quick_apply',
-                    is_positive: true,
-                    comment: applyData.coverLetter 
-                  });
-                }}
+                onApply={() => handleSwipe('right')}
               />
 
               {/* Deal Breaker Modal */}
