@@ -597,41 +597,45 @@ export default function ATS() {
   };
 
   // Search all candidates in SwipeHire (not just matched ones)
-  const searchAllCandidates = () => {
-    if (!searchQuery.trim() && Object.values(advancedFilters).every(v => !v || (Array.isArray(v) && v.length === 0))) {
-      setGlobalSearchResults([]);
-      return;
-    }
-    
-    let results = [...allCandidatesList];
-    
-    // Apply boolean search if query exists
-    if (searchQuery.trim()) {
-      results = results.filter(candidate => {
-        const user = users[candidate.user_id];
-        return booleanParser.search(searchQuery, candidate, user);
+  const searchAllCandidates = async () => {
+    setLoading(true);
+    try {
+      // Always fetch FRESH data to ensure we get ALL candidates in the system
+      const freshCandidates = await base44.entities.Candidate.list();
+      
+      let results = [...freshCandidates];
+      
+      // Apply boolean search if query exists
+      if (searchQuery.trim()) {
+        results = results.filter(candidate => {
+          const user = users[candidate.user_id];
+          return booleanParser.search(searchQuery, candidate, user);
+        });
+      }
+      
+      // Apply advanced filters
+      results = applyAdvancedFilters(results);
+      
+      // Track search analytics
+      analytics.track('ATS Search Executed', {
+        query: searchQuery,
+        mode: searchMode,
+        resultsCount: results.length,
+        totalCandidatesInSystem: freshCandidates.length,
+        hasAdvancedFilters: Object.values(advancedFilters).some(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false))
       });
+      
+      setGlobalSearchResults(results);
+      setAllCandidatesList(freshCandidates); // Update local cache
+    } catch (error) {
+      console.error('Search failed:', error);
+      setGlobalSearchResults([]);
+    } finally {
+      setLoading(false);
     }
-    
-    // Apply advanced filters
-    results = applyAdvancedFilters(results);
-    
-    // Track search analytics
-    analytics.track('ATS Search Executed', {
-      query: searchQuery,
-      mode: searchMode,
-      resultsCount: results.length,
-      hasAdvancedFilters: Object.values(advancedFilters).some(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false))
-    });
-    
-    setGlobalSearchResults(results);
   };
 
-  useEffect(() => {
-    if (searchMode === 'all') {
-      searchAllCandidates();
-    }
-  }, [searchQuery, searchMode, allCandidatesList, advancedFilters]);
+  // Removed auto-search on mode change - now only triggered by button click or Enter key
 
   const getCandidateMatchStatus = (candidateId) => {
     const match = matches.find(m => m.candidate_id === candidateId);
@@ -702,8 +706,10 @@ export default function ATS() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      searchMode === 'all' ? searchAllCandidates() : null;
+                    if (e.key === 'Enter' && !loading) {
+                      if (searchMode === 'all') {
+                        searchAllCandidates();
+                      }
                     }
                   }}
                   className="pl-10 h-11"
@@ -717,9 +723,13 @@ export default function ATS() {
                   // Pipeline mode search is handled automatically by getFilteredMatches
                 }}
                 className="swipe-gradient text-white h-11 px-6"
-                disabled={!searchQuery.trim() && searchMode === 'all'}
+                disabled={loading}
               >
-                <Search className="w-4 h-4 mr-2" />
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
                 Search
               </Button>
             </div>
@@ -1043,14 +1053,27 @@ export default function ATS() {
             <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
               <CardTitle className="flex items-center gap-2">
                 <Search className="w-5 h-5" />
-                Search Results ({globalSearchResults.length} candidates found)
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Searching all candidates...
+                  </>
+                ) : (
+                  `Search Results (${globalSearchResults.length} candidates found)`
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {globalSearchResults.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-12 h-12 mx-auto mb-3 text-pink-500 animate-spin" />
+                  <p className="text-gray-500 dark:text-gray-400">Searching across all SwipeHire candidates...</p>
+                </div>
+              ) : globalSearchResults.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <Users className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                  <p>No candidates found matching your search</p>
+                  <p className="font-semibold mb-1">No candidates found</p>
+                  <p className="text-sm">Try different search terms or adjust your filters</p>
                 </div>
               ) : (
                 <table className="w-full">
