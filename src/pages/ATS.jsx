@@ -662,7 +662,7 @@ export default function ATS() {
   const filteredMatches = getFilteredMatches();
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 relative">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24 relative">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -687,14 +687,14 @@ export default function ATS() {
       <div className="max-w-7xl mx-auto px-4 pt-4">
         {/* Header - Mobile Optimized */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">ATS</h1>
-          <p className="text-sm text-gray-500">{filteredMatches.length} candidates</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ATS</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{filteredMatches.length} candidates</p>
         </div>
         
         {/* Search - Mobile First */}
         <div className="mb-4 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
             <Input
               placeholder="Search candidates..."
               value={searchQuery}
@@ -761,7 +761,7 @@ export default function ATS() {
 
         {/* Search Mode Toggle + Boolean Help */}
         <div className="mb-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 bg-white rounded-2xl p-1.5 border-2 border-gray-100 shadow-sm">
+          <div className="flex items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl p-1.5 border-2 border-gray-100 dark:border-slate-700 shadow-sm">
             <Button
               size="sm"
               variant={searchMode === 'pipeline' ? 'default' : 'ghost'}
@@ -770,7 +770,7 @@ export default function ATS() {
                 e.stopPropagation();
                 setSearchMode('pipeline');
               }}
-              className={`rounded-xl ${searchMode === 'pipeline' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+              className={`rounded-xl ${searchMode === 'pipeline' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50 dark:hover:bg-slate-800 dark:text-gray-300'}`}
               type="button"
             >
               My Pipeline
@@ -783,7 +783,7 @@ export default function ATS() {
                 e.stopPropagation();
                 setSearchMode('all');
               }}
-              className={`rounded-xl ${searchMode === 'all' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50'}`}
+              className={`rounded-xl ${searchMode === 'all' ? 'swipe-gradient text-white shadow-md' : 'hover:bg-gray-50 dark:hover:bg-slate-800 dark:text-gray-300'}`}
               type="button"
             >
               <Users className="w-4 h-4 mr-2" /> All SwipeHire
@@ -791,13 +791,13 @@ export default function ATS() {
           </div>
           
           {/* Boolean Search Help */}
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-            <span className="font-semibold text-gray-700">Boolean:</span>
+          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+            <span className="font-semibold text-gray-700 dark:text-gray-300">Boolean:</span>
             <code className="px-2 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded text-xs font-mono">AND</code>
             <code className="px-2 py-1 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 rounded text-xs font-mono">OR</code>
             <code className="px-2 py-1 bg-gradient-to-r from-red-50 to-red-100 text-red-700 rounded text-xs font-mono">NOT</code>
             <code className="px-2 py-1 bg-gradient-to-r from-green-50 to-green-100 text-green-700 rounded text-xs font-mono">"..."</code>
-            <span className="text-gray-400">•</span>
+            <span className="text-gray-400 dark:text-gray-600">•</span>
             <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono shadow-sm">Enter</kbd>
           </div>
         </div>
@@ -805,13 +805,13 @@ export default function ATS() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6">
           {PIPELINE_STAGES.map((stage, idx) => (
-            <Card key={stage.id} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-white to-gray-50">
+            <Card key={stage.id} className="border-0 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800">
               <CardContent className="p-4 md:p-5">
                 <div className={`w-10 h-10 rounded-xl ${stage.color.replace('text-', 'bg-').replace('100', '100')} flex items-center justify-center mb-3`}>
                   <span className="text-xl font-bold">{getMatchesByStage(stage.id).length}</span>
                 </div>
-                <p className="text-sm font-semibold text-gray-900">{stage.label}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{stage.label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {((getMatchesByStage(stage.id).length / filteredMatches.length) * 100 || 0).toFixed(0)}% of pipeline
                 </p>
               </CardContent>
@@ -823,7 +823,7 @@ export default function ATS() {
         <Tabs value={viewMode} onValueChange={(value) => {
           setViewMode(value);
         }} className="mb-6">
-          <TabsList className="bg-white rounded-2xl p-1.5 shadow-sm border-2 border-gray-100">
+          <TabsList className="bg-white dark:bg-slate-900 rounded-2xl p-1.5 shadow-sm border-2 border-gray-100 dark:border-slate-700">
             <TabsTrigger 
               value="pipeline" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white data-[state=active]:shadow-md rounded-xl px-6"
@@ -858,7 +858,7 @@ export default function ATS() {
                 <div key={stage.id} className="flex-shrink-0 w-72">
                   <div className="flex items-center gap-2 mb-3 px-2">
                     <div className={`w-2 h-2 rounded-full ${stage.color.replace('100', '500').replace('text-', 'bg-')}`} />
-                    <h3 className="font-semibold text-gray-900 flex-1">{stage.label}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white flex-1">{stage.label}</h3>
                     <Badge className={`${stage.color} rounded-full px-2.5 shadow-sm`}>{getMatchesByStage(stage.id).length}</Badge>
                   </div>
                   
@@ -868,7 +868,7 @@ export default function ATS() {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={`space-y-3 min-h-[200px] rounded-xl p-3 transition-colors ${
-                          snapshot.isDraggingOver ? 'bg-pink-50 border-2 border-pink-200' : 'bg-gray-100'
+                          snapshot.isDraggingOver ? 'bg-pink-50 dark:bg-pink-900/20 border-2 border-pink-200 dark:border-pink-700' : 'bg-gray-100 dark:bg-slate-800'
                         }`}
                       >
                         {getMatchesByStage(stage.id).map((match, index) => {
@@ -885,7 +885,7 @@ export default function ATS() {
                                   className={`${snapshot.isDragging ? 'shadow-xl rotate-2' : ''}`}
                                 >
                                   <Card 
-                                    className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white ${
+                                    className={`cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white dark:bg-slate-900 dark:border-slate-800 ${
                                       selectedMatches.has(match.id) ? 'ring-2 ring-pink-500 shadow-md' : 'hover:scale-[1.02]'
                                     }`}
                                   >
@@ -925,8 +925,8 @@ export default function ATS() {
                                               </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                              <p className="font-medium text-gray-900 text-sm truncate">{user?.full_name || 'Unknown'}</p>
-                                              <p className="text-xs text-gray-500 truncate">{job?.title}</p>
+                                              <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{user?.full_name || 'Unknown'}</p>
+                                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{job?.title}</p>
                                             </div>
                                           </div>
                                           
@@ -952,11 +952,11 @@ export default function ATS() {
                                                   style={{ width: `${match.match_score}%` }}
                                                 />
                                               </div>
-                                              <span className="text-xs font-medium text-gray-600">{match.match_score}%</span>
+                                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{match.match_score}%</span>
                                             </div>
                                           )}
                                           
-                                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 dark:text-gray-500">
                                             <Clock className="w-3 h-3" />
                                             {format(new Date(match.created_date), 'MMM d')}
                                             {candidate?.resume_url && (
@@ -969,7 +969,7 @@ export default function ATS() {
                                       </div>
 
                                       {/* Quick Actions */}
-                                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                                      <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
                                         <button
                                           onClick={(e) => {
                                             e.preventDefault();
@@ -1004,11 +1004,11 @@ export default function ATS() {
                         
                         {getMatchesByStage(stage.id).length === 0 && (
                           <div className="text-center py-12">
-                            <div className={`w-16 h-16 rounded-2xl ${stage.color.replace('text-', 'bg-').replace('700', '100')} mx-auto mb-3 flex items-center justify-center`}>
+                            <div className={`w-16 h-16 rounded-2xl ${stage.color.replace('text-', 'bg-').replace('700', '100')} dark:opacity-30 mx-auto mb-3 flex items-center justify-center`}>
                               <Users className={`w-8 h-8 ${stage.color.replace('bg-', 'text-').replace('100', '400')}`} />
                             </div>
-                            <p className="text-gray-400 text-sm font-medium">No candidates</p>
-                            <p className="text-gray-300 text-xs mt-1">Drag & drop here</p>
+                            <p className="text-gray-400 dark:text-gray-500 text-sm font-medium">No candidates</p>
+                            <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">Drag & drop here</p>
                           </div>
                         )}
                       </div>
@@ -1022,7 +1022,7 @@ export default function ATS() {
 
         {/* Global Search Results */}
         {searchMode === 'all' && (
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden mb-6">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden mb-6 dark:bg-slate-900 dark:border-slate-800">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
               <CardTitle className="flex items-center gap-2">
                 <Search className="w-5 h-5" />
@@ -1031,13 +1031,13 @@ export default function ATS() {
             </CardHeader>
             <CardContent className="p-0">
               {globalSearchResults.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                   <p>No candidates found matching your search</p>
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700">
                   <tr>
                     <th className="w-10 p-4" onClick={(e) => e.stopPropagation()}>
                       <label className="cursor-pointer flex items-center justify-center">
@@ -1064,13 +1064,13 @@ export default function ATS() {
                         />
                       </label>
                     </th>
-                      <th className="text-left p-4 font-medium text-gray-600">Candidate</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Skills</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Location</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Experience</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Resume</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Actions</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Candidate</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Skills</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Location</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Experience</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Resume</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Status</th>
+                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1081,7 +1081,7 @@ export default function ATS() {
                       const match = matches.find(m => m.candidate_id === candidate.id);
                       
                       return (
-                        <tr key={candidate.id} className="border-b hover:bg-gray-50">
+                        <tr key={candidate.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
                          <td className="p-4" onClick={(e) => e.stopPropagation()}>
                            <label className="flex items-center justify-center cursor-pointer">
                              <input
@@ -1113,8 +1113,8 @@ export default function ATS() {
                                 </div>
                               )}
                               <div>
-                                <p className="font-medium text-gray-900">{user?.full_name || 'Unknown'}</p>
-                                <p className="text-sm text-gray-500">{candidate?.headline}</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{user?.full_name || 'Unknown'}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{candidate?.headline}</p>
                               </div>
                             </div>
                           </td>
@@ -1128,8 +1128,8 @@ export default function ATS() {
                               )}
                             </div>
                           </td>
-                          <td className="p-4 text-gray-600">{candidate?.location || '-'}</td>
-                          <td className="p-4 text-gray-600">
+                          <td className="p-4 text-gray-600 dark:text-gray-400">{candidate?.location || '-'}</td>
+                          <td className="p-4 text-gray-600 dark:text-gray-400">
                             {candidate?.experience_years ? `${candidate.experience_years} years` : candidate?.experience_level || '-'}
                           </td>
                           <td className="p-4">
@@ -1144,7 +1144,7 @@ export default function ATS() {
                                 View
                               </a>
                             ) : (
-                              <span className="text-gray-400 text-sm">None</span>
+                              <span className="text-gray-400 dark:text-gray-500 text-sm">None</span>
                             )}
                           </td>
                           <td className="p-4">
@@ -1193,10 +1193,10 @@ export default function ATS() {
             </Card>
 
             {selectedJob === 'all' ? (
-              <Card>
+              <Card className="dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="py-12 text-center">
-                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">Select a job to view AI-ranked candidates</p>
+                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">Select a job to view AI-ranked candidates</p>
                 </CardContent>
               </Card>
             ) : (
@@ -1210,10 +1210,10 @@ export default function ATS() {
 
         {/* List View */}
         {viewMode === 'list' && searchMode === 'pipeline' && (
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-b-2 border-gray-200 dark:border-slate-600">
                 <tr>
                   <th className="w-10 p-4">
                     <label className="cursor-pointer flex items-center justify-center">
@@ -1231,14 +1231,14 @@ export default function ATS() {
                       />
                     </label>
                   </th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Candidate</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Job</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Stage</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Match</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Tags</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Resume</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Applied</th>
-                    <th className="text-left p-4 font-semibold text-gray-700">Actions</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Candidate</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Job</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Stage</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Match</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Tags</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Resume</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Applied</th>
+                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1250,7 +1250,7 @@ export default function ATS() {
                   const stage = PIPELINE_STAGES.find(s => s.id === currentStage);
 
                   return (
-                    <tr key={match.id} className="border-b hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 transition-colors">
+                    <tr key={match.id} className="border-b dark:border-slate-700 hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 dark:hover:from-pink-900/10 dark:hover:to-orange-900/10 transition-colors">
                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
                        <label className="cursor-pointer flex items-center justify-center">
                          <input
@@ -1278,17 +1278,17 @@ export default function ATS() {
                               </div>
                             )}
                             <div>
-                              <p className="font-medium text-gray-900">{user?.full_name || 'Unknown'}</p>
-                              <p className="text-sm text-gray-500">{candidate?.headline}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">{user?.full_name || 'Unknown'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{candidate?.headline}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-600">{job?.title}</td>
+                        <td className="p-4 text-gray-600 dark:text-gray-400">{job?.title}</td>
                         <td className="p-4">
                           <Badge className={`${stage?.color} rounded-full shadow-sm`}>{stage?.label}</Badge>
                         </td>
                         <td className="p-4">
-                          <span className="font-medium text-pink-600">{match.match_score || '-'}%</span>
+                          <span className="font-medium text-pink-600 dark:text-pink-400">{match.match_score || '-'}%</span>
                         </td>
                         <td className="p-4">
                           <div className="flex flex-wrap gap-1">
@@ -1308,17 +1308,17 @@ export default function ATS() {
                               href={candidate.resume_url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-pink-600 hover:text-pink-700"
+                              className="flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <FileText className="w-4 h-4" />
                               <span className="text-sm">View</span>
                             </a>
                           ) : (
-                            <span className="text-gray-400 text-sm">-</span>
+                            <span className="text-gray-400 dark:text-gray-500 text-sm">-</span>
                           )}
                         </td>
-                        <td className="p-4 text-gray-500">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
+                        <td className="p-4 text-gray-500 dark:text-gray-400">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             <Button
@@ -1377,8 +1377,8 @@ export default function ATS() {
               </table>
               
               {filteredMatches.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <Users className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                   <p>No candidates found</p>
                 </div>
               )}

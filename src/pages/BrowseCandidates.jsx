@@ -315,7 +315,7 @@ export default function BrowseCandidates() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -325,15 +325,15 @@ export default function BrowseCandidates() {
       <div className="max-w-7xl mx-auto px-4 pt-4">
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Candidates</h1>
-          <p className="text-sm text-gray-600">{filteredCandidates.length} found</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Candidates</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{filteredCandidates.length} found</p>
         </div>
 
         {/* Search and Filters - Mobile First */}
-        <Card className="mb-4">
+        <Card className="mb-4 dark:bg-slate-900 dark:border-slate-800">
           <CardContent className="p-3 space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Search candidates..."
                 value={searchQuery}
@@ -376,9 +376,9 @@ export default function BrowseCandidates() {
 
             {/* Expanded Filters */}
             {showFilters && (
-              <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Experience Level</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Experience Level</label>
                   <Select value={experienceLevel} onValueChange={setExperienceLevel}>
                     <SelectTrigger>
                       <SelectValue />
@@ -395,7 +395,7 @@ export default function BrowseCandidates() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Industry</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Industry</label>
                   <Select value={industryFilter} onValueChange={setIndustryFilter}>
                     <SelectTrigger>
                       <SelectValue />
@@ -410,7 +410,7 @@ export default function BrowseCandidates() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Location</label>
                   <Select value={locationFilter} onValueChange={setLocationFilter}>
                     <SelectTrigger>
                       <SelectValue />
@@ -425,7 +425,7 @@ export default function BrowseCandidates() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Skills</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Skills</label>
                   <Input
                     placeholder="Filter by skills..."
                     value={skillFilter}
@@ -434,7 +434,7 @@ export default function BrowseCandidates() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Min Years Experience</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Min Years Experience</label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -444,7 +444,7 @@ export default function BrowseCandidates() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Max Years Experience</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Max Years Experience</label>
                   <Input
                     type="number"
                     placeholder="20"
@@ -460,7 +460,7 @@ export default function BrowseCandidates() {
         {/* Results Count and Actions */}
         <div className="mb-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex items-center gap-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''} found
             </p>
             {selectedCandidates.length > 0 && (
@@ -520,7 +520,7 @@ export default function BrowseCandidates() {
           {filteredCandidates.map((candidate) => (
             <Card 
               key={candidate.id} 
-              className={`hover:shadow-lg transition-all duration-300 group relative ${selectedCandidates.includes(candidate.id) ? 'ring-1 ring-pink-500' : ''}`}
+              className={`hover:shadow-lg transition-all duration-300 group relative dark:bg-slate-900 dark:border-slate-800 ${selectedCandidates.includes(candidate.id) ? 'ring-1 ring-pink-500' : ''}`}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
@@ -554,10 +554,10 @@ export default function BrowseCandidates() {
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
                     <div className="flex items-start justify-between gap-4 mb-1">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg text-gray-900 truncate mb-1">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate mb-1">
                           {usersMap[candidate.user_id]?.full_name || candidate.headline || 'Professional'}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           {candidate.headline && <span>{candidate.headline}</span>}
                           {candidate.headline && candidate.industry && <span>•</span>}
                           {candidate.industry && <span>{candidate.industry}</span>}
@@ -579,7 +579,7 @@ export default function BrowseCandidates() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
                       {candidate.experience_years && (
                         <div className="flex items-center gap-1">
                           <Briefcase className="w-4 h-4 text-gray-400" />
@@ -595,7 +595,7 @@ export default function BrowseCandidates() {
 
                     {/* Bio */}
                     {candidate.bio && (
-                      <p className="text-sm text-gray-600 line-clamp-1 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1 mb-2">
                         {candidate.bio}
                       </p>
                     )}
@@ -665,11 +665,11 @@ export default function BrowseCandidates() {
 
         {/* Empty State */}
         {filteredCandidates.length === 0 && (
-          <Card className="p-12">
+          <Card className="p-12 dark:bg-slate-900 dark:border-slate-800">
             <div className="text-center">
-              <Search className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No candidates found</h3>
-              <p className="text-gray-600 mb-4">Try adjusting your filters or search query</p>
+              <Search className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No candidates found</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Try adjusting your filters or search query</p>
               <Button onClick={clearFilters} variant="outline">
                 Clear All Filters
               </Button>

@@ -166,7 +166,7 @@ export default function PostJob() {
             className="space-y-6"
           >
             <div>
-              <Label className="text-gray-700 text-base">Industry *</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Industry *</Label>
               <div className="mt-2">
                 <IndustrySelect
                   value={jobData.industry}
@@ -177,7 +177,7 @@ export default function PostJob() {
             </div>
 
             <div>
-              <Label className="text-gray-700 text-base">Job Title *</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Job Title *</Label>
               <div className="mt-2">
                 <Input
                   value={jobData.title}
@@ -190,7 +190,7 @@ export default function PostJob() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-gray-700 text-base">Location</Label>
+                <Label className="text-gray-700 dark:text-gray-300 text-base">Location</Label>
                 <div className="mt-2">
                   <LocationSelect
                     value={jobData.location}
@@ -200,7 +200,7 @@ export default function PostJob() {
                 </div>
               </div>
               <div>
-                <Label className="text-gray-700 text-base">Job Type</Label>
+                <Label className="text-gray-700 dark:text-gray-300 text-base">Job Type</Label>
                 <Select
                   value={jobData.job_type}
                   onValueChange={(v) => setJobData({ ...jobData, job_type: v })}
@@ -220,7 +220,7 @@ export default function PostJob() {
             </div>
 
             <div>
-              <Label className="text-gray-700 text-base">Salary Range</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Salary Range</Label>
               <div className="grid grid-cols-3 gap-4 mt-2">
                 <Input
                   type="number"
@@ -277,7 +277,7 @@ export default function PostJob() {
             />
 
             <div>
-              <Label className="text-gray-700 text-base">Job Description *</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Job Description *</Label>
               <Textarea
                 value={jobData.description}
                 onChange={(e) => setJobData({ ...jobData, description: e.target.value })}
@@ -287,7 +287,7 @@ export default function PostJob() {
             </div>
 
             <div>
-              <Label className="text-gray-700 text-base">Responsibilities</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Responsibilities</Label>
               <div className="flex gap-2 mt-2">
                 <Input
                   value={newResponsibility}
@@ -301,7 +301,7 @@ export default function PostJob() {
               </div>
               <ul className="mt-3 space-y-2">
                 {jobData.responsibilities.map((r, i) => (
-                  <li key={i} className="flex items-center gap-2 text-gray-700">
+                  <li key={i} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
                     {r}
                     <button onClick={() => removeFromArray('responsibilities', r)} className="ml-auto text-gray-400 hover:text-red-500">
@@ -322,7 +322,7 @@ export default function PostJob() {
             className="space-y-6"
           >
             <div>
-              <Label className="text-gray-700 text-base">Required Skills</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Required Skills</Label>
               <div className="flex gap-2 mt-2">
                 <Input
                   value={newSkill}
@@ -347,7 +347,7 @@ export default function PostJob() {
             </div>
 
             <div>
-              <Label className="text-gray-700 text-base">Benefits</Label>
+              <Label className="text-gray-700 dark:text-gray-300 text-base">Benefits</Label>
               
               {/* Quick benefit options */}
               <div className="flex flex-wrap gap-2 mt-2 mb-3">
@@ -411,12 +411,12 @@ export default function PostJob() {
             className="space-y-6"
           >
             <div>
-              <Label className="text-gray-700 text-base flex items-center gap-2">
+              <Label className="text-gray-700 dark:text-gray-300 text-base flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" /> Screening Questions
               </Label>
-              <p className="text-sm text-gray-500 mb-4">Add custom questions for candidates to answer</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add custom questions for candidates to answer</p>
               
-              <div className="space-y-4 bg-gray-50 rounded-xl p-4">
+              <div className="space-y-4 bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
                 <Input
                   value={newQuestion.question}
                   onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
@@ -484,11 +484,11 @@ export default function PostJob() {
               {/* Question List */}
               {jobData.screening_questions.length > 0 && (
                 <div className="mt-6 space-y-3">
-                  <Label className="text-gray-700">Added Questions ({jobData.screening_questions.length})</Label>
+                  <Label className="text-gray-700 dark:text-gray-300">Added Questions ({jobData.screening_questions.length})</Label>
                   {jobData.screening_questions.map((q, i) => (
-                    <div key={i} className="flex items-start gap-3 bg-white border rounded-lg p-3">
+                    <div key={i} className="flex items-start gap-3 bg-white dark:bg-slate-900 border dark:border-slate-700 rounded-lg p-3">
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{q.question}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{q.question}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary" className="text-xs">
                             {q.type === 'text' ? 'Text' : q.type === 'yes_no' ? 'Yes/No' : 'Multiple Choice'}
@@ -498,7 +498,7 @@ export default function PostJob() {
                         {q.options?.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {q.options.map((opt, oi) => (
-                              <span key={oi} className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{opt}</span>
+                              <span key={oi} className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded">{opt}</span>
                             ))}
                           </div>
                         )}
@@ -520,7 +520,7 @@ export default function PostJob() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-8">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -546,8 +546,8 @@ export default function PostJob() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
-              <p className="text-gray-500">Find the perfect candidate for your team</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Post a New Job</h1>
+              <p className="text-gray-500 dark:text-gray-400">Find the perfect candidate for your team</p>
             </div>
             {(jobData.title || jobData.description) && (
               <Badge className="bg-blue-100 text-blue-700">
@@ -561,8 +561,8 @@ export default function PostJob() {
         <div className="flex gap-2 mb-8">
           {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex-1">
-              <div className={`h-2 rounded-full ${step >= s ? 'swipe-gradient' : 'bg-gray-200'}`} />
-              <p className="text-xs text-gray-500 mt-2">
+              <div className={`h-2 rounded-full ${step >= s ? 'swipe-gradient' : 'bg-gray-200 dark:bg-slate-700'}`} />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {s === 1 ? 'Basic Info' : s === 2 ? 'Description' : s === 3 ? 'Skills & Benefits' : 'Questions'}
               </p>
             </div>
@@ -571,7 +571,7 @@ export default function PostJob() {
 
         <div className="grid md:grid-cols-5 gap-8">
           {/* Form */}
-          <Card className="md:col-span-3 border-0 shadow-lg">
+          <Card className="md:col-span-3 border-0 shadow-lg dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="pt-6">
               {renderStep()}
             </CardContent>
@@ -579,9 +579,9 @@ export default function PostJob() {
 
           {/* Preview */}
           <div className="md:col-span-2 space-y-4">
-            <Card className="border-0 shadow-lg sticky top-8">
+            <Card className="border-0 shadow-lg sticky top-8 dark:bg-slate-900 dark:border-slate-800">
               <CardHeader className="pb-4">
-                <CardTitle className="text-sm text-gray-500 flex items-center gap-2">
+                <CardTitle className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                   <Eye className="w-4 h-4" /> Live Preview
                 </CardTitle>
               </CardHeader>
@@ -596,19 +596,19 @@ export default function PostJob() {
                       </div>
                     )}
                     <div>
-                      <h3 className="font-bold text-gray-900">{jobData.title || 'Job Title'}</h3>
-                      <p className="text-sm text-gray-500">{company?.name}</p>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{jobData.title || 'Job Title'}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{company?.name}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2 text-sm">
                     {jobData.location && (
-                      <span className="flex items-center gap-1 text-gray-600">
+                      <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                         <MapPin className="w-4 h-4" /> {jobData.location}
                       </span>
                     )}
                     {jobData.salary_max && (
-                      <span className="flex items-center gap-1 text-gray-600">
+                      <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                         <DollarSign className="w-4 h-4" />
                         ${jobData.salary_min || 0}k - ${jobData.salary_max}k
                       </span>
