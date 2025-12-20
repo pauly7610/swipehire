@@ -159,7 +159,7 @@ export default function ApplicationTracker() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-8 pb-24">
       <style>{`
         .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
       `}</style>
@@ -167,18 +167,18 @@ export default function ApplicationTracker() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Application Tracker</h1>
-          <p className="text-gray-500">Track your job applications in one place</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Application Tracker</h1>
+          <p className="text-gray-500 dark:text-gray-400">Track your job applications in one place</p>
         </div>
 
         {/* Interview Calendar Section */}
         {interviews.filter(i => i.status === 'scheduled' || i.status === 'confirmed').length > 0 && (
           <div className="grid md:grid-cols-3 gap-4">
             {/* Calendar */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-purple-500" />
+                <CardTitle className="text-lg dark:text-white flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                   My Interviews
                 </CardTitle>
               </CardHeader>
@@ -203,17 +203,17 @@ export default function ApplicationTracker() {
             </Card>
 
             {/* Interviews for Selected Date */}
-            <Card className="border-0 shadow-sm md:col-span-2">
+            <Card className="border-0 shadow-sm md:col-span-2 dark:bg-slate-900 dark:border-slate-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">
+                <CardTitle className="text-lg dark:text-white">
                   {format(selectedDate, 'EEEE, MMMM d')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {getInterviewsForDate(selectedDate).length === 0 ? (
                   <div className="text-center py-6">
-                    <Calendar className="w-10 h-10 mx-auto text-gray-300 mb-2" />
-                    <p className="text-gray-500 text-sm">No interviews on this day</p>
+                    <Calendar className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">No interviews on this day</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -224,7 +224,7 @@ export default function ApplicationTracker() {
                       return (
                         <div 
                           key={interview.id} 
-                          className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:shadow-md transition-all"
+                          className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl cursor-pointer hover:shadow-md transition-all"
                           onClick={() => navigate(createPageUrl('Chat') + `?matchId=${interview.match_id}`)}
                         >
                           {company?.logo_url ? (
@@ -235,11 +235,11 @@ export default function ApplicationTracker() {
                             </div>
                           )}
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{company?.name || 'Company'}</p>
-                            <p className="text-sm text-gray-500">{job?.title}</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{company?.name || 'Company'}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{job?.title}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-purple-600">
+                            <p className="font-semibold text-purple-600 dark:text-purple-400">
                               {format(new Date(interview.scheduled_at), 'h:mm a')}
                             </p>
                             <Badge className="bg-purple-100 text-purple-700">
@@ -271,13 +271,13 @@ export default function ApplicationTracker() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-4">
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-2`}>
                     <stat.icon className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -286,7 +286,7 @@ export default function ApplicationTracker() {
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="bg-white rounded-xl p-1 shadow-sm flex-wrap h-auto">
+          <TabsList className="bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm flex-wrap h-auto">
             <TabsTrigger 
               value="all" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg"
@@ -316,11 +316,11 @@ export default function ApplicationTracker() {
 
         {/* Applications List */}
         {filteredApps.length === 0 ? (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="py-12 text-center">
-              <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No applications yet</h3>
-              <p className="text-gray-500 mb-4">Start swiping on jobs to apply!</p>
+              <Briefcase className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No applications yet</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Start swiping on jobs to apply!</p>
               <Link to={createPageUrl('SwipeJobs')}>
                 <Button className="swipe-gradient text-white">Find Jobs</Button>
               </Link>
@@ -341,7 +341,7 @@ export default function ApplicationTracker() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900 dark:border-slate-800">
                     <CardContent className="p-4 md:p-6">
                       <div className="flex items-start gap-4">
                         {/* Company Logo */}
@@ -357,8 +357,8 @@ export default function ApplicationTracker() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 flex-wrap">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{job?.title || 'Position'}</h3>
-                              <p className="text-gray-600">{company?.name || 'Company'}</p>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{job?.title || 'Position'}</h3>
+                              <p className="text-gray-600 dark:text-gray-300">{company?.name || 'Company'}</p>
                             </div>
                             <Badge className={statusConfig.color}>
                               <StatusIcon className="w-3 h-3 mr-1" />
@@ -366,7 +366,7 @@ export default function ApplicationTracker() {
                             </Badge>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
+                          <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
                             {job?.location && (
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" /> {job.location}
@@ -442,7 +442,7 @@ export default function ApplicationTracker() {
             
             <div className="space-y-4">
               {/* Job Info */}
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
                 {companies[selectedApplication.company_id]?.logo_url ? (
                   <img 
                     src={companies[selectedApplication.company_id].logo_url} 
@@ -455,10 +455,10 @@ export default function ApplicationTracker() {
                   </div>
                 )}
                 <div>
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">
                     {jobs[selectedApplication.job_id]?.title || 'Position'}
                   </h4>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {companies[selectedApplication.company_id]?.name || 'Company'}
                   </p>
                 </div>

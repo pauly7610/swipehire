@@ -244,7 +244,7 @@ export default function Chat() {
   const hasActiveInterview = interviews.some(i => ['scheduled', 'confirmed'].includes(i.status));
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gray-50 dark:bg-slate-950 flex flex-col overflow-hidden">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -252,10 +252,10 @@ export default function Chat() {
       `}</style>
 
       {/* Header - Safe Area */}
-      <div className="bg-white border-b border-gray-200 p-4 safe-area-top z-10">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 p-4 safe-area-top z-10">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <Link to={createPageUrl('Matches')} className="p-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <Link to={createPageUrl('Matches')} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full">
+            <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </Link>
 
           {company?.logo_url ? (
@@ -267,8 +267,8 @@ export default function Chat() {
           )}
 
           <div className="flex-1">
-            <h2 className="font-semibold text-gray-900">{company?.name || 'Company'}</h2>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
+            <h2 className="font-semibold text-gray-900 dark:text-white">{company?.name || 'Company'}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Briefcase className="w-3 h-3" />
               {job?.title || 'Position'}
             </p>
@@ -296,13 +296,13 @@ export default function Chat() {
         {/* Left Side - Chat */}
         <div className={`flex flex-col transition-all duration-300 ${showResumePanel ? 'w-1/2' : 'w-full'}`}>
           {/* Job Info Card */}
-          <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50">
+          <div className="p-4 bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-900/20 dark:to-orange-900/20">
             <div className="max-w-2xl mx-auto space-y-3">
-          <Card className="p-4 border-0 shadow-sm">
+          <Card className="p-4 border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900">{job?.title}</h3>
-                <p className="text-sm text-gray-500">{job?.location} • {job?.job_type}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{job?.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{job?.location} • {job?.job_type}</p>
               </div>
               <Badge className="bg-green-100 text-green-700">
                 {match?.match_score || 85}% Match
@@ -334,8 +334,8 @@ export default function Chat() {
               <div className="w-16 h-16 rounded-full swipe-gradient mx-auto flex items-center justify-center mb-4">
                 <span className="text-3xl">👋</span>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Start the conversation!</h3>
-              <p className="text-gray-500 text-sm">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Start the conversation!</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Send a message to {company?.name} about the {job?.title} position.
               </p>
             </div>
@@ -355,7 +355,7 @@ export default function Chat() {
                     className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                       isMe 
                         ? 'swipe-gradient text-white rounded-br-md' 
-                        : 'bg-white text-gray-900 rounded-bl-md shadow-sm'
+                        : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-bl-md shadow-sm'
                     }`}
                   >
                     {message.message_type === 'interview_invite' && (
@@ -365,7 +365,7 @@ export default function Chat() {
                       </div>
                     )}
                     <p>{message.content}</p>
-                    <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400'}`}>
+                    <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'}`}>
                       {format(new Date(message.created_date), 'h:mm a')}
                     </p>
                   </div>
@@ -378,7 +378,7 @@ export default function Chat() {
           </div>
 
           {/* Input */}
-          <div className="bg-white border-t border-gray-200 p-4">
+          <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-4">
             <div className="max-w-2xl mx-auto">
               <form 
                 onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
@@ -408,9 +408,9 @@ export default function Chat() {
 
         {/* Right Side - Resume & Notes Panel */}
         {showResumePanel && hasActiveInterview && (
-          <div className="w-1/2 border-l border-gray-200 bg-white flex flex-col shadow-xl">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <div className="w-1/2 border-l border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col shadow-xl">
+            <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <FileText className="w-5 h-5 text-pink-500" />
                 Interview Materials
               </h3>
@@ -424,30 +424,30 @@ export default function Chat() {
             </div>
 
             {/* Resume Viewer */}
-            <div className="flex-1 overflow-auto p-4 bg-gray-50">
+            <div className="flex-1 overflow-auto p-4 bg-gray-50 dark:bg-slate-950">
               {candidate?.resume_url ? (
                 <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Candidate Resume</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Candidate Resume</h4>
                   <iframe 
                     src={candidate.resume_url.endsWith('.pdf') 
                       ? candidate.resume_url 
                       : `https://docs.google.com/viewer?url=${encodeURIComponent(candidate.resume_url)}&embedded=true`
                     }
-                    className="w-full h-96 rounded-lg border border-gray-200"
+                    className="w-full h-96 rounded-lg border border-gray-200 dark:border-slate-700"
                     title="Resume"
                   />
                 </div>
               ) : (
-                <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 text-center">
-                  <FileText className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No resume uploaded yet</p>
+                <div className="mb-4 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 text-center">
+                  <FileText className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No resume uploaded yet</p>
                 </div>
               )}
 
               {/* Interview Notes */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-gray-700">Interview Notes</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Interview Notes</h4>
                   <Button 
                     size="sm"
                     onClick={saveNotes}
@@ -470,7 +470,7 @@ export default function Chat() {
                   placeholder="Take notes during the interview... These will be saved to the ATS for review later."
                   className="min-h-[300px] resize-none"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   Notes are automatically saved to the ATS and can be reviewed later in the candidate's profile.
                 </p>
               </div>

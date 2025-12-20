@@ -79,7 +79,7 @@ export default function Matches() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-8">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -94,7 +94,7 @@ export default function Matches() {
 
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-2">
-                        <h1 className="text-3xl font-bold text-gray-900">Your Matches</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Matches</h1>
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -104,11 +104,11 @@ export default function Matches() {
                           <LogOut className="w-4 h-4 mr-2" /> Logout
                         </Button>
                       </div>
-                      <p className="text-gray-500 mb-6">Connect with employers who are interested in you</p>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6">Connect with employers who are interested in you</p>
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={setFilter} className="mb-6">
-                        <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm">
+                        <TabsList className="w-full bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm">
                           <TabsTrigger value="all" className="flex-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#FF005C] data-[state=active]:to-[#FF7B00] data-[state=active]:text-white rounded-lg">
                             All
                           </TabsTrigger>
@@ -127,10 +127,10 @@ export default function Matches() {
         {/* Matches List */}
         <div className="space-y-4">
           {filteredMatches.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Inbox className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No matches yet</h3>
-              <p className="text-gray-500">Keep swiping to find your perfect match!</p>
+            <Card className="p-12 text-center dark:bg-slate-900 dark:border-slate-800">
+              <Inbox className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No matches yet</h3>
+              <p className="text-gray-500 dark:text-gray-400">Keep swiping to find your perfect match!</p>
             </Card>
           ) : (
             filteredMatches.map((match, index) => {
@@ -146,7 +146,7 @@ export default function Matches() {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card 
-                    className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm"
+                    className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800"
                     onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match.id}`)}
                   >
                     <div className="flex items-start gap-4">
@@ -175,13 +175,13 @@ export default function Matches() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="font-semibold text-gray-900 truncate">{job?.title || 'Position'}</h3>
+                            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{job?.title || 'Position'}</h3>
                             <span 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(createPageUrl('CompanyProfile') + `?id=${company?.id}`);
                               }}
-                              className="text-gray-600 text-sm hover:text-pink-600 transition-colors cursor-pointer"
+                              className="text-gray-600 dark:text-gray-300 text-sm hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer"
                             >
                               {company?.name || 'Company'}
                             </span>
@@ -189,10 +189,10 @@ export default function Matches() {
                           {getStatusBadge(match.status)}
                         </div>
 
-                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
                           {match.match_score && (
                             <span className="flex items-center gap-1">
-                              <span className="font-semibold text-pink-500">{match.match_score}%</span> match
+                              <span className="font-semibold text-pink-500 dark:text-pink-400">{match.match_score}%</span> match
                             </span>
                           )}
                           <span className="flex items-center gap-1">
@@ -204,7 +204,7 @@ export default function Matches() {
 
                       {/* Chat indicator */}
                       <div className="flex items-center">
-                        <MessageCircle className="w-5 h-5 text-gray-400" />
+                        <MessageCircle className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                       </div>
                     </div>
                   </Card>

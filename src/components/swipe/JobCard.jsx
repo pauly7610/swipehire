@@ -29,14 +29,14 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             initial={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: 90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col backdrop-blur-xl"
+            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden flex flex-col backdrop-blur-xl"
             style={{ 
               boxShadow: '0 8px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)',
               backdropFilter: 'blur(10px)'
             }}
           >
             {/* Hero Section with Company Branding */}
-            <div className="relative h-32 bg-gradient-to-br from-pink-500/5 via-orange-500/5 to-purple-500/5 flex items-center px-5 border-b border-gray-100">
+            <div className="relative h-32 bg-gradient-to-br from-pink-500/5 via-orange-500/5 to-purple-500/5 dark:from-pink-500/10 dark:via-orange-500/10 dark:to-purple-500/10 flex items-center px-5 border-b border-gray-100 dark:border-slate-700">
               {/* AI Intelligence Signals - Top Right */}
               <div className="absolute top-3 right-3 flex items-center gap-2">
                 {/* Fit Confidence Meter */}
@@ -45,12 +45,12 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.15, type: "spring", stiffness: 300 }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-gray-200"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-md shadow-sm border border-gray-200 dark:border-slate-700"
                   >
                     <div className={`w-1.5 h-1.5 rounded-full ${
                       matchScore >= 80 ? 'bg-green-500' : matchScore >= 65 ? 'bg-amber-500' : 'bg-gray-400'
                     } animate-pulse`} />
-                    <span className="text-[10px] font-semibold text-gray-600">
+                    <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">
                       {matchScore >= 80 ? 'Strong Fit' : matchScore >= 65 ? 'Good Fit' : 'Potential'}
                     </span>
                   </motion.div>
@@ -61,7 +61,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-                  className="w-8 h-8 rounded-lg bg-white/95 backdrop-blur-md shadow-sm border border-gray-200 flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-md shadow-sm border border-gray-200 dark:border-slate-700 flex items-center justify-center"
                   title={`Role readiness: ${roleReadiness}`}
                 >
                   <TrendingUp className={`w-4 h-4 ${
@@ -103,7 +103,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-xl font-bold text-gray-900 mb-0.5 line-clamp-1"
+                  className="text-xl font-bold text-gray-900 dark:text-white mb-0.5 line-clamp-1"
                 >
                   {job.title}
                 </motion.h3>
@@ -112,7 +112,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.15 }}
-                    className="text-sm text-gray-600 font-medium hover:text-pink-500 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-gray-600 dark:text-gray-400 font-medium hover:text-pink-500 dark:hover:text-pink-400 transition-colors inline-flex items-center gap-1"
                   >
                     {company?.name || 'Company'}
                     {company?.id && <ExternalLink className="w-3 h-3" />}
@@ -134,13 +134,13 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 <motion.div 
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 400 }}
-                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
+                  className="bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-gray-200/60 dark:border-slate-700 shadow-sm"
                 >
                   <div className="flex items-center gap-1 mb-0.5">
-                    <DollarSign className="w-3 h-3 text-green-600" />
-                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Salary</span>
+                    <DollarSign className="w-3 h-3 text-green-600 dark:text-green-400" />
+                    <span className="text-[9px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Salary</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-[11px] leading-tight">
+                  <p className="font-bold text-gray-900 dark:text-white text-[11px] leading-tight">
                     {formatSalary(job.salary_min, job.salary_max, job.salary_type)}
                   </p>
                 </motion.div>
@@ -148,13 +148,13 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 <motion.div 
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 400 }}
-                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
+                  className="bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-gray-200/60 dark:border-slate-700 shadow-sm"
                 >
                   <div className="flex items-center gap-1 mb-0.5">
-                    <Briefcase className="w-3 h-3 text-blue-600" />
-                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Type</span>
+                    <Briefcase className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    <span className="text-[9px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Type</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-[11px] capitalize leading-tight">
+                  <p className="font-bold text-gray-900 dark:text-white text-[11px] capitalize leading-tight">
                     {job.job_type?.replace('-', ' ') || 'Full-time'}
                   </p>
                 </motion.div>
@@ -162,19 +162,19 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 <motion.div 
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 400 }}
-                  className="bg-white rounded-xl p-2.5 border border-gray-200/60 shadow-sm"
+                  className="bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-gray-200/60 dark:border-slate-700 shadow-sm"
                 >
                   <div className="flex items-center gap-1 mb-0.5">
-                    <MapPin className="w-3 h-3 text-pink-600" />
-                    <span className="text-[9px] text-gray-500 font-medium uppercase tracking-wide">Location</span>
+                    <MapPin className="w-3 h-3 text-pink-600 dark:text-pink-400" />
+                    <span className="text-[9px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Location</span>
                   </div>
-                  <p className="font-bold text-gray-900 text-[11px] leading-tight truncate">{job.location || 'Remote'}</p>
+                  <p className="font-bold text-gray-900 dark:text-white text-[11px] leading-tight truncate">{job.location || 'Remote'}</p>
                 </motion.div>
               </div>
 
               {/* Required Skills */}
               <div className="mb-3">
-                <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Key Skills</h4>
+                <h4 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Key Skills</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {job.skills_required?.slice(0, 6).map((skill, i) => (
                     <motion.div
@@ -201,7 +201,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               {/* Job Description Preview */}
               {job.description && (
                 <div className="mb-3">
-                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                     {job.description}
                   </p>
                 </div>
@@ -209,7 +209,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             </div>
 
             {/* Bottom Action Bar - Thumb Reachable */}
-            <div className="px-5 py-4 bg-white border-t border-gray-100">
+            <div className="px-5 py-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700">
               <div className="flex items-center gap-2">
                 {onQuickApply && (
                   <motion.div 
@@ -229,7 +229,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onFlip}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-700 hover:border-gray-400 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500 transition-all shadow-sm"
                 >
                   <span className="text-xs font-semibold">More</span>
                   <ChevronDown className="w-3.5 h-3.5" />
@@ -245,7 +245,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             animate={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: -90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeIn" }}
-            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-pink-500 to-orange-500 px-6 py-4 text-white">
@@ -262,13 +262,13 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             >
               <div className="space-y-5">
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-pink-100 flex items-center justify-center">
                       <Briefcase className="w-3 h-3 text-pink-500" />
                     </div>
                     About the Role
                   </h4>
-                  <p className="text-gray-600 text-sm leading-relaxed">{job.description}</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{job.description}</p>
                 </div>
 
                 {job.responsibilities?.length > 0 && (
@@ -355,12 +355,12 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             </div>
 
             {/* Back Button */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onFlip}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <ChevronUp className="w-4 h-4" />
                 <span className="text-sm font-medium">Back to Overview</span>

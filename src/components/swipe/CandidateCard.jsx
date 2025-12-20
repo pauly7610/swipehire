@@ -113,7 +113,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
               {/* Bio */}
               {candidate?.bio && (
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                     {candidate.bio}
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
 
               {/* Top Skills */}
               <div className="mb-3">
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Top Skills</h4>
+                <h4 className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Top Skills</h4>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   {candidate?.skills?.slice(0, 6).map((skill, i) => (
                     <motion.div
@@ -146,23 +146,23 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
               {/* Recent Experience Preview */}
               {candidate?.experience?.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recent Experience</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Recent Experience</h4>
                   <motion.div 
                     whileHover={{ scale: 1.01 }}
-                    className="bg-gray-50 rounded-xl p-3 border border-gray-100"
+                    className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700"
                   >
-                    <p className="font-semibold text-gray-900 text-sm">{candidate.experience[0].title}</p>
-                    <p className="text-gray-500 text-xs">{candidate.experience[0].company}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{candidate.experience[0].title}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">{candidate.experience[0].company}</p>
                   </motion.div>
                 </div>
               )}
             </div>
 
             {/* Bottom Action Bar - 44px Min */}
-            <div className="px-5 py-3 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
+            <div className="px-5 py-3 bg-gradient-to-t from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 border-t border-gray-100 dark:border-slate-700">
               <button
                 onClick={onFlip}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 active:bg-gray-50 transition-colors shadow-sm min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-slate-800 transition-colors shadow-sm min-h-[44px]"
               >
                 <span className="text-sm font-medium">Full Profile</span>
                 <ChevronDown className="w-4 h-4" />
@@ -194,13 +194,13 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             >
               <div className="space-y-5">
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-pink-100 flex items-center justify-center">
                       <User className="w-3 h-3 text-pink-500" />
                     </div>
                     About
                   </h4>
-                  <p className="text-gray-600 text-sm leading-relaxed">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                     {candidate?.bio || 'No bio provided'}
                   </p>
                 </div>
@@ -218,12 +218,12 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                         <motion.div 
                           key={i} 
                           whileHover={{ scale: 1.01 }}
-                          className="bg-gray-50 rounded-xl p-3 border border-gray-100"
-                        >
-                          <p className="font-semibold text-gray-900 text-sm">{exp.title}</p>
-                          <p className="text-gray-500 text-xs mb-1">{exp.company}</p>
+                          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700"
+                          >
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">{exp.title}</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">{exp.company}</p>
                           {exp.description && (
-                            <p className="text-gray-600 text-xs line-clamp-2">{exp.description}</p>
+                            <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-2">{exp.description}</p>
                           )}
                         </motion.div>
                       ))}
@@ -241,9 +241,9 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                     </h4>
                     <div className="space-y-2">
                       {candidate.education.map((edu, i) => (
-                        <div key={i} className="bg-purple-50 rounded-xl p-3 border border-purple-100">
-                          <p className="font-semibold text-gray-900 text-sm">{edu.degree}</p>
-                          <p className="text-gray-500 text-xs">{edu.university}</p>
+                        <div key={i} className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 border border-purple-100 dark:border-purple-900/40">
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">{edu.degree}</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs">{edu.university}</p>
                         </div>
                       ))}
                     </div>
@@ -271,12 +271,12 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             </div>
 
             {/* Back Button */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onFlip}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <ChevronUp className="w-4 h-4" />
                 <span className="text-sm font-medium">Back to Overview</span>

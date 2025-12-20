@@ -89,7 +89,7 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
         .swipe-gradient-text {
@@ -112,7 +112,7 @@ export default function CompanyProfile() {
       <div className="max-w-5xl mx-auto px-4">
         {/* Company Header */}
         <div className="relative -mt-20 mb-6">
-          <Card className="border-0 shadow-xl">
+          <Card className="border-0 shadow-xl dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-end gap-4">
                 {/* Logo */}
@@ -134,9 +134,9 @@ export default function CompanyProfile() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div>
-                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{company.name}</h1>
-                      <p className="text-gray-600">{company.industry}</p>
-                      <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
+                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
+                      <p className="text-gray-600 dark:text-gray-300">{company.industry}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
                         {company.location && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-4 h-4" /> {company.location}
@@ -193,7 +193,7 @@ export default function CompanyProfile() {
 
         {/* Tabs */}
         <Tabs defaultValue="about" className="space-y-6">
-          <TabsList className="bg-white rounded-xl p-1 shadow-sm w-full justify-start overflow-x-auto">
+          <TabsList className="bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm w-full justify-start overflow-x-auto">
             <TabsTrigger value="about" className="data-[state=active]:swipe-gradient data-[state=active]:text-white rounded-lg">
               About
             </TabsTrigger>
@@ -220,31 +220,31 @@ export default function CompanyProfile() {
           <TabsContent value="about" className="space-y-6">
             {/* Description */}
             {company.description && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">About Us</h3>
-                  <p className="text-gray-600 whitespace-pre-wrap">{company.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">About Us</h3>
+                  <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{company.description}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Mission */}
             {company.mission && (
-              <Card className="border-0 shadow-sm bg-gradient-to-br from-pink-50 to-orange-50">
+              <Card className="border-0 shadow-sm bg-gradient-to-br from-pink-50 to-orange-50 dark:from-pink-900/20 dark:to-orange-900/20">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-pink-500" /> Our Mission
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-pink-500 dark:text-pink-400" /> Our Mission
                   </h3>
-                  <p className="text-gray-700 text-lg italic">"{company.mission}"</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-lg italic">"{company.mission}"</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Values */}
             {company.values?.length > 0 && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Our Values</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Our Values</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {company.values.map((value, i) => (
                       <motion.div
@@ -252,10 +252,10 @@ export default function CompanyProfile() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="p-4 bg-gray-50 rounded-xl"
+                        className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl"
                       >
-                        <h4 className="font-semibold text-gray-900">{value.title}</h4>
-                        <p className="text-gray-600 text-sm mt-1">{value.description}</p>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">{value.title}</h4>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{value.description}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -265,9 +265,9 @@ export default function CompanyProfile() {
 
             {/* Benefits */}
             {company.benefits?.length > 0 && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-pink-500" /> Benefits & Perks
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -291,9 +291,9 @@ export default function CompanyProfile() {
           <TabsContent value="culture" className="space-y-6">
             {/* Culture Traits */}
             {company.culture_traits?.length > 0 && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Our Culture</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Our Culture</h3>
                   <div className="flex flex-wrap gap-2">
                     {company.culture_traits.map((trait, i) => (
                       <Badge key={i} className="swipe-gradient text-white px-4 py-2 text-sm">
@@ -307,9 +307,9 @@ export default function CompanyProfile() {
 
             {/* Testimonials */}
             {company.testimonials?.length > 0 && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <Quote className="w-5 h-5 text-pink-500" /> What Our Team Says
                   </h3>
                   <div className="grid gap-4">
@@ -319,16 +319,16 @@ export default function CompanyProfile() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="p-4 bg-gray-50 rounded-xl"
+                        className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl"
                       >
-                        <p className="text-gray-700 italic mb-3">"{testimonial.quote}"</p>
+                        <p className="text-gray-700 dark:text-gray-300 italic mb-3">"{testimonial.quote}"</p>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-semibold text-sm">
                             {testimonial.author?.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 text-sm">{testimonial.author}</p>
-                            <p className="text-gray-500 text-xs">{testimonial.role}</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">{testimonial.author}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs">{testimonial.role}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -340,9 +340,9 @@ export default function CompanyProfile() {
 
             {/* Office Perks */}
             {company.office_perks?.length > 0 && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Office Perks</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Office Perks</h3>
                   <div className="flex flex-wrap gap-2">
                     {company.office_perks.map((perk, i) => (
                       <Badge key={i} variant="outline" className="px-3 py-1.5">

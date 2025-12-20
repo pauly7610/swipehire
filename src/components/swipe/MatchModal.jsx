@@ -57,7 +57,7 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white rounded-3xl p-8 max-w-md w-full text-center relative overflow-hidden"
+          className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full text-center relative overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Fireworks Background */}
@@ -159,7 +159,7 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 mb-8"
+            className="text-gray-600 dark:text-gray-300 mb-8"
           >
             {candidate 
               ? `You matched with ${company?.name || 'the company'} for ${job?.title || 'this position'}!`
@@ -234,7 +234,7 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
             <Button
               onClick={onClose}
               variant="outline"
-              className="w-full h-12 rounded-xl text-gray-600"
+              className="w-full h-12 rounded-xl text-gray-600 dark:text-gray-300"
             >
               <Briefcase className="w-5 h-5 mr-2" />
               Keep Swiping
