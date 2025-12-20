@@ -357,8 +357,8 @@ export default function RecruiterProfile() {
                     </label>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 truncate">{company.name}</h3>
-                    <p className="text-xs md:text-sm text-gray-500 truncate">{company.industry}</p>
+                   <h3 className="text-lg md:text-xl font-bold text-gray-900 truncate">{company?.name || 'Company'}</h3>
+                   <p className="text-xs md:text-sm text-gray-500 truncate">{company?.industry || ''}</p>
                     <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-2 text-xs md:text-sm text-gray-400">
                       {company?.location && (
                         <span className="flex items-center gap-1 truncate">
