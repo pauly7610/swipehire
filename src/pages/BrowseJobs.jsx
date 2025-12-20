@@ -254,14 +254,6 @@ export default function BrowseJobs() {
                 </SelectContent>
               </Select>
               
-              <Button
-                variant="outline"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="w-full h-11"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                More Filters
-                <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
               </Button>
 
               {/* Advanced Filters */}
@@ -270,7 +262,7 @@ export default function BrowseJobs() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="pt-4 border-t space-y-4"
+                  className="pt-4 border-t space-y-4 mt-3"
                 >
                   {/* Salary Range */}
                   <div>
@@ -396,6 +388,7 @@ export default function BrowseJobs() {
                   </div>
                 </motion.div>
               )}
+            </div>
           </CardContent>
         </Card>
 
