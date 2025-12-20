@@ -266,7 +266,7 @@ export default function CommunicationHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
         .swipe-gradient-text {
@@ -289,49 +289,49 @@ export default function CommunicationHub() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-pink-100 flex items-center justify-center mb-2">
-                <Inbox className="w-5 h-5 text-pink-500" />
+              <div className="w-10 h-10 mx-auto rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-2">
+                <Inbox className="w-5 h-5 text-pink-500 dark:text-pink-400" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{unreadCount}</p>
-              <p className="text-xs text-gray-500">Unread</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{unreadCount}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Unread</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-purple-100 flex items-center justify-center mb-2">
-                <Calendar className="w-5 h-5 text-purple-500" />
+              <div className="w-10 h-10 mx-auto rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-2">
+                <Calendar className="w-5 h-5 text-purple-500 dark:text-purple-400" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{upcomingInterviews}</p>
-              <p className="text-xs text-gray-500">Interviews</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{upcomingInterviews}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Interviews</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-green-100 flex items-center justify-center mb-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <div className="w-10 h-10 mx-auto rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-2">
+                <CheckCircle2 className="w-5 h-5 text-green-500 dark:text-green-400" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{matches.length}</p>
-              <p className="text-xs text-gray-500">Active</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{matches.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <Input
             placeholder="Search messages, companies, jobs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-12 rounded-xl border-0 shadow-sm"
+            className="pl-10 h-12 rounded-xl border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800"
           />
         </div>
 
         {/* Simplified Tabs - Mobile First */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-          <TabsList className="w-full bg-white rounded-xl p-1 shadow-sm grid grid-cols-3">
+          <TabsList className="w-full bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm grid grid-cols-3">
             <TabsTrigger 
               value="all" 
               className="rounded-lg py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
@@ -359,7 +359,7 @@ export default function CommunicationHub() {
         {/* Mark All Read */}
         {unreadCount > 0 && (
           <div className="flex justify-end mb-4">
-            <Button variant="ghost" size="sm" onClick={markAllRead} className="text-pink-500">
+            <Button variant="ghost" size="sm" onClick={markAllRead} className="text-pink-500 dark:text-pink-400">
               Mark all as read
             </Button>
           </div>
@@ -367,11 +367,11 @@ export default function CommunicationHub() {
 
         {/* Feed */}
         {Object.keys(groupedFeed).length === 0 ? (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="py-12 text-center">
-              <Inbox className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-1">No communications yet</h3>
-              <p className="text-gray-500 text-sm mb-4">Start applying to jobs to receive updates</p>
+              <Inbox className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">No communications yet</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Start applying to jobs to receive updates</p>
               <Link to={createPageUrl('SwipeJobs')}>
                 <Button className="swipe-gradient text-white">Find Jobs</Button>
               </Link>
@@ -381,7 +381,7 @@ export default function CommunicationHub() {
           <div className="space-y-6">
             {Object.entries(groupedFeed).map(([date, items]) => (
               <div key={date}>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">{date}</h3>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">{date}</h3>
                 <div className="space-y-3">
                   <AnimatePresence>
                     {items.map((item, index) => (
@@ -487,7 +487,7 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
       transition={{ delay: index * 0.03 }}
     >
       <Card 
-        className={`border-0 shadow-sm cursor-pointer hover:shadow-md transition-all ${!isRead ? 'bg-pink-50/50 border-l-4 border-l-pink-500' : ''}`}
+        className={`border-0 shadow-sm cursor-pointer hover:shadow-md transition-all dark:bg-slate-900 dark:border-slate-800 ${!isRead ? 'bg-pink-50/50 dark:bg-pink-900/20 border-l-4 border-l-pink-500' : ''}`}
         onClick={handleClick}
       >
         <CardContent className="p-4">
@@ -497,10 +497,10 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
               <img src={company.logo_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
             ) : (
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                type === 'interview' ? 'bg-purple-100' :
-                type === 'message' ? 'bg-blue-100' :
-                type === 'status' && data.status === 'hired' ? 'bg-green-100' :
-                'bg-gray-100'
+                type === 'interview' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                type === 'message' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                type === 'status' && data.status === 'hired' ? 'bg-green-100 dark:bg-green-900/30' :
+                'bg-gray-100 dark:bg-slate-800'
               }`}>
                 {getIcon()}
               </div>
@@ -508,14 +508,14 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <h4 className={`font-medium ${!isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                <h4 className={`font-medium ${!isRead ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                   {getTitle()}
                 </h4>
-                <span className="text-xs text-gray-400 flex-shrink-0">
+                <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
                   {formatDistanceToNow(date, { addSuffix: true })}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{getDescription()}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{getDescription()}</p>
               
               {/* Extra info for interviews */}
               {type === 'interview' && data.scheduled_at && (
@@ -527,14 +527,14 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
 
               {/* Company name badge */}
               {company && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
+                <div className="flex items-center gap-1 mt-2 text-xs text-gray-400 dark:text-gray-500">
                   <Building2 className="w-3 h-3" />
                   {company.name}
                 </div>
               )}
             </div>
 
-            <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0" />
           </div>
         </CardContent>
       </Card>

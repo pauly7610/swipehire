@@ -77,7 +77,7 @@ export default function InterviewPrep() {
 
   if (showCoach) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 md:p-8">
         <div className="max-w-2xl mx-auto">
           <Button
             variant="ghost"
@@ -103,7 +103,7 @@ export default function InterviewPrep() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -113,29 +113,29 @@ export default function InterviewPrep() {
       <div className="max-w-4xl mx-auto px-4 pt-4">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Interview Prep</h1>
-          <p className="text-sm text-gray-600">AI coaching for success</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Interview Prep</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">AI coaching for success</p>
         </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-3 text-center">
-              <p className="text-3xl font-bold text-purple-600">{sessions.length}</p>
-              <p className="text-xs text-gray-500">Sessions</p>
+              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{sessions.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Sessions</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
             <CardContent className="p-3 text-center">
-              <p className="text-3xl font-bold text-pink-600">{avgScore}%</p>
-              <p className="text-xs text-gray-500">Avg Score</p>
+              <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">{avgScore}%</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Avg Score</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Start - Mobile Optimized */}
-        <Card className="mb-6 border-0 shadow-sm">
+        <Card className="mb-6 border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
           <div className="swipe-gradient p-4">
             <h2 className="text-lg font-bold text-white mb-1">Start Practice</h2>
             <p className="text-sm text-white/90">AI feedback on your answers</p>
@@ -152,16 +152,16 @@ export default function InterviewPrep() {
         </Card>
 
         {/* Past Sessions */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
           <CardHeader>
-            <CardTitle>Practice History</CardTitle>
+            <CardTitle className="dark:text-white">Practice History</CardTitle>
           </CardHeader>
           <CardContent>
             {sessions.length === 0 ? (
               <div className="text-center py-12">
-                <Video className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No practice sessions yet</h3>
-                <p className="text-gray-500 mb-6">Start your first session to get AI feedback</p>
+                <Video className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No practice sessions yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">Start your first session to get AI feedback</p>
                 <Button onClick={() => setShowCoach(true)} className="swipe-gradient text-white">
                   <Play className="w-4 h-4 mr-2" />
                   Start First Session
@@ -176,7 +176,7 @@ export default function InterviewPrep() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <Card className="border border-gray-200">
+                    <Card className="border border-gray-200 dark:bg-slate-800 dark:border-slate-700">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -198,7 +198,7 @@ export default function InterviewPrep() {
                                 <Badge className="bg-amber-500">In Progress</Badge>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               {session.questions?.length || 0} questions • 
                               {session.duration_minutes ? ` ${session.duration_minutes} min • ` : ' '}
                               {format(new Date(session.created_date), 'MMM d, yyyy')}
@@ -206,8 +206,8 @@ export default function InterviewPrep() {
                           </div>
                           {session.overall_score && (
                             <div className="text-center">
-                              <p className="text-3xl font-bold text-purple-600">{session.overall_score}%</p>
-                              <p className="text-xs text-gray-500">Score</p>
+                              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{session.overall_score}%</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Score</p>
                             </div>
                           )}
                         </div>
