@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/shared/Logo';
 import { usePageTracking } from '@/components/analytics/Analytics';
 import EmailScheduler from '@/components/email/EmailScheduler';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -360,7 +361,10 @@ export default function Layout({ children, currentPageName }) {
                       <Logo size="md" />
                       <p className="text-xs text-gray-500 mt-2">Swipe. Match. Hired.</p>
                     </div>
-                    <NotificationBell />
+                    <div className="flex items-center gap-2">
+                      <ThemeToggle />
+                      <NotificationBell />
+                    </div>
                   </div>
         
         <nav className="flex-1 px-4 space-y-1.5 py-2">
