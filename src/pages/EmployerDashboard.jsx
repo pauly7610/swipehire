@@ -207,51 +207,78 @@ export default function EmployerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-8 pb-24 relative overflow-hidden">
+      {/* Tech Grid Background */}
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,0,92,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,92,0.03)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)]" />
+      
+      {/* Animated Gradient Orbs */}
+      <div className="fixed top-0 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-[120px] animate-pulse" />
+      <div className="fixed bottom-0 -right-40 w-80 h-80 bg-orange-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+      
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
-        .swipe-gradient-text {
-          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        .glass-morphism {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .neon-border {
+          box-shadow: 0 0 20px rgba(255, 0, 92, 0.3),
+                      inset 0 0 20px rgba(255, 0, 92, 0.05);
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
         }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 92, 0.3); }
-          50% { box-shadow: 0 0 25px rgba(255, 0, 92, 0.5); }
+          0%, 100% { box-shadow: 0 0 30px rgba(255, 0, 92, 0.4), 0 0 60px rgba(255, 123, 0, 0.2); }
+          50% { box-shadow: 0 0 40px rgba(255, 0, 92, 0.6), 0 0 80px rgba(255, 123, 0, 0.3); }
         }
         .glow-on-hover:hover {
           animation: pulse-glow 2s ease-in-out infinite;
         }
+        .scan-line {
+          background: linear-gradient(transparent 50%, rgba(255, 0, 92, 0.03) 50%);
+          background-size: 100% 4px;
+          animation: scan 8s linear infinite;
+        }
+        @keyframes scan {
+          0% { background-position: 0 0; }
+          100% { background-position: 0 100%; }
+        }
       `}</style>
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             {user?.recruiter_photo ? (
-              <img src={user.recruiter_photo} alt={user.recruiter_name} className="w-16 h-16 rounded-full object-cover" />
+              <div className="relative">
+                <img src={user.recruiter_photo} alt={user.recruiter_name} className="w-16 h-16 rounded-full object-cover border-2 border-pink-500/50" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500/20 to-orange-500/20 animate-pulse" />
+              </div>
             ) : (
-              <div className="w-16 h-16 rounded-full swipe-gradient flex items-center justify-center">
+              <div className="relative w-16 h-16 rounded-full swipe-gradient flex items-center justify-center neon-border">
                 <Users className="w-8 h-8 text-white" />
               </div>
             )}
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Welcome back, {user?.recruiter_name || user?.full_name?.split(' ')[0] || 'Recruiter'}!</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-pink-200 to-orange-200">Welcome back, {user?.recruiter_name || user?.full_name?.split(' ')[0] || 'Recruiter'}!</h1>
               {company ? (
                 <button 
                   onClick={() => setShowCompanySearch(true)}
-                  className="text-gray-500 hover:text-pink-500 transition-colors flex items-center gap-1"
+                  className="text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-1 text-sm"
                 >
-                  {user?.recruiter_title || 'Recruiter'} at <span className="font-medium">{company.name}</span>
+                  {user?.recruiter_title || 'Recruiter'} at <span className="font-medium text-white">{company.name}</span>
                   <Building2 className="w-4 h-4" />
                 </button>
               ) : (
                 <button 
                   onClick={() => setShowCompanySearch(true)}
-                  className="text-pink-500 hover:text-pink-600 transition-colors flex items-center gap-1 font-medium"
+                  className="text-pink-400 hover:text-pink-300 transition-colors flex items-center gap-1 font-medium text-sm"
                 >
                   <Plus className="w-4 h-4" /> Link to a company
                 </button>
@@ -269,21 +296,20 @@ export default function EmployerDashboard() {
 
         {/* Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-white border">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+          <TabsList className="glass-morphism border-0">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:neon-border text-gray-400">
               <Eye className="w-4 h-4 mr-2" /> Overview
             </TabsTrigger>
-            <TabsTrigger value="sourcing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="sourcing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:neon-border text-gray-400">
               <Sparkles className="w-4 h-4 mr-2" /> AI Sourcing
             </TabsTrigger>
-            <TabsTrigger value="scheduling" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="scheduling" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:neon-border text-gray-400">
               <Zap className="w-4 h-4 mr-2" /> Scheduling
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:neon-border text-gray-400">
               <BarChart3 className="w-4 h-4 mr-2" /> Analytics
             </TabsTrigger>
-
-            <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="ai-assistant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:neon-border text-gray-400">
               <Bot className="w-4 h-4 mr-2" /> AI Assistant
             </TabsTrigger>
             </TabsList>
@@ -337,20 +363,30 @@ export default function EmployerDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.05, rotate: 1 }}
               whileTap={{ scale: 0.98 }}
+              className="group"
             >
               <Card 
-                className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all cursor-pointer group"
+                className="glass-morphism overflow-hidden cursor-pointer relative scan-line"
                 onClick={() => navigate(createPageUrl(stat.link))}
               >
                 <CardContent className="p-6 relative">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <stat.icon className={`w-7 h-7 bg-gradient-to-br ${stat.color} bg-clip-text text-transparent`} style={{ color: stat.color.includes('pink') ? '#FF005C' : stat.color.includes('purple') ? '#9333EA' : stat.color.includes('blue') ? '#3B82F6' : '#22C55E' }} />
+                  {/* Animated Gradient Overlay */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-all duration-500`} />
+                  
+                  {/* Icon with Neon Effect */}
+                  <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.bgColor} flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12`}>
+                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-20 blur-xl transition-opacity`} />
+                    <stat.icon className={`w-7 h-7 relative z-10`} style={{ color: stat.color.includes('pink') ? '#FF005C' : stat.color.includes('purple') ? '#9333EA' : stat.color.includes('blue') ? '#3B82F6' : '#22C55E' }} />
                   </div>
-                  <h3 className="text-4xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                  <p className="text-gray-500 text-sm font-medium">{stat.label}</p>
+                  
+                  {/* Value with Gradient */}
+                  <h3 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-300 mb-1">{stat.value}</h3>
+                  <p className="text-gray-400 text-sm font-medium">{stat.label}</p>
+                  
+                  {/* Corner Accent */}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-pink-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </CardContent>
               </Card>
             </motion.div>
@@ -360,11 +396,11 @@ export default function EmployerDashboard() {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Recent Matches */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Recent Matches</CardTitle>
+          <Card className="glass-morphism border-0">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5">
+              <CardTitle className="text-lg text-white">Recent Matches</CardTitle>
               <Link to={createPageUrl('EmployerMatches')}>
-                <Button variant="ghost" size="sm" className="text-pink-500">
+                <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
                   View All <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -372,8 +408,8 @@ export default function EmployerDashboard() {
             <CardContent>
               {matches.length === 0 ? (
                 <div className="text-center py-8">
-                  <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No matches yet</p>
+                  <Users className="w-12 h-12 mx-auto text-gray-600 mb-3" />
+                  <p className="text-gray-400">No matches yet</p>
                   <Link to={createPageUrl('SwipeCandidates')}>
                     <Button variant="outline" className="mt-4">
                       Start Swiping
@@ -390,7 +426,7 @@ export default function EmployerDashboard() {
                     return (
                       <div 
                         key={match.id} 
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all cursor-pointer border border-white/10 hover:border-pink-500/50 group"
                         onClick={() => navigate(createPageUrl('EmployerChat') + `?matchId=${match.id}`)}
                       >
                         {candidate?.photo_url ? (
@@ -401,8 +437,8 @@ export default function EmployerDashboard() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{user?.full_name || 'Candidate'}</p>
-                          <p className="text-sm text-gray-500">{job?.title} • {match.match_score}% match</p>
+                          <p className="font-medium text-white group-hover:text-pink-300 transition-colors">{user?.full_name || 'Candidate'}</p>
+                          <p className="text-sm text-gray-400">{job?.title} • {match.match_score}% match</p>
                         </div>
                         <Badge className={
                           match.status === 'hired' ? 'bg-green-100 text-green-700' :
@@ -420,11 +456,11 @@ export default function EmployerDashboard() {
           </Card>
 
           {/* Active Jobs */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Active Jobs</CardTitle>
+          <Card className="glass-morphism border-0">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5">
+              <CardTitle className="text-lg text-white">Active Jobs</CardTitle>
               <Link to={createPageUrl('ManageJobs')}>
-                <Button variant="ghost" size="sm" className="text-pink-500">
+                <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
                   Manage <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -432,8 +468,8 @@ export default function EmployerDashboard() {
             <CardContent>
               {jobs.filter(j => j.is_active).length === 0 ? (
                 <div className="text-center py-8">
-                  <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No active jobs</p>
+                  <Briefcase className="w-12 h-12 mx-auto text-gray-600 mb-3" />
+                  <p className="text-gray-400">No active jobs</p>
                   <Link to={createPageUrl('PostJob')}>
                     <Button className="mt-4 swipe-gradient text-white">
                       Post Your First Job
@@ -445,18 +481,18 @@ export default function EmployerDashboard() {
                   {jobs.filter(j => j.is_active).slice(0, 4).map((job) => (
                     <div 
                       key={job.id} 
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+                      className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all cursor-pointer border border-white/10 hover:border-pink-500/50 group"
                       onClick={() => navigate(createPageUrl('ManageJobs'))}
                     >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
-                        <Briefcase className="w-5 h-5 text-pink-500" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-orange-500/20 flex items-center justify-center neon-border">
+                        <Briefcase className="w-5 h-5 text-pink-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{job.title}</p>
-                        <p className="text-sm text-gray-500">{job.location} • {job.job_type}</p>
+                        <p className="font-medium text-white group-hover:text-pink-300 transition-colors">{job.title}</p>
+                        <p className="text-sm text-gray-400">{job.location} • {job.job_type}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-white">
                           {matches.filter(m => m.job_id === job.id).length} matches
                         </p>
                       </div>
@@ -471,10 +507,10 @@ export default function EmployerDashboard() {
         {/* Interview Calendar Section */}
         <div className="grid md:grid-cols-3 gap-6">
           {/* Calendar */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-500" />
+          <Card className="glass-morphism border-0">
+            <CardHeader className="border-b border-white/5">
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <Calendar className="w-5 h-5 text-purple-400" />
                 Interview Calendar
               </CardTitle>
             </CardHeader>
@@ -499,17 +535,17 @@ export default function EmployerDashboard() {
           </Card>
 
           {/* Interviews for Selected Date */}
-          <Card className="border-0 shadow-sm md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg">
+          <Card className="glass-morphism border-0 md:col-span-2">
+            <CardHeader className="border-b border-white/5">
+              <CardTitle className="text-lg text-white">
                 Interviews on {format(selectedDate, 'EEEE, MMMM d')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {getInterviewsForDate(selectedDate).length === 0 ? (
                 <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No interviews scheduled for this day</p>
+                  <Calendar className="w-12 h-12 mx-auto text-gray-600 mb-3" />
+                  <p className="text-gray-400">No interviews scheduled for this day</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -521,7 +557,7 @@ export default function EmployerDashboard() {
                     return (
                       <div 
                         key={interview.id} 
-                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:shadow-md transition-all"
+                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl cursor-pointer hover:bg-purple-500/20 transition-all border border-purple-500/30 hover:border-purple-500/50 group"
                         onClick={() => navigate(createPageUrl('EmployerChat') + `?matchId=${interview.match_id}`)}
                       >
                         {candidate?.photo_url ? (
@@ -532,14 +568,14 @@ export default function EmployerDashboard() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{user?.full_name || 'Candidate'}</p>
-                          <p className="text-sm text-gray-500">{job?.title}</p>
+                          <p className="font-medium text-white group-hover:text-purple-200 transition-colors">{user?.full_name || 'Candidate'}</p>
+                          <p className="text-sm text-gray-400">{job?.title}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-purple-600">
+                          <p className="font-semibold text-purple-400 group-hover:text-purple-300">
                             {format(new Date(interview.scheduled_at), 'h:mm a')}
                           </p>
-                          <Badge className="bg-purple-100 text-purple-700">
+                          <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50">
                             <Video className="w-3 h-3 mr-1" />
                             {interview.interview_type}
                           </Badge>
@@ -554,14 +590,14 @@ export default function EmployerDashboard() {
         </div>
 
         {/* Upcoming Interviews */}
-        <Card className="border-0 shadow-sm mt-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-500" />
+        <Card className="glass-morphism border-0 mt-6">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-white/5">
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Clock className="w-5 h-5 text-purple-400" />
               Upcoming Interviews
             </CardTitle>
             <Link to={createPageUrl('ATS')}>
-              <Button variant="ghost" size="sm" className="text-pink-500">
+              <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
                 View All <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
@@ -569,8 +605,8 @@ export default function EmployerDashboard() {
           <CardContent>
             {interviews.filter(i => i.status === 'scheduled' || i.status === 'confirmed').length === 0 ? (
               <div className="text-center py-8">
-                <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500">No scheduled interviews</p>
+                <Calendar className="w-12 h-12 mx-auto text-gray-600 mb-3" />
+                <p className="text-gray-400">No scheduled interviews</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -586,7 +622,7 @@ export default function EmployerDashboard() {
                     return (
                       <div 
                         key={interview.id} 
-                        className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:shadow-md transition-all"
+                        className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl cursor-pointer hover:bg-purple-500/20 transition-all border border-purple-500/30 hover:border-purple-500/50 group"
                         onClick={() => navigate(createPageUrl('EmployerChat') + `?matchId=${interview.match_id}`)}
                       >
                         <div className="flex items-center gap-3 mb-3">
@@ -598,15 +634,15 @@ export default function EmployerDashboard() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{user?.full_name || 'Candidate'}</p>
-                            <p className="text-xs text-gray-500 truncate">{job?.title}</p>
+                            <p className="font-medium text-white group-hover:text-purple-200 truncate transition-colors">{user?.full_name || 'Candidate'}</p>
+                            <p className="text-xs text-gray-400 truncate">{job?.title}</p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-purple-600">
+                          <p className="text-sm font-medium text-purple-400 group-hover:text-purple-300">
                             {interview.scheduled_at ? format(new Date(interview.scheduled_at), 'MMM d, h:mm a') : 'TBD'}
                           </p>
-                          <Badge className="bg-white text-purple-600 border border-purple-200 text-xs">
+                          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/50 text-xs">
                             {interview.interview_type}
                           </Badge>
                         </div>
