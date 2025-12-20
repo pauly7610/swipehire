@@ -14,6 +14,7 @@ import Logo from '@/components/shared/Logo';
 import { usePageTracking } from '@/components/analytics/Analytics';
 import EmailScheduler from '@/components/email/EmailScheduler';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
       export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
