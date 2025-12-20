@@ -710,9 +710,16 @@ export default function ATS() {
                 />
               </div>
               <Button 
-                onClick={() => searchMode === 'all' ? searchAllCandidates() : null}
+                onClick={() => {
+                  if (searchMode === 'all') {
+                    searchAllCandidates();
+                  }
+                  // Pipeline mode search is handled automatically by getFilteredMatches
+                }}
                 className="swipe-gradient text-white h-11 px-6"
+                disabled={!searchQuery.trim() && searchMode === 'all'}
               >
+                <Search className="w-4 h-4 mr-2" />
                 Search
               </Button>
             </div>
