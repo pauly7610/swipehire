@@ -693,14 +693,35 @@ export default function ATS() {
         
         {/* Search - Mobile First */}
         <div className="mb-4 space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
-            <Input
-              placeholder="Search candidates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11"
-            />
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
+                <Input
+                  placeholder="Search candidates... Use AND, OR, NOT for boolean search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      searchMode === 'all' ? searchAllCandidates() : null;
+                    }
+                  }}
+                  className="pl-10 h-11"
+                />
+              </div>
+              <Button 
+                onClick={() => searchMode === 'all' ? searchAllCandidates() : null}
+                className="swipe-gradient text-white h-11 px-6"
+              >
+                Search
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 px-1">
+              <span className="font-semibold text-gray-700 dark:text-gray-300">Boolean:</span>
+              <code className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded font-mono">Python AND React</code>
+              <code className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded font-mono">Designer OR Engineer</code>
+              <code className="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded font-mono">NOT Remote</code>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-2">
