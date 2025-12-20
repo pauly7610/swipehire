@@ -401,7 +401,7 @@ export default function EmployerDashboard() {
             <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-white/5">
               <CardTitle className="text-lg text-gray-900 dark:text-white">Recent Matches</CardTitle>
               <Link to={createPageUrl('EmployerMatches')}>
-                <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
+                <Button variant="ghost" size="sm" className="text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300">
                   View All <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -461,7 +461,7 @@ export default function EmployerDashboard() {
             <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-white/5">
               <CardTitle className="text-lg text-gray-900 dark:text-white">Active Jobs</CardTitle>
               <Link to={createPageUrl('ManageJobs')}>
-                <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
+                <Button variant="ghost" size="sm" className="text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300">
                   Manage <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -598,7 +598,7 @@ export default function EmployerDashboard() {
               Upcoming Interviews
             </CardTitle>
             <Link to={createPageUrl('ATS')}>
-              <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300">
+              <Button variant="ghost" size="sm" className="text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300">
                 View All <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
