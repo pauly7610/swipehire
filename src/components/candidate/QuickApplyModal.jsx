@@ -206,12 +206,15 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-8"
             >
-              <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
-              <p className="text-gray-500 mb-6">
-                Your application to {job?.title} at {company?.name} has been sent successfully.
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Application Submitted!</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-2">
+                Your application to <span className="font-semibold text-gray-900 dark:text-white">{job?.title}</span> at <span className="font-semibold text-gray-900 dark:text-white">{company?.name}</span> has been sent successfully.
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
+                The recruiter will review your application and get back to you soon.
               </p>
               <Button onClick={resetAndClose} className="swipe-gradient text-white px-8">
                 Close

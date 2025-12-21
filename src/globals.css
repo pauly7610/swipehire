@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,4 +55,34 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Enhanced focus visibility */
+*:focus-visible {
+  outline: 2px solid #FF005C;
+  outline-offset: 2px;
+}
+
+/* Prevent layout shift on interactions */
+* {
+  box-sizing: border-box;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Skip transitions for animations */
+[data-motion] {
+  transition: none;
 }

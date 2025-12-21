@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { format } from 'date-fns';
+import BackfillResumeParser from '@/components/utils/BackfillResumeParser';
 
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -224,6 +225,9 @@ export default function AdminPanel() {
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="videos">
               Videos {flaggedVideos.length > 0 && <Badge className="ml-2 bg-red-500">{flaggedVideos.length}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="tools">
+              🔧 Tools
             </TabsTrigger>
           </TabsList>
 
@@ -500,6 +504,15 @@ export default function AdminPanel() {
                 </TableBody>
               </Table>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="tools" className="space-y-6">
+            {/* Resume Backfill Tool */}
+            <BackfillResumeParser
+              onComplete={(results) => {
+                alert(`Backfill complete!\nSuccess: ${results.success}\nFailed: ${results.failed}`);
+              }}
+            />
           </TabsContent>
         </Tabs>
 
