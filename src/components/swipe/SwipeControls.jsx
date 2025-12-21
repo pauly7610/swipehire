@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, Zap, RotateCcw } from 'lucide-react';
+import audioFeedback from '@/components/shared/AudioFeedback';
 
 export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onInteraction }) {
   useEffect(() => {

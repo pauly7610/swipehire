@@ -15,6 +15,7 @@ import { usePageTracking } from '@/components/analytics/Analytics';
 import EmailScheduler from '@/components/email/EmailScheduler';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import audioFeedback from '@/components/shared/AudioFeedback';
 
       export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -25,6 +26,22 @@ import ThemeToggle from '@/components/theme/ThemeToggle';
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
+
+  // Initialize audio on first user interaction
+  useEffect(() => {
+    const initAudio = () => {
+      audioFeedback.init();
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+    };
+    document.addEventListener('click', initAudio);
+    document.addEventListener('touchstart', initAudio);
+
+    return () => {
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
