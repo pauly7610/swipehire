@@ -36,6 +36,7 @@ import AICareerCoach from '@/components/candidate/AICareerCoach';
 import CalendarIntegration from '@/components/calendar/CalendarIntegration';
 import ImageCropper from '@/components/shared/ImageCropper';
 import JobPreferences from '@/components/candidate/JobPreferences';
+import ResumeAutoParser from '@/components/profile/ResumeAutoParser';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -228,8 +229,18 @@ export default function CandidateProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
-      <style>{`
+    <>
+      {/* Auto-parse resume when uploaded */}
+      {candidate?.resume_url && (
+        <ResumeAutoParser 
+          candidate={candidate} 
+          resumeUrl={candidate.resume_url}
+          onParsed={(parsed) => console.log('Resume auto-parsed:', parsed)}
+        />
+      )}
+      
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
+        <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
         }
@@ -969,8 +980,9 @@ export default function CandidateProfile() {
                       if (!file) return;
                       try {
                         const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                        const updated = { ...candidate, resume_url: file_url };
                         await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
-                        setCandidate({ ...candidate, resume_url: file_url });
+                        setCandidate(updated);
                         setEditData({ ...editData, resume_url: file_url });
                       } catch (error) {
                         console.error('Upload failed:', error);

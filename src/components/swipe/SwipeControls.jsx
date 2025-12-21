@@ -33,9 +33,14 @@ export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onI
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={onUndo}
+        onClick={() => {
+          if (canUndo) {
+            audioFeedback.click();
+            onUndo();
+          }
+        }}
         disabled={!canUndo}
-        className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gray-400 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center text-gray-400 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <RotateCcw className="w-5 h-5" />
       </motion.button>
@@ -44,8 +49,11 @@ export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onI
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => onSwipe('left')}
-        className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 border-2 border-gray-200 transition-all"
+        onClick={() => {
+          audioFeedback.click();
+          onSwipe('left');
+        }}
+        className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center text-gray-400 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-500 dark:hover:border-red-400 border-2 border-gray-200 dark:border-slate-700 transition-all"
       >
         <X className="w-8 h-8" />
       </motion.button>
@@ -54,11 +62,17 @@ export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onI
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => onSwipe('super')}
+        onClick={() => {
+          if (isPremium) {
+            audioFeedback.click();
+            onSwipe('super');
+          }
+        }}
+        disabled={!isPremium}
         className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all ${
           isPremium 
-            ? 'swipe-gradient text-white' 
-            : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+            ? 'swipe-gradient text-white cursor-pointer' 
+            : 'bg-gray-300 dark:bg-slate-700 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
         }`}
       >
         <Zap className="w-7 h-7" />
@@ -68,8 +82,11 @@ export default function SwipeControls({ onSwipe, onUndo, canUndo, isPremium, onI
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => onSwipe('right')}
-        className="w-16 h-16 rounded-full swipe-gradient shadow-lg shadow-pink-500/30 flex items-center justify-center text-white"
+        onClick={() => {
+          audioFeedback.click();
+          onSwipe('right');
+        }}
+        className="w-16 h-16 rounded-full swipe-gradient shadow-lg shadow-pink-500/30 dark:shadow-pink-500/10 flex items-center justify-center text-white"
       >
         <Heart className="w-8 h-8" />
       </motion.button>
