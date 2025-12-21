@@ -1275,6 +1275,7 @@ export default function CandidateProfile() {
         onOpenChange={setShowExpLogoCropper}
         onCropComplete={handleExpLogoCropComplete}
       />
-    </div>
+      </div>
+    </>
   );
 }
