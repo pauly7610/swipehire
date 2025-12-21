@@ -8,6 +8,8 @@ import { base44 } from '@/api/base44Client';
 import { Briefcase, MapPin, Building2, Zap, Loader2, Upload, FileText, Video, X, CheckCircle2, StopCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { evaluateApplication } from '@/components/evaluation/AutoEvaluator';
+import ResumeAutoParser from '@/components/profile/ResumeAutoParser';
+import audioFeedback from '@/components/shared/AudioFeedback';
 
 export default function QuickApplyModal({ open, onOpenChange, job, company, candidate, user, onApply }) {
   const [step, setStep] = useState(1); // 1: cover letter, 2: resume, 3: video
@@ -20,6 +22,7 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [screeningResponses, setScreeningResponses] = useState({});
   
   const mediaRecorderRef = useRef(null);
   const videoPreviewRef = useRef(null);
@@ -33,6 +36,9 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setResumeUrl(file_url);
+      
+      // Auto-save to candidate profile for future applications
+      await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
     } catch (error) {
       alert('Resume upload failed');
     }
@@ -90,7 +96,7 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
         setUploadingVideo(false);
       }
 
-      // Create application
+      // Create application with screening responses
       const application = await base44.entities.Application.create({
         candidate_id: candidate.id,
         job_id: job.id,
@@ -99,7 +105,8 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
         resume_url: resumeUrl,
         video_pitch_url: videoPitchUrl,
         applied_via: 'direct',
-        status: 'applied'
+        status: 'applied',
+        screening_responses: job?.screening_questions?.length > 0 ? JSON.stringify(screeningResponses) : undefined
       });
 
       // Auto-trigger AI evaluation and ranking
@@ -148,6 +155,10 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
       });
 
       setApplied(true);
+      
+      // Play success sound
+      audioFeedback.success();
+      
       if (onApply) onApply();
     } catch (error) {
       alert('Application failed. Please try again.');
@@ -169,8 +180,18 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
   };
 
   return (
-    <Dialog open={open} onOpenChange={resetAndClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <>
+      {/* Auto-parse resume in background */}
+      {resumeUrl && candidate && (
+        <ResumeAutoParser 
+          candidate={candidate} 
+          resumeUrl={resumeUrl}
+          onParsed={(parsed) => console.log('Resume parsed:', parsed)}
+        />
+      )}
+      
+      <Dialog open={open} onOpenChange={resetAndClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-700">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-pink-500" />
@@ -242,16 +263,49 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
                 exit={{ opacity: 0, x: -20 }}
               >
                 {step === 1 && (
-                  <div>
-                    <Label>Cover Letter (Optional)</Label>
-                    <p className="text-sm text-gray-500 mb-3">Why are you a great fit for this role?</p>
-                    <Textarea
-                      value={coverLetter}
-                      onChange={(e) => setCoverLetter(e.target.value)}
-                      placeholder="Share your interest and what makes you a great candidate for this position..."
-                      rows={8}
-                      className="resize-none"
-                    />
+                  <div className="space-y-4">
+                    {/* Screening Questions */}
+                    {job?.screening_questions?.length > 0 && (
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl mb-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm">?</span>
+                          Screening Questions
+                        </h4>
+                        <div className="space-y-4">
+                          {job.screening_questions.map((question, idx) => (
+                            <div key={idx}>
+                              <Label className="text-gray-700 dark:text-gray-300 mb-2 block">
+                                {idx + 1}. {question.question}
+                                {question.required && <span className="text-red-500 ml-1">*</span>}
+                              </Label>
+                              <Textarea
+                                value={screeningResponses[idx] || ''}
+                                onChange={(e) => setScreeningResponses({
+                                  ...screeningResponses,
+                                  [idx]: e.target.value
+                                })}
+                                placeholder="Your answer..."
+                                rows={3}
+                                className="resize-none dark:bg-slate-800 dark:border-slate-700"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Cover Letter */}
+                    <div>
+                      <Label>Cover Letter (Optional)</Label>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Why are you a great fit for this role?</p>
+                      <Textarea
+                        value={coverLetter}
+                        onChange={(e) => setCoverLetter(e.target.value)}
+                        placeholder="Share your interest and what makes you a great candidate for this position..."
+                        rows={6}
+                        className="resize-none dark:bg-slate-800 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -393,7 +447,20 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
                 
                 {step < 3 ? (
                   <Button
-                    onClick={() => setStep(step + 1)}
+                    onClick={() => {
+                      // Validate screening questions
+                      if (step === 1 && job?.screening_questions?.length > 0) {
+                        const requiredQuestions = job.screening_questions.filter(q => q.required);
+                        const allAnswered = requiredQuestions.every((q, idx) => 
+                          screeningResponses[idx]?.trim()
+                        );
+                        if (!allAnswered) {
+                          alert('Please answer all required screening questions before continuing.');
+                          return;
+                        }
+                      }
+                      setStep(step + 1);
+                    }}
                     className="flex-1 swipe-gradient text-white"
                   >
                     Continue <ChevronRight className="w-4 h-4 ml-1" />
@@ -421,7 +488,8 @@ export default function QuickApplyModal({ open, onOpenChange, job, company, cand
             </>
           )}
         </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

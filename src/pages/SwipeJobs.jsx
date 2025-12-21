@@ -24,6 +24,7 @@ import FitConfidenceScore from '@/components/confidence/FitConfidenceScore';
 import { sendMatchNotificationEmails } from '@/components/email/EmailAutomation';
 import { Button } from '@/components/ui/button';
 import { Zap, Heart } from 'lucide-react';
+import audioFeedback from '@/components/shared/AudioFeedback';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -147,6 +148,11 @@ export default function SwipeJobs() {
   const handleSwipe = async (direction, feedback = null) => {
     if (!currentJob || !user) return;
 
+    // Play audio feedback
+    if (direction === 'right') audioFeedback.swipeRight();
+    else if (direction === 'left') audioFeedback.swipeLeft();
+    else if (direction === 'super') audioFeedback.swipeSuper();
+
     // Track interest signal
     if (direction === 'right' || direction === 'super') {
       await trackInterestSignal(user.id, candidate.id, currentJob.id, 'swipe_right', {
@@ -237,6 +243,9 @@ export default function SwipeJobs() {
 
           setMatchData({ match, job: currentJob, company: company, candidate });
           setShowMatch(true);
+          
+          // Play match celebration sound
+          audioFeedback.match();
           
           // Send match notification emails
           await sendMatchNotificationEmails(match, currentJob, company, candidate);
