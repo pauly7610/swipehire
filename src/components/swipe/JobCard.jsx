@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink, Zap, TrendingUp, Users, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer, dragControls, isDragging, onDragStart, onDragEnd, exitX }) {
+export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer, isDragging, onDragStart, onDragEnd, exitX }) {
   const [showInsights, setShowInsights] = useState(false);
+  
+  // Drag motion values
+  const dragX = useMotionValue(0);
+  const dragRotate = useTransform(dragX, [-300, 0, 300], [-25, 0, 25]);
+  const dragOpacity = useTransform(dragX, [-300, -150, 0, 150, 300], [0.5, 0.8, 1, 0.8, 0.5]);
+  
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     if (min && max) {
@@ -23,17 +29,20 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
   return (
     <motion.div 
       className="relative w-full h-full"
-      drag={!isFlipped}
-      dragControls={dragControls}
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      dragElastic={0.7}
+      drag={!isFlipped ? 'x' : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.6}
       onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDrag={(e, info) => dragX.set(info.offset.x)}
+      onDragEnd={(e, info) => {
+        dragX.set(0);
+        onDragEnd(e, info);
+      }}
       animate={exitX !== 0 ? { 
         x: exitX,
         opacity: 0,
-        scale: 0.8,
-        rotate: exitX > 0 ? 20 : -20,
+        scale: 0.85,
+        rotate: exitX > 0 ? 25 : -25,
         transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
       } : { 
         x: 0, 
@@ -42,10 +51,11 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
         rotate: 0 
       }}
       style={{ 
-        x: 0,
-        rotate: 0,
+        x: dragX,
+        rotate: dragRotate,
+        opacity: dragOpacity,
         cursor: !isFlipped ? 'grab' : 'default',
-        touchAction: 'none',
+        touchAction: 'pan-y',
         userSelect: 'none'
       }}
       whileDrag={{

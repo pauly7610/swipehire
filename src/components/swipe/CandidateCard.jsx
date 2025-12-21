@@ -1,23 +1,31 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { MapPin, Briefcase, User, Star, Video, ChevronDown, ChevronUp, GraduationCap, Award, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function CandidateCard({ candidate, user, isFlipped, onFlip, matchScore, dragControls, isDragging, onDragStart, onDragEnd, exitX }) {
+export default function CandidateCard({ candidate, user, isFlipped, onFlip, matchScore, isDragging, onDragStart, onDragEnd, exitX }) {
+  // Drag motion values
+  const dragX = useMotionValue(0);
+  const dragRotate = useTransform(dragX, [-300, 0, 300], [-25, 0, 25]);
+  const dragOpacity = useTransform(dragX, [-300, -150, 0, 150, 300], [0.5, 0.8, 1, 0.8, 0.5]);
+
   return (
     <motion.div 
       className="relative w-full h-full"
-      drag={!isFlipped}
-      dragControls={dragControls}
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      dragElastic={0.7}
+      drag={!isFlipped ? 'x' : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.6}
       onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDrag={(e, info) => dragX.set(info.offset.x)}
+      onDragEnd={(e, info) => {
+        dragX.set(0);
+        onDragEnd(e, info);
+      }}
       animate={exitX !== 0 ? { 
         x: exitX,
         opacity: 0,
-        scale: 0.8,
-        rotate: exitX > 0 ? 20 : -20,
+        scale: 0.85,
+        rotate: exitX > 0 ? 25 : -25,
         transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
       } : { 
         x: 0, 
@@ -26,10 +34,11 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
         rotate: 0 
       }}
       style={{ 
-        x: 0,
-        rotate: 0,
+        x: dragX,
+        rotate: dragRotate,
+        opacity: dragOpacity,
         cursor: !isFlipped ? 'grab' : 'default',
-        touchAction: 'none',
+        touchAction: 'pan-y',
         userSelect: 'none'
       }}
       whileDrag={{
@@ -45,7 +54,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             initial={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: 90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col pointer-events-none"
+            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col pointer-events-none"
           >
             {/* Hero Photo Section */}
             <div className="relative h-64 bg-gradient-to-br from-pink-500/10 via-orange-500/10 to-purple-500/10">
@@ -211,7 +220,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             animate={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: -90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeIn" }}
-            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-pink-500 to-orange-500 px-6 py-4 text-white">

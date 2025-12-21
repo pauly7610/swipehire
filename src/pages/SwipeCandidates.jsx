@@ -30,6 +30,8 @@ export default function SwipeCandidates() {
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
   const [user, setUser] = useState(null);
+  const [exitX, setExitX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [currentInsights, setCurrentInsights] = useState(null);
   const [currentScore, setCurrentScore] = useState(75);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -222,6 +224,22 @@ export default function SwipeCandidates() {
     setCurrentIndex(lastSwipe.index);
   };
 
+  const handleCardDragEnd = (event, info) => {
+    const threshold = 150;
+    const velocity = info.velocity.x;
+    const offset = info.offset.x;
+
+    if (Math.abs(offset) > threshold || Math.abs(velocity) > 500) {
+      const direction = offset > 0 ? 'right' : 'left';
+      setExitX(direction === 'right' ? 1000 : -1000);
+      setTimeout(() => {
+        triggerSwipe(direction);
+        setExitX(0);
+      }, 300);
+    }
+    setIsDragging(false);
+  };
+
   const handleDragEnd = (event, info) => {
     const threshold = 80;
     const velocity = info.velocity.x;
@@ -386,51 +404,19 @@ export default function SwipeCandidates() {
               )}
 
               {/* Active card */}
-              <motion.div
-                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
-                style={{ x, rotate, opacity }}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.2}
-                dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
-                onDragEnd={handleDragEnd}
-                whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
-                whileTap={{ scale: 1.01 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 600, 
-                  damping: 35,
-                  mass: 0.8
-                }}
-              >
-                                <CandidateCard
-                                  candidate={currentCandidate}
-                                  user={currentCandidateUser}
-                                  isFlipped={isFlipped}
-                                  onFlip={() => setIsFlipped(!isFlipped)}
-                                  matchScore={currentScore}
-                                />
-
-                {/* Swipe indicators */}
-                                    <motion.div
-                                      className="absolute top-8 left-8 px-4 py-2 border-4 border-red-500 rounded-lg"
-                                      style={{ 
-                                        opacity: passOpacity,
-                                        rotate: -20
-                                      }}
-                                    >
-                                      <span className="text-red-500 font-bold text-2xl">PASS</span>
-                                    </motion.div>
-                                    <motion.div
-                                      className="absolute top-8 right-8 px-4 py-2 border-4 border-green-500 rounded-lg"
-                                      style={{ 
-                                        opacity: applyOpacity,
-                                        rotate: 20
-                                      }}
-                                    >
-                                      <span className="text-green-500 font-bold text-2xl">LIKE</span>
-                                    </motion.div>
-              </motion.div>
+              <div className="absolute inset-0">
+                <CandidateCard
+                  candidate={currentCandidate}
+                  user={currentCandidateUser}
+                  isFlipped={isFlipped}
+                  onFlip={() => setIsFlipped(!isFlipped)}
+                  matchScore={currentScore}
+                  exitX={exitX}
+                  isDragging={isDragging}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragEnd={handleCardDragEnd}
+                />
+              </div>
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-lg">

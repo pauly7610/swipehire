@@ -39,6 +39,8 @@ export default function SwipeJobs() {
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
   const [swipedJobIds, setSwipedJobIds] = useState(new Set());
+  const [exitX, setExitX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [dealBreakerWarnings, setDealBreakerWarnings] = useState([]);
   const [currentMatchScore, setCurrentMatchScore] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -288,6 +290,22 @@ export default function SwipeJobs() {
     setCurrentIndex(lastSwipe.index);
   };
 
+  const handleCardDragEnd = (event, info) => {
+    const threshold = 150;
+    const velocity = info.velocity.x;
+    const offset = info.offset.x;
+
+    if (Math.abs(offset) > threshold || Math.abs(velocity) > 500) {
+      const direction = offset > 0 ? 'right' : 'left';
+      setExitX(direction === 'right' ? 1000 : -1000);
+      setTimeout(() => {
+        triggerSwipe(direction);
+        setExitX(0);
+      }, 300);
+    }
+    setIsDragging(false);
+  };
+
   const handleDragEnd = (event, info) => {
     const threshold = 80;
     const velocity = info.velocity.x;
@@ -473,23 +491,7 @@ export default function SwipeJobs() {
               )}
 
               {/* Active card */}
-              <motion.div
-                className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform select-none"
-                style={{ x, rotate, opacity }}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.2}
-                dragTransition={{ bounceStiffness: 400, bounceDamping: 25 }}
-                onDragEnd={handleDragEnd}
-                whileDrag={{ scale: 1.03, cursor: 'grabbing' }}
-                whileTap={{ scale: 1.01 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 600, 
-                  damping: 35,
-                  mass: 0.8
-                }}
-              >
+              <div className="absolute inset-0">
                 <JobCard
                   job={currentJob}
                   company={currentCompany}
@@ -498,38 +500,12 @@ export default function SwipeJobs() {
                   matchScore={currentMatchScore}
                   onQuickApply={() => setShowReadinessGate(true)}
                   onRefer={() => setShowReferModal(true)}
+                  exitX={exitX}
+                  isDragging={isDragging}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragEnd={handleCardDragEnd}
                 />
-
-                {/* Swipe indicators */}
-                <motion.div
-                  className="absolute top-8 left-8 px-4 py-2 border-4 border-red-500 rounded-lg"
-                  style={{ 
-                    opacity: passOpacity,
-                    rotate: -20
-                  }}
-                >
-                  <span className="text-red-500 font-bold text-2xl">PASS</span>
-                </motion.div>
-                <motion.div
-                  className="absolute top-8 right-8 px-4 py-2 border-4 border-green-500 rounded-lg"
-                  style={{ 
-                    opacity: applyOpacity,
-                    rotate: 20
-                  }}
-                >
-                  <span className="text-green-500 font-bold text-2xl">APPLY</span>
-                </motion.div>
-                
-                {/* Swipe Up indicator */}
-                <motion.div
-                  className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-yellow-500/90 backdrop-blur-sm rounded-full"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 0.8, y: 0 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  <span className="text-white font-bold text-xs">↑ SAVE</span>
-                </motion.div>
-              </motion.div>
+              </div>
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-100 dark:border-slate-800">
