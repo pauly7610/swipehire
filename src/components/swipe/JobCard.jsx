@@ -6,7 +6,7 @@ import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer }) {
+export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer, dragControls, isDragging, onDragStart, onDragEnd, exitX }) {
   const [showInsights, setShowInsights] = useState(false);
   const formatSalary = (min, max, type) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
@@ -21,7 +21,39 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
   const companySignal = company?.size ? 'verified' : 'standard';
 
   return (
-    <div className="relative w-full h-full">
+    <motion.div 
+      className="relative w-full h-full"
+      drag={!isFlipped}
+      dragControls={dragControls}
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      dragElastic={0.7}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      animate={exitX !== 0 ? { 
+        x: exitX,
+        opacity: 0,
+        scale: 0.8,
+        rotate: exitX > 0 ? 20 : -20,
+        transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
+      } : { 
+        x: 0, 
+        opacity: 1, 
+        scale: 1, 
+        rotate: 0 
+      }}
+      style={{ 
+        x: 0,
+        rotate: 0,
+        cursor: !isFlipped ? 'grab' : 'default',
+        touchAction: 'none',
+        userSelect: 'none'
+      }}
+      whileDrag={{
+        cursor: 'grabbing',
+        scale: 1.05,
+        transition: { duration: 0 }
+      }}
+    >
       <AnimatePresence mode="wait">
         {!isFlipped ? (
           <motion.div
@@ -29,7 +61,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             initial={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: 90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden flex flex-col backdrop-blur-xl"
+            className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] overflow-hidden flex flex-col backdrop-blur-xl pointer-events-none"
             style={{ 
               boxShadow: '0 8px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)',
               backdropFilter: 'blur(10px)'
@@ -72,7 +104,12 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               </div>
 
               {company?.id && (
-                <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`} className="relative z-20">
+                <Link 
+                  to={createPageUrl('CompanyProfile') + `?id=${company.id}`} 
+                  className="relative z-20 pointer-events-auto"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
                   {company.logo_url ? (
                   <motion.img 
                     whileHover={{ scale: 1.05 }}
@@ -107,7 +144,12 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 >
                   {job.title}
                 </motion.h3>
-                <Link to={company?.id ? createPageUrl('CompanyProfile') + `?id=${company.id}` : '#'}>
+                <Link 
+                  to={company?.id ? createPageUrl('CompanyProfile') + `?id=${company.id}` : '#'}
+                  className="pointer-events-auto"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
                   <motion.span 
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -209,7 +251,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
             </div>
 
             {/* Bottom Action Bar - Thumb Reachable */}
-            <div className="px-5 py-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700">
+            <div className="px-5 py-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700 pointer-events-auto">
               <div className="flex items-center gap-2">
                 {onQuickApply && (
                   <motion.div 
@@ -219,6 +261,8 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   >
                     <Button
                       onClick={(e) => { e.stopPropagation(); onQuickApply(); }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
                       className="w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all h-10 text-sm font-semibold"
                     >
                       <Zap className="w-4 h-4 mr-2" /> Quick Apply
@@ -229,6 +273,8 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onFlip}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-slate-500 transition-all shadow-sm"
                 >
                   <span className="text-xs font-semibold">More</span>
@@ -369,6 +415,6 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }

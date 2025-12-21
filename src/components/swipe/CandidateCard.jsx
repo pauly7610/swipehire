@@ -3,9 +3,41 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Briefcase, User, Star, Video, ChevronDown, ChevronUp, GraduationCap, Award, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function CandidateCard({ candidate, user, isFlipped, onFlip, matchScore }) {
+export default function CandidateCard({ candidate, user, isFlipped, onFlip, matchScore, dragControls, isDragging, onDragStart, onDragEnd, exitX }) {
   return (
-    <div className="relative w-full h-full">
+    <motion.div 
+      className="relative w-full h-full"
+      drag={!isFlipped}
+      dragControls={dragControls}
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      dragElastic={0.7}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      animate={exitX !== 0 ? { 
+        x: exitX,
+        opacity: 0,
+        scale: 0.8,
+        rotate: exitX > 0 ? 20 : -20,
+        transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
+      } : { 
+        x: 0, 
+        opacity: 1, 
+        scale: 1, 
+        rotate: 0 
+      }}
+      style={{ 
+        x: 0,
+        rotate: 0,
+        cursor: !isFlipped ? 'grab' : 'default',
+        touchAction: 'none',
+        userSelect: 'none'
+      }}
+      whileDrag={{
+        cursor: 'grabbing',
+        scale: 1.05,
+        transition: { duration: 0 }
+      }}
+    >
       <AnimatePresence mode="wait">
         {!isFlipped ? (
           <motion.div
@@ -13,7 +45,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             initial={{ rotateY: 0, opacity: 1 }}
             exit={{ rotateY: 90, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            className="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col pointer-events-none"
           >
             {/* Hero Photo Section */}
             <div className="relative h-64 bg-gradient-to-br from-pink-500/10 via-orange-500/10 to-purple-500/10">
@@ -159,9 +191,11 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
             </div>
 
             {/* Bottom Action Bar - 44px Min */}
-            <div className="px-5 py-3 bg-gradient-to-t from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 border-t border-gray-100 dark:border-slate-700">
+            <div className="px-5 py-3 bg-gradient-to-t from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 border-t border-gray-100 dark:border-slate-700 pointer-events-auto">
               <button
                 onClick={onFlip}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-slate-800 transition-colors shadow-sm min-h-[44px]"
               >
                 <span className="text-sm font-medium">Full Profile</span>
@@ -285,6 +319,6 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
