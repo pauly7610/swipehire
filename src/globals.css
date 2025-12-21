@@ -76,7 +76,7 @@ body {
 }
 
 /* Smooth transitions for theme changes */
-* {
+.theme-transition {
   transition-property: background-color, border-color, color;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,4 +85,16 @@ body {
 /* Skip transitions for animations */
 [data-motion] {
   transition: none;
+}
+
+/* SwipeHire gradient utilities */
+.swipe-gradient {
+  background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+}
+
+.swipe-gradient-text {
+  background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

@@ -25,6 +25,8 @@ import { sendMatchNotificationEmails } from '@/components/email/EmailAutomation'
 import { Button } from '@/components/ui/button';
 import { Zap, Heart } from 'lucide-react';
 import audioFeedback from '@/components/shared/AudioFeedback';
+import MobileSwipeActions from '@/components/swipe/MobileSwipeActions';
+import SwipeNotificationHandler from '@/components/swipe/SwipeNotificationHandler';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -566,20 +568,32 @@ export default function SwipeJobs() {
                         </Button>
                       </motion.div>
 
-                      <SwipeControls
-                        onSwipe={triggerSwipe}
-                        onUndo={handleUndo}
-                        canUndo={swipeHistory.length > 0}
-                        isPremium={candidate?.is_premium}
-                        onSave={handleSave}
-                        onInteraction={async (type) => {
-                          if (type === 'view' && currentJob) {
-                            await trackInterestSignal(user.id, candidate.id, currentJob.id, 'click');
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
+                      {/* Desktop Controls */}
+                      <div className="hidden md:block">
+                        <SwipeControls
+                          onSwipe={triggerSwipe}
+                          onUndo={handleUndo}
+                          canUndo={swipeHistory.length > 0}
+                          isPremium={candidate?.is_premium}
+                          onSave={handleSave}
+                          onInteraction={async (type) => {
+                            if (type === 'view' && currentJob) {
+                              await trackInterestSignal(user.id, candidate.id, currentJob.id, 'click');
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Mobile Persistent Actions */}
+                      <div className="md:hidden">
+                        <MobileSwipeActions
+                          onSwipe={triggerSwipe}
+                          isPremium={candidate?.is_premium}
+                          disabled={!currentJob}
+                        />
+                      </div>
+                      </div>
+                      )}
 
         {/* Progress - Refined */}
         {jobs.length > 0 && (
@@ -666,6 +680,9 @@ export default function SwipeJobs() {
 
               {/* Onboarding Tooltip */}
               <OnboardingTooltip pageName="SwipeJobs" />
+
+              {/* Swipe Notification Handler */}
+              <SwipeNotificationHandler user={user} userType="candidate" />
 
               {/* Insights Modal */}
               {showInsights && currentJob && (

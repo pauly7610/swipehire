@@ -13,6 +13,9 @@ import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
 import DetailedMatchInsights from '@/components/matching/DetailedMatchInsights';
+import MobileSwipeActions from '@/components/swipe/MobileSwipeActions';
+import SwipeNotificationHandler from '@/components/swipe/SwipeNotificationHandler';
+import audioFeedback from '@/components/shared/AudioFeedback';
 
 export default function SwipeCandidates() {
   const [searchParams] = useSearchParams();
@@ -135,6 +138,11 @@ export default function SwipeCandidates() {
 
   const handleSwipe = async (direction, feedback = null) => {
     if (!currentCandidate || !selectedJobId) return;
+
+    // Play audio feedback
+    if (direction === 'right') audioFeedback.swipeRight();
+    else if (direction === 'left') audioFeedback.swipeLeft();
+    else if (direction === 'super') audioFeedback.swipeSuper();
 
     const swipeData = {
       swiper_id: user.id,
@@ -449,15 +457,28 @@ export default function SwipeCandidates() {
                     </div>
                   )}
 
-                  {/* Controls */}
+                  {/* Desktop Controls */}
                   {currentCandidate && selectedJobId && (
-                    <SwipeControls
-                      onSwipe={triggerSwipe}
-                      onUndo={handleUndo}
-                      canUndo={swipeHistory.length > 0}
-                      isPremium={true}
-                      onSave={handleSave}
-                    />
+                    <div className="hidden md:block">
+                      <SwipeControls
+                        onSwipe={triggerSwipe}
+                        onUndo={handleUndo}
+                        canUndo={swipeHistory.length > 0}
+                        isPremium={true}
+                        onSave={handleSave}
+                      />
+                    </div>
+                  )}
+
+                  {/* Mobile Persistent Actions */}
+                  {currentCandidate && selectedJobId && (
+                    <div className="md:hidden">
+                      <MobileSwipeActions
+                        onSwipe={triggerSwipe}
+                        isPremium={true}
+                        disabled={!currentCandidate}
+                      />
+                    </div>
                   )}
 
         {/* Progress */}
@@ -488,6 +509,9 @@ export default function SwipeCandidates() {
         onSubmit={handleFeedbackSubmit}
         onSkip={handleFeedbackSkip}
       />
+
+      {/* Swipe Notification Handler */}
+      <SwipeNotificationHandler user={user} userType="employer" />
     </div>
   );
 }
