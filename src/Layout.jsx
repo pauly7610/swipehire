@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp, UserPlus } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
@@ -282,6 +282,7 @@ import audioFeedback from '@/components/shared/AudioFeedback';
                     { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: true },
                     { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
                     { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
                     { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
                     { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
                     { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
@@ -296,6 +297,7 @@ import audioFeedback from '@/components/shared/AudioFeedback';
                                     { name: 'Swipe', icon: Users, page: 'SwipeCandidates', mobile: true },
                                     { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: false },
                                     { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                                    { name: 'Network', icon: Users, page: 'Connections', mobile: false },
                                     { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
                                     { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
                                     { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
