@@ -1336,10 +1336,12 @@ export default function ATS() {
                           </label>
                         </td>
                           <td 
-                            className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                            onClick={() => window.open(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`, '_blank')}
+                            className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4"
                           >
-                            <div className="flex items-center gap-3">
+                            <Link 
+                              to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}
+                              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                            >
                               {candidate?.photo_url ? (
                                 <img src={candidate.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
                               ) : (
@@ -1351,7 +1353,7 @@ export default function ATS() {
                                 <p className="font-medium text-gray-900 dark:text-white">{user?.full_name || 'Unknown'}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{candidate?.headline}</p>
                               </div>
-                            </div>
+                            </Link>
                           </td>
                           <td className="p-4">
                             <div className="space-y-1">
