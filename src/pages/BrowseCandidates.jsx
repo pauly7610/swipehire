@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Search, Filter, MapPin, Briefcase, Star, X, Loader2, Heart, User, MessageCircle, GitBranch, Send } from 'lucide-react';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
 import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
+import ConnectionButton from '@/components/connections/ConnectionButton';
+import QuickMessageButton from '@/components/messaging/QuickMessageButton';
 
 export default function BrowseCandidates() {
   const navigate = useNavigate();
@@ -523,8 +525,8 @@ export default function BrowseCandidates() {
           </div>
         </div>
 
-        {/* Candidates List */}
-        <div className="space-y-4">
+        {/* Candidates List - ENHANCED container sizing */}
+        <div className="space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
           {filteredCandidates.map((candidate) => (
             <Card 
               key={candidate.id} 
@@ -625,34 +627,8 @@ export default function BrowseCandidates() {
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Recruiter Signals Button */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedCandidateForSignals(candidate);
-                      }}
-                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
-                    >
-                      Insights
-                    </Button>
-
-                    {/* Favorite Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteToggle(candidate.id);
-                      }}
-                      className="w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-all"
-                    >
-                      <Heart
-                        className={`w-5 h-5 ${isFavorited(candidate.id) ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`}
-                      />
-                    </button>
-
+                  {/* Actions - COMPACT icon sizing */}
+                  <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
                     <ConnectionButton
                       targetUserId={candidate.user_id}
                       currentUserId={user?.id}
@@ -666,16 +642,30 @@ export default function BrowseCandidates() {
                       size="sm"
                       variant="outline"
                     />
+
+                    {/* Favorite Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFavoriteToggle(candidate.id);
+                      }}
+                      className="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-all"
+                    >
+                      <Heart
+                        className={`w-4 h-4 ${isFavorited(candidate.id) ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`}
+                      />
+                    </button>
+
                     {/* View Profile Button */}
                     <Button
                       size="sm"
-                      className="swipe-gradient text-white"
+                      className="swipe-gradient text-white h-9"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`);
                       }}
                     >
-                      View Profile
+                      View
                     </Button>
                   </div>
                 </div>
