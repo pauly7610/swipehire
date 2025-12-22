@@ -319,7 +319,10 @@ export default function ViewCandidateProfile() {
                 <CardTitle className="text-lg">About</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">{candidate.bio}</p>
+                <div 
+                  className="text-gray-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(candidate.bio) }}
+                />
               </CardContent>
             </Card>
           </motion.div>
@@ -365,7 +368,12 @@ export default function ViewCandidateProfile() {
                       <h4 className="font-semibold text-gray-900">{exp.title}</h4>
                       <p className="text-gray-600">{exp.company}</p>
                       <p className="text-sm text-gray-400">{exp.start_date} - {exp.end_date || 'Present'}</p>
-                      {exp.description && <p className="text-gray-600 mt-1 text-sm">{exp.description}</p>}
+                      {exp.description && (
+                        <div 
+                          className="text-gray-600 mt-1 text-sm prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(exp.description) }}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -462,7 +470,10 @@ export default function ViewCandidateProfile() {
                       <img src={project.image_url} alt={project.title} className="w-full h-48 object-cover rounded-lg mb-3" />
                     )}
                     <h4 className="font-semibold text-gray-900 mb-2">{project.title}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                    <div 
+                      className="text-sm text-gray-600 mb-3 prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(project.description) }}
+                    />
                     {project.skills_used?.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {project.skills_used.map((skill, j) => (
@@ -552,7 +563,12 @@ export default function ViewCandidateProfile() {
                     <h4 className="font-semibold text-gray-900">{award.title}</h4>
                     <p className="text-sm text-gray-600">{award.issuer}</p>
                     <p className="text-xs text-gray-500 mt-1">{award.date}</p>
-                    {award.description && <p className="text-sm text-gray-600 mt-2">{award.description}</p>}
+                    {award.description && (
+                      <div 
+                        className="text-sm text-gray-600 mt-2 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(award.description) }}
+                      />
+                    )}
                   </div>
                 ))}
               </CardContent>
