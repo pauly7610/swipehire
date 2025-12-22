@@ -80,8 +80,11 @@ export default function ATS() {
   const [showConfirmMove, setShowConfirmMove] = useState(false);
   const [pendingMove, setPendingMove] = useState(null);
   const [selectedMatches, setSelectedMatches] = useState(new Set());
+  const [selectedCandidates, setSelectedCandidates] = useState(new Set()); // For global search
   const [showBulkMoveDialog, setShowBulkMoveDialog] = useState(false);
   const [bulkMoveTarget, setBulkMoveTarget] = useState('');
+  const [showBulkAddToPipeline, setShowBulkAddToPipeline] = useState(false);
+  const [bulkPipelineJobId, setBulkPipelineJobId] = useState('');
   const [showInterviewScheduler, setShowInterviewScheduler] = useState(false);
   const [schedulingMatch, setSchedulingMatch] = useState(null);
   const [searchMode, setSearchMode] = useState('pipeline'); // 'pipeline' or 'all'
@@ -291,21 +294,36 @@ export default function ATS() {
   };
 
   const sendMassEmail = async () => {
-    if (!massEmailSubject || !massEmailBody || selectedMatches.size === 0) return;
+    if (!massEmailSubject || !massEmailBody) return;
     
-    const matchIds = Array.from(selectedMatches);
+    // Support both match selection (pipeline) and candidate selection (global search)
+    const targetIds = searchMode === 'pipeline' ? Array.from(selectedMatches) : Array.from(selectedCandidates);
+    if (targetIds.length === 0) return;
     
-    for (const matchId of matchIds) {
-      const match = matches.find(m => m.id === matchId);
-      const candidate = candidates[match?.candidate_id];
-      const user = candidate ? users[candidate.user_id] : null;
-      const job = jobs.find(j => j.id === match?.job_id);
+    console.log('[ATS] Sending mass email to:', targetIds.length, 'recipients');
+    
+    for (const id of targetIds) {
+      let candidate, user, job, matchId;
+      
+      if (searchMode === 'pipeline') {
+        // Pipeline mode - id is matchId
+        const match = matches.find(m => m.id === id);
+        matchId = id;
+        candidate = candidates[match?.candidate_id];
+        user = candidate ? users[candidate.user_id] : null;
+        job = jobs.find(j => j.id === match?.job_id);
+      } else {
+        // Global search mode - id is candidateId
+        candidate = allCandidatesList.find(c => c.id === id);
+        user = candidate ? users[candidate.user_id] : null;
+        job = selectedJob !== 'all' ? jobs.find(j => j.id === selectedJob) : null;
+      }
       
       if (user) {
         const replacements = {
           '{name}': user.full_name?.split(' ')[0] || 'there',
           '{company}': company?.name || 'Our Company',
-          '{job}': job?.title || 'the position',
+          '{job}': job?.title || 'opportunities',
           '{skills}': candidate?.skills?.slice(0, 3).join(', ') || 'your field',
           '{recruiter}': currentUser?.recruiter_name || currentUser?.full_name || 'The Team'
         };
@@ -324,7 +342,9 @@ export default function ATS() {
           body: body
         });
         
-        await logActivity(matchId, 'email_sent', `Sent mass email: ${subject}`);
+        if (matchId) {
+          await logActivity(matchId, 'email_sent', `Sent mass email: ${subject}`);
+        }
       }
     }
     
@@ -332,6 +352,52 @@ export default function ATS() {
     setMassEmailSubject('');
     setMassEmailBody('');
     setSelectedMatches(new Set());
+    setSelectedCandidates(new Set());
+  };
+
+  const handleBulkAddToPipeline = async () => {
+    if (!bulkPipelineJobId || selectedCandidates.size === 0) return;
+    
+    const candidateIds = Array.from(selectedCandidates);
+    console.log('[ATS] Adding', candidateIds.length, 'candidates to job:', bulkPipelineJobId);
+    
+    for (const candidateId of candidateIds) {
+      const candidate = allCandidatesList.find(c => c.id === candidateId);
+      
+      // Check if already in pipeline for this job
+      const existingMatch = matches.find(m => 
+        m.candidate_id === candidateId && m.job_id === bulkPipelineJobId
+      );
+      
+      if (!existingMatch && candidate) {
+        await base44.entities.Match.create({
+          candidate_id: candidateId,
+          company_id: company.id,
+          job_id: bulkPipelineJobId,
+          status: 'matched',
+          candidate_user_id: candidate.user_id,
+          company_user_id: currentUser.id
+        });
+        
+        // Notify candidate
+        const job = jobs.find(j => j.id === bulkPipelineJobId);
+        if (job) {
+          await base44.entities.Notification.create({
+            user_id: candidate.user_id,
+            type: 'new_match',
+            title: '🎉 New Match!',
+            message: `You've been matched with ${job.title} at ${company.name}`,
+            job_id: bulkPipelineJobId,
+            navigate_to: 'Matches'
+          });
+        }
+      }
+    }
+    
+    await loadData();
+    setShowBulkAddToPipeline(false);
+    setBulkPipelineJobId('');
+    setSelectedCandidates(new Set());
   };
 
   const getStageFromStatus = (status) => {
@@ -505,6 +571,18 @@ export default function ATS() {
       newSet.add(matchId);
     }
     setSelectedMatches(newSet);
+    console.log('[ATS] Match selection toggled:', matchId, 'Total selected:', newSet.size);
+  };
+
+  const toggleSelectCandidate = (candidateId) => {
+    const newSet = new Set(selectedCandidates);
+    if (newSet.has(candidateId)) {
+      newSet.delete(candidateId);
+    } else {
+      newSet.add(candidateId);
+    }
+    setSelectedCandidates(newSet);
+    console.log('[ATS] Candidate selection toggled:', candidateId, 'Total selected:', newSet.size);
   };
 
   const addNote = async () => {
@@ -800,7 +878,7 @@ export default function ATS() {
             </Button>
           </div>
 
-          {selectedMatches.size > 0 && (
+          {(selectedMatches.size > 0 || selectedCandidates.size > 0) && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -808,12 +886,15 @@ export default function ATS() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {selectedMatches.size} selected
+                  {searchMode === 'pipeline' ? selectedMatches.size : selectedCandidates.size} selected
                 </span>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => setSelectedMatches(new Set())}
+                  onClick={() => {
+                    setSelectedMatches(new Set());
+                    setSelectedCandidates(new Set());
+                  }}
                   className="h-7 text-xs"
                 >
                   Clear
@@ -826,16 +907,27 @@ export default function ATS() {
                   size="sm"
                 >
                   <Mail className="w-4 h-4 mr-1" />
-                  Message
+                  Email
                 </Button>
-                <Button 
-                  onClick={() => setShowBulkMoveDialog(true)} 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10"
-                  size="sm"
-                >
-                  <ArrowUpCircle className="w-4 h-4 mr-1" />
-                  Move to Stage
-                </Button>
+                {searchMode === 'pipeline' ? (
+                  <Button 
+                    onClick={() => setShowBulkMoveDialog(true)} 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10"
+                    size="sm"
+                  >
+                    <ArrowUpCircle className="w-4 h-4 mr-1" />
+                    Move Stage
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => setShowBulkAddToPipeline(true)} 
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add to Job
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}
@@ -1154,34 +1246,44 @@ export default function ATS() {
                   <table className="w-full min-w-[1200px]">
                     <thead className="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
                     <tr>
-                      <th className="sticky left-0 bg-gray-50 dark:bg-slate-800 z-20 w-10 p-4" onClick={(e) => e.stopPropagation()}>
-                        <label className="cursor-pointer flex items-center justify-center">
-                          <input
-                            type="checkbox"
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              if (e.target.checked) {
-                                const newSet = new Set(selectedMatches);
-                                globalSearchResults.forEach(c => {
-                                  const match = matches.find(m => m.candidate_id === c.id);
-                                  if (match) newSet.add(match.id);
-                                });
-                                setSelectedMatches(newSet);
-                              } else {
-                                const candidateIds = globalSearchResults.map(c => c.id);
-                                const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
-                                  const match = matches.find(m => m.id === matchId);
-                                  return !candidateIds.includes(match?.candidate_id);
-                                }));
-                                setSelectedMatches(newSet);
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                            style={{ pointerEvents: 'auto' }}
-                          />
-                        </label>
-                      </th>
+                     <th className="sticky left-0 bg-gray-50 dark:bg-slate-800 z-20 w-10 p-4" onClick={(e) => e.stopPropagation()}>
+                       <label 
+                         className="cursor-pointer flex items-center justify-center"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           const allCandidateIds = globalSearchResults.map(c => c.id);
+                           if (selectedCandidates.size === allCandidateIds.length) {
+                             setSelectedCandidates(new Set());
+                           } else {
+                             setSelectedCandidates(new Set(allCandidateIds));
+                           }
+                         }}
+                       >
+                         <div className="relative">
+                           <input
+                             type="checkbox"
+                             checked={globalSearchResults.length > 0 && selectedCandidates.size === globalSearchResults.length}
+                             onChange={(e) => {
+                               e.stopPropagation();
+                               const allCandidateIds = globalSearchResults.map(c => c.id);
+                               if (e.target.checked) {
+                                 setSelectedCandidates(new Set(allCandidateIds));
+                               } else {
+                                 setSelectedCandidates(new Set());
+                               }
+                             }}
+                             onClick={(e) => e.stopPropagation()}
+                             className="appearance-none w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-all checked:bg-gradient-to-br checked:from-pink-500 checked:to-orange-500 checked:border-pink-500"
+                             style={{ pointerEvents: 'auto' }}
+                           />
+                           {globalSearchResults.length > 0 && selectedCandidates.size === globalSearchResults.length && (
+                             <svg className="absolute inset-0 w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                             </svg>
+                           )}
+                         </div>
+                       </label>
+                     </th>
                         <th className="sticky left-10 bg-gray-50 dark:bg-slate-800 z-20 text-left p-4 font-medium text-gray-600 dark:text-gray-400">Candidate</th>
                         <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Skills</th>
                         <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Location</th>
@@ -1201,24 +1303,31 @@ export default function ATS() {
                       const matchSummary = enhancedSearch.getMatchSummary(matchSources);
                       
                       return (
-                        <tr key={candidate.id} className={`border-b dark:border-slate-700 transition-colors ${match && selectedMatches.has(match.id) ? 'bg-pink-50 dark:bg-pink-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
-                        <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
-                          <label className="flex items-center justify-center cursor-pointer group">
+                        <tr key={candidate.id} className={`border-b dark:border-slate-700 transition-colors ${selectedCandidates.has(candidate.id) ? 'bg-pink-50 dark:bg-pink-900/20 border-l-4 border-l-pink-500' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
+                        <td 
+                          className={`sticky left-0 z-10 p-4 ${selectedCandidates.has(candidate.id) ? 'bg-pink-50 dark:bg-pink-900/20' : 'bg-white dark:bg-slate-900'}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <label 
+                            className="flex items-center justify-center cursor-pointer group"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSelectCandidate(candidate.id);
+                            }}
+                          >
                             <div className="relative">
                               <input
                                 type="checkbox"
-                                checked={match ? selectedMatches.has(match.id) : false}
+                                checked={selectedCandidates.has(candidate.id)}
                                 onChange={(e) => {
                                   e.stopPropagation();
-                                  if (match) {
-                                    toggleSelectMatch(match.id);
-                                  }
+                                  toggleSelectCandidate(candidate.id);
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                                 className="appearance-none w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-all checked:bg-gradient-to-br checked:from-pink-500 checked:to-orange-500 checked:border-pink-500"
                                 style={{ pointerEvents: 'auto' }}
                               />
-                              {match && selectedMatches.has(match.id) && (
+                              {selectedCandidates.has(candidate.id) && (
                                 <svg className="absolute inset-0 w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -1420,20 +1529,36 @@ export default function ATS() {
                   const stage = PIPELINE_STAGES.find(s => s.id === currentStage);
 
                   return (
-                    <tr key={match.id} className="border-b dark:border-slate-700 hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 dark:hover:from-pink-900/10 dark:hover:to-orange-900/10 transition-colors">
-                   <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
-                     <label className="cursor-pointer flex items-center justify-center">
-                       <input
-                         type="checkbox"
-                         checked={selectedMatches.has(match.id)}
-                         onChange={(e) => {
-                           e.stopPropagation();
-                           toggleSelectMatch(match.id);
-                         }}
-                         onClick={(e) => e.stopPropagation()}
-                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                         style={{ pointerEvents: 'auto' }}
-                       />
+                    <tr key={match.id} className={`border-b dark:border-slate-700 transition-colors ${selectedMatches.has(match.id) ? 'bg-pink-50 dark:bg-pink-900/20 border-l-4 border-l-pink-500' : 'hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 dark:hover:from-pink-900/10 dark:hover:to-orange-900/10'}`}>
+                   <td 
+                     className={`sticky left-0 z-10 p-4 ${selectedMatches.has(match.id) ? 'bg-pink-50 dark:bg-pink-900/20' : 'bg-white dark:bg-slate-900'}`}
+                     onClick={(e) => e.stopPropagation()}
+                   >
+                     <label 
+                       className="cursor-pointer flex items-center justify-center"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         toggleSelectMatch(match.id);
+                       }}
+                     >
+                       <div className="relative">
+                         <input
+                           type="checkbox"
+                           checked={selectedMatches.has(match.id)}
+                           onChange={(e) => {
+                             e.stopPropagation();
+                             toggleSelectMatch(match.id);
+                           }}
+                           onClick={(e) => e.stopPropagation()}
+                           className="appearance-none w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-all checked:bg-gradient-to-br checked:from-pink-500 checked:to-orange-500 checked:border-pink-500"
+                           style={{ pointerEvents: 'auto' }}
+                         />
+                         {selectedMatches.has(match.id) && (
+                           <svg className="absolute inset-0 w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                           </svg>
+                         )}
+                       </div>
                      </label>
                    </td>
                        <td className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4 cursor-pointer" onClick={(e) => {
@@ -1984,13 +2109,41 @@ export default function ATS() {
         }}
       />
 
+      {/* Bulk Add to Pipeline Dialog */}
+      <Dialog open={showBulkAddToPipeline} onOpenChange={setShowBulkAddToPipeline}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add {selectedCandidates.size} Candidates to Job</DialogTitle>
+            <DialogDescription>
+              Select a job to add the selected candidates to your pipeline
+            </DialogDescription>
+          </DialogHeader>
+          <Select value={bulkPipelineJobId} onValueChange={setBulkPipelineJobId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a job" />
+            </SelectTrigger>
+            <SelectContent>
+              {jobs.map(job => (
+                <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkAddToPipeline(false)}>Cancel</Button>
+            <Button onClick={handleBulkAddToPipeline} disabled={!bulkPipelineJobId} className="swipe-gradient text-white">
+              Add to Pipeline
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Mass Message Dialog */}
       <Dialog open={showMassMessageDialog} onOpenChange={setShowMassMessageDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5 text-blue-500" />
-              Send Mass Message to {selectedMatches.size} Candidates
+              Send Email to {searchMode === 'pipeline' ? selectedMatches.size : selectedCandidates.size} Candidates
             </DialogTitle>
             <DialogDescription>
               Personalize your message with: {'{name}'}, {'{company}'}, {'{job}'}, {'{skills}'}, {'{recruiter}'}
@@ -2046,7 +2199,7 @@ export default function ATS() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowMassMessageDialog(false)}>Cancel</Button>
             <Button onClick={sendMassEmail} disabled={!massEmailSubject || !massEmailBody} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Send className="w-4 h-4 mr-2" /> Send to {selectedMatches.size} Candidates
+              <Send className="w-4 h-4 mr-2" /> Send to {searchMode === 'pipeline' ? selectedMatches.size : selectedCandidates.size} Candidates
             </Button>
           </DialogFooter>
         </DialogContent>
