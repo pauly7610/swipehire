@@ -37,6 +37,8 @@ import ResumeHoverPreview from '@/components/ats/ResumeHoverPreview';
 import ResumeHoverPreviewMobile from '@/components/ats/ResumeHoverPreviewMobile';
 import ConnectionButton from '@/components/connections/ConnectionButton';
 import QuickMessageButton from '@/components/messaging/QuickMessageButton';
+import EnhancedATSSearch from '@/components/ats/EnhancedATSSearch';
+import { sanitizeHTML, extractPlainText } from '@/components/utils/htmlSanitizer';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -115,9 +117,11 @@ export default function ATS() {
   });
   const [searchValidation, setSearchValidation] = useState({ valid: true, error: null });
   const booleanParser = React.useRef(new BooleanSearchParser()).current;
+  const enhancedSearch = React.useRef(new EnhancedATSSearch()).current;
   const [hoveredResume, setHoveredResume] = useState(null);
   const [mobileResumePreview, setMobileResumePreview] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -612,6 +616,7 @@ export default function ATS() {
   };
 
   // Search all candidates in SwipeHire (not just matched ones)
+  // ENHANCED: Now searches across structured fields, profile content, AND resume text
   const searchAllCandidates = async () => {
     setLoading(true);
     try {
@@ -620,16 +625,30 @@ export default function ATS() {
       
       let results = [...freshCandidates];
       
-      // Apply boolean search if query exists
+      // Apply enhanced search if query exists
       if (searchQuery.trim()) {
-        results = results.filter(candidate => {
-          const user = users[candidate.user_id];
-          return booleanParser.search(searchQuery, candidate, user);
-        });
+        // Use enhanced search that covers ALL data sources
+        const searchResults = enhancedSearch.search(searchQuery, results, users);
+        
+        // Store results with scores and matches for display
+        setSearchResults(searchResults);
+        
+        // Extract just the candidates for further filtering
+        results = searchResults.map(r => r.candidate);
+      } else {
+        // No search query - show all with zero scores
+        setSearchResults(results.map(c => ({ candidate: c, score: 0, matches: [] })));
       }
       
       // Apply advanced filters
       results = applyAdvancedFilters(results);
+      
+      // Update search results to match filtered candidates
+      if (searchQuery.trim()) {
+        setSearchResults(prev => prev.filter(r => results.includes(r.candidate)));
+      } else {
+        setSearchResults(results.map(c => ({ candidate: c, score: 0, matches: [] })));
+      }
       
       // Track search analytics
       analytics.track('ATS Search Executed', {
@@ -645,6 +664,7 @@ export default function ATS() {
     } catch (error) {
       console.error('Search failed:', error);
       setGlobalSearchResults([]);
+      setSearchResults([]);
     } finally {
       setLoading(false);
     }
@@ -1081,7 +1101,7 @@ export default function ATS() {
           </DragDropContext>
         )}
 
-        {/* Global Search Results */}
+        {/* Global Search Results - ENHANCED with better container sizing */}
         {searchMode === 'all' && (
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden mb-6 dark:bg-slate-900 dark:border-slate-800">
             <CardHeader className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
@@ -1101,7 +1121,7 @@ export default function ATS() {
               {loading ? (
                 <div className="text-center py-12">
                   <Loader2 className="w-12 h-12 mx-auto mb-3 text-pink-500 animate-spin" />
-                  <p className="text-gray-500 dark:text-gray-400">Searching across all SwipeHire candidates...</p>
+                  <p className="text-gray-500 dark:text-gray-400">Searching profiles, resumes, and all candidate data...</p>
                 </div>
               ) : globalSearchResults.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -1110,7 +1130,7 @@ export default function ATS() {
                   <p className="text-sm">Try different search terms or adjust your filters</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
                   <table className="w-full min-w-[1200px]">
                     <thead className="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
                     <tr>
@@ -1152,11 +1172,13 @@ export default function ATS() {
                       </tr>
                     </thead>
                   <tbody>
-                    {globalSearchResults.map((candidate) => {
+                    {searchResults.map((result) => {
+                      const { candidate, score, matches: matchSources } = result;
                       const user = users[candidate.user_id];
                       const pipelineStatus = getCandidateMatchStatus(candidate.id);
                       const stage = pipelineStatus ? PIPELINE_STAGES.find(s => s.id === pipelineStatus) : null;
                       const match = matches.find(m => m.candidate_id === candidate.id);
+                      const matchSummary = enhancedSearch.getMatchSummary(matchSources);
                       
                       return (
                         <tr key={candidate.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
@@ -1197,12 +1219,19 @@ export default function ATS() {
                             </div>
                           </td>
                           <td className="p-4">
-                            <div className="flex flex-wrap gap-1">
-                              {candidate?.skills?.slice(0, 3).map((skill, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">{skill}</Badge>
-                              ))}
-                              {candidate?.skills?.length > 3 && (
-                                <Badge variant="outline" className="text-xs">+{candidate.skills.length - 3}</Badge>
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap gap-1">
+                                {candidate?.skills?.slice(0, 3).map((skill, i) => (
+                                  <Badge key={i} variant="secondary" className="text-xs">{skill}</Badge>
+                                ))}
+                                {candidate?.skills?.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">+{candidate.skills.length - 3}</Badge>
+                                )}
+                              </div>
+                              {matchSummary && (
+                                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                  ✓ Matched: {matchSummary}
+                                </p>
                               )}
                             </div>
                           </td>
@@ -1253,7 +1282,7 @@ export default function ATS() {
                             )}
                           </td>
                           <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1">
                               <ConnectionButton
                                 targetUserId={user?.id}
                                 currentUserId={currentUser?.id}
@@ -1268,7 +1297,7 @@ export default function ATS() {
                                 variant="outline"
                               />
                               <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="outline" className="h-9 px-2">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </Link>
@@ -1320,10 +1349,10 @@ export default function ATS() {
           </div>
         )}
 
-        {/* List View */}
+        {/* List View - ENHANCED with better container sizing */}
         {viewMode === 'list' && searchMode === 'pipeline' && (
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="p-0 overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
               <table className="w-full min-w-[1400px]">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-b-2 border-gray-200 dark:border-slate-600 sticky top-0 z-10">
                 <tr>
@@ -1455,7 +1484,7 @@ export default function ATS() {
                         </td>
                         <td className="p-4 text-gray-500 dark:text-gray-400">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
                         <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1">
                             <ConnectionButton
                               targetUserId={user?.id}
                               currentUserId={currentUser?.id}
@@ -1471,9 +1500,9 @@ export default function ATS() {
                             />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-9">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
+                               <Button variant="ghost" size="icon" className="h-9 w-9 p-0">
+                                 <MoreVertical className="w-4 h-4" />
+                               </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openCandidateDetails(match); }}>

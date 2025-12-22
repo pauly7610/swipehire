@@ -601,10 +601,10 @@ export default function BrowseCandidates() {
                       )}
                     </div>
 
-                    {/* Bio */}
+                    {/* Bio - Strip HTML for preview */}
                     {candidate.bio && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1 mb-2">
-                        {candidate.bio}
+                        {candidate.bio.replace(/<[^>]+>/g, '')}
                       </p>
                     )}
 
