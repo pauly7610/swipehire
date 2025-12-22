@@ -35,6 +35,8 @@ import BooleanSearchParser from '@/components/ats/BooleanSearchParser';
 import RankedCandidateList from '@/components/evaluation/RankedCandidateList';
 import ResumeHoverPreview from '@/components/ats/ResumeHoverPreview';
 import ResumeHoverPreviewMobile from '@/components/ats/ResumeHoverPreviewMobile';
+import ConnectionButton from '@/components/connections/ConnectionButton';
+import QuickMessageButton from '@/components/messaging/QuickMessageButton';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -1108,43 +1110,47 @@ export default function ATS() {
                   <p className="text-sm">Try different search terms or adjust your filters</p>
                 </div>
               ) : (
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700">
-                  <tr>
-                    <th className="w-10 p-4" onClick={(e) => e.stopPropagation()}>
-                      <label className="cursor-pointer flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const newSet = new Set(selectedMatches);
-                              globalSearchResults.forEach(c => {
-                                const match = matches.find(m => m.candidate_id === c.id);
-                                if (match) newSet.add(match.id);
-                              });
-                              setSelectedMatches(newSet);
-                            } else {
-                              const candidateIds = globalSearchResults.map(c => c.id);
-                              const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
-                                const match = matches.find(m => m.id === matchId);
-                                return !candidateIds.includes(match?.candidate_id);
-                              }));
-                              setSelectedMatches(newSet);
-                            }
-                          }}
-                          className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                        />
-                      </label>
-                    </th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Candidate</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Skills</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Location</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Experience</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Resume</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Status</th>
-                      <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Actions</th>
-                    </tr>
-                  </thead>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1200px]">
+                    <thead className="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-10">
+                    <tr>
+                      <th className="sticky left-0 bg-gray-50 dark:bg-slate-800 z-20 w-10 p-4" onClick={(e) => e.stopPropagation()}>
+                        <label className="cursor-pointer flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              if (e.target.checked) {
+                                const newSet = new Set(selectedMatches);
+                                globalSearchResults.forEach(c => {
+                                  const match = matches.find(m => m.candidate_id === c.id);
+                                  if (match) newSet.add(match.id);
+                                });
+                                setSelectedMatches(newSet);
+                              } else {
+                                const candidateIds = globalSearchResults.map(c => c.id);
+                                const newSet = new Set(Array.from(selectedMatches).filter(matchId => {
+                                  const match = matches.find(m => m.id === matchId);
+                                  return !candidateIds.includes(match?.candidate_id);
+                                }));
+                                setSelectedMatches(newSet);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                            style={{ pointerEvents: 'auto' }}
+                          />
+                        </label>
+                      </th>
+                        <th className="sticky left-10 bg-gray-50 dark:bg-slate-800 z-20 text-left p-4 font-medium text-gray-600 dark:text-gray-400">Candidate</th>
+                        <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Skills</th>
+                        <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Location</th>
+                        <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Experience</th>
+                        <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Resume</th>
+                        <th className="text-left p-4 font-medium text-gray-600 dark:text-gray-400">Status</th>
+                        <th className="sticky right-0 bg-gray-50 dark:bg-slate-800 z-20 text-left p-4 font-medium text-gray-600 dark:text-gray-400">Actions</th>
+                      </tr>
+                    </thead>
                   <tbody>
                     {globalSearchResults.map((candidate) => {
                       const user = users[candidate.user_id];
@@ -1154,7 +1160,7 @@ export default function ATS() {
                       
                       return (
                         <tr key={candidate.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
-                         <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                         <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
                            <label className="flex items-center justify-center cursor-pointer">
                              <input
                                type="checkbox"
@@ -1167,15 +1173,15 @@ export default function ATS() {
                                  }
                                }}
                                onClick={(e) => e.stopPropagation()}
-                               className="w-6 h-6 rounded border-2 border-orange-500 cursor-pointer hover:border-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                               className="w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                style={{
-                                 accentColor: '#f97316',
-                                 backgroundColor: match && selectedMatches.has(match.id) ? '#f97316' : 'white'
+                                 accentColor: '#ec4899',
+                                 pointerEvents: 'auto'
                                }}
                              />
                            </label>
                          </td>
-                          <td className="p-4">
+                          <td className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4">
                             <div className="flex items-center gap-3">
                               {candidate?.photo_url ? (
                                 <img src={candidate.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
@@ -1246,11 +1252,24 @@ export default function ATS() {
                               <Badge variant="outline" className="text-gray-500">Not in pipeline</Badge>
                             )}
                           </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
+                          <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
+                            <div className="flex items-center gap-1.5">
+                              <ConnectionButton
+                                targetUserId={user?.id}
+                                currentUserId={currentUser?.id}
+                                size="sm"
+                                variant="outline"
+                              />
+                              <QuickMessageButton
+                                targetUserId={user?.id}
+                                targetName={user?.full_name || 'Candidate'}
+                                currentUserId={currentUser?.id}
+                                size="sm"
+                                variant="outline"
+                              />
                               <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
                                 <Button size="sm" variant="outline">
-                                  <Eye className="w-4 h-4 mr-1" /> View
+                                  <Eye className="w-4 h-4" />
                                 </Button>
                               </Link>
                             </div>
@@ -1303,34 +1322,37 @@ export default function ATS() {
         {/* List View */}
         {viewMode === 'list' && searchMode === 'pipeline' && (
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-            <CardContent className="p-0">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-b-2 border-gray-200 dark:border-slate-600">
+            <CardContent className="p-0 overflow-x-auto">
+              <table className="w-full min-w-[1400px]">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-b-2 border-gray-200 dark:border-slate-600 sticky top-0 z-10">
                 <tr>
-                  <th className="w-10 p-4">
+                  <th className="sticky left-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 z-20 w-10 p-4">
                     <label className="cursor-pointer flex items-center justify-center">
                       <input
                         type="checkbox"
                         onChange={(e) => {
+                          e.stopPropagation();
                           if (e.target.checked) {
                             setSelectedMatches(new Set(filteredMatches.map(m => m.id)));
                           } else {
                             setSelectedMatches(new Set());
                           }
                         }}
+                        onClick={(e) => e.stopPropagation()}
                         checked={selectedMatches.size > 0 && selectedMatches.size === filteredMatches.length}
                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                        style={{ pointerEvents: 'auto' }}
                       />
                     </label>
                   </th>
-                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Candidate</th>
+                    <th className="sticky left-10 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 z-20 text-left p-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[200px]">Candidate</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Job</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Stage</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Match</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Tags</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Resume</th>
                     <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Applied</th>
-                    <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                    <th className="sticky right-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 z-20 text-left p-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[200px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1343,21 +1365,22 @@ export default function ATS() {
 
                   return (
                     <tr key={match.id} className="border-b dark:border-slate-700 hover:bg-gradient-to-r hover:from-pink-50/30 hover:to-orange-50/30 dark:hover:from-pink-900/10 dark:hover:to-orange-900/10 transition-colors">
-                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                       <label className="cursor-pointer flex items-center justify-center">
-                         <input
-                           type="checkbox"
-                           checked={selectedMatches.has(match.id)}
-                           onChange={(e) => {
-                             e.stopPropagation();
-                             toggleSelectMatch(match.id);
-                           }}
-                           onClick={(e) => e.stopPropagation()}
-                           className="w-5 h-5 rounded-md border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
-                         />
-                       </label>
-                     </td>
-                       <td className="p-4 cursor-pointer" onClick={(e) => {
+                   <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
+                     <label className="cursor-pointer flex items-center justify-center">
+                       <input
+                         type="checkbox"
+                         checked={selectedMatches.has(match.id)}
+                         onChange={(e) => {
+                           e.stopPropagation();
+                           toggleSelectMatch(match.id);
+                         }}
+                         onClick={(e) => e.stopPropagation()}
+                         className="w-5 h-5 rounded border-2 border-gray-400 accent-pink-500 cursor-pointer hover:border-pink-500 transition-colors"
+                         style={{ pointerEvents: 'auto' }}
+                       />
+                     </label>
+                   </td>
+                       <td className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4 cursor-pointer" onClick={(e) => {
                          e.stopPropagation();
                          openCandidateDetails(match);
                        }}>
@@ -1430,35 +1453,24 @@ export default function ATS() {
                           )}
                         </td>
                         <td className="p-4 text-gray-500 dark:text-gray-400">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <Button
+                        <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
+                          <div className="flex items-center gap-1.5">
+                            <ConnectionButton
+                              targetUserId={user?.id}
+                              currentUserId={currentUser?.id}
                               size="sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name);
-                              }}
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-md border-0 rounded-lg"
-                              type="button"
-                            >
-                              ✓ Advance
-                            </Button>
-                            <Button
+                              variant="outline"
+                            />
+                            <QuickMessageButton
+                              targetUserId={user?.id}
+                              targetName={user?.full_name || 'Candidate'}
+                              currentUserId={currentUser?.id}
                               size="sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleQuickReject(match);
-                              }}
-                              className="bg-gradient-to-r from-red-500 to-rose-500 text-white hover:shadow-md border-0 rounded-lg"
-                              type="button"
-                            >
-                              ✕ Reject
-                            </Button>
+                              variant="outline"
+                            />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="h-9">
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -1476,6 +1488,24 @@ export default function ATS() {
                                   openEmailDialog(match);
                                 }}>
                                   <Mail className="w-4 h-4 mr-2" /> Send Email
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    confirmMoveCandidate(match.id, currentStage, 'screening', user?.full_name);
+                                  }}
+                                  className="text-green-600"
+                                >
+                                  <CheckCircle2 className="w-4 h-4 mr-2" /> Advance
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuickReject(match);
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" /> Reject
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>

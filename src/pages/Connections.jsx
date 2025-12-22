@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
-  Users, UserPlus, UserCheck, UserX, Search, 
-  Loader2, MessageSquare, Mail, Clock, MapPin, Briefcase, Building2
+  UserCheck, UserPlus, Clock, MessageCircle, X, Check, 
+  Loader2, Users, Mail
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
+import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 
 export default function Connections() {
   const [user, setUser] = useState(null);
-  const [connections, setConnections] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [candidates, setCandidates] = useState([]);
-  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [connections, setConnections] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
+  const [users, setUsers] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -32,107 +31,72 @@ export default function Connections() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [userConnections, users, allCandidates, allCompanies] = await Promise.all([
-        base44.entities.Connection.filter({
-          $or: [{ requester_id: currentUser.id }, { receiver_id: currentUser.id }]
-        }),
-        base44.entities.User.list(),
-        base44.entities.Candidate.list(),
-        base44.entities.Company.list()
+      const [allConnections, allUsers] = await Promise.all([
+        base44.entities.Connection.list(),
+        base44.entities.User.list()
       ]);
 
-      setConnections(userConnections);
-      setAllUsers(users);
-      setCandidates(allCandidates);
-      setCompanies(allCompanies);
+      const userMap = {};
+      allUsers.forEach(u => { userMap[u.id] = u; });
+      setUsers(userMap);
+
+      // Filter connections by user
+      const accepted = allConnections.filter(c => 
+        (c.requester_id === currentUser.id || c.receiver_id === currentUser.id) && 
+        c.status === 'accepted'
+      );
+      
+      const pending = allConnections.filter(c => 
+        c.receiver_id === currentUser.id && c.status === 'pending'
+      );
+      
+      const sent = allConnections.filter(c => 
+        c.requester_id === currentUser.id && c.status === 'pending'
+      );
+
+      setConnections(accepted);
+      setPendingRequests(pending);
+      setSentRequests(sent);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('Failed to load connections:', error);
     }
     setLoading(false);
   };
 
-  const getConnectionUser = (connection) => {
-    const otherUserId = connection.requester_id === user?.id ? connection.receiver_id : connection.requester_id;
-    return allUsers.find(u => u.id === otherUserId);
+  const handleAccept = async (connectionId) => {
+    try {
+      await base44.entities.Connection.update(connectionId, { status: 'accepted' });
+      
+      const connection = pendingRequests.find(c => c.id === connectionId);
+      if (connection) {
+        // Notify requester
+        await base44.entities.Notification.create({
+          user_id: connection.requester_id,
+          type: 'connection_accepted',
+          title: '✅ Connection Accepted',
+          message: `${user.full_name} accepted your connection request!`,
+          navigate_to: 'DirectMessages'
+        });
+      }
+      
+      loadData();
+    } catch (error) {
+      console.error('Failed to accept connection:', error);
+    }
   };
 
-  const getCandidateForUser = (userId) => {
-    return candidates.find(c => c.user_id === userId);
+  const handleReject = async (connectionId) => {
+    try {
+      await base44.entities.Connection.update(connectionId, { status: 'rejected' });
+      loadData();
+    } catch (error) {
+      console.error('Failed to reject connection:', error);
+    }
   };
 
-  const getCompanyForUser = (userId) => {
-    return companies.find(c => c.user_id === userId);
+  const handleMessage = (connection) => {
+    navigate(createPageUrl('DirectMessages') + `?connectionId=${connection.id}`);
   };
-
-  const getUserType = (userId) => {
-    const candidate = getCandidateForUser(userId);
-    const company = getCompanyForUser(userId);
-    if (company) return 'employer';
-    if (candidate) return 'candidate';
-    return 'member';
-  };
-
-  const handleAccept = async (connection) => {
-    await base44.entities.Connection.update(connection.id, { status: 'accepted' });
-    setConnections(connections.map(c => c.id === connection.id ? { ...c, status: 'accepted' } : c));
-  };
-
-  const handleReject = async (connection) => {
-    await base44.entities.Connection.update(connection.id, { status: 'rejected' });
-    setConnections(connections.filter(c => c.id !== connection.id));
-  };
-
-  const handleConnect = async (targetUserId) => {
-    const connection = await base44.entities.Connection.create({
-      requester_id: user.id,
-      receiver_id: targetUserId,
-      status: 'accepted'
-    });
-    setConnections([...connections, connection]);
-  };
-
-  const isConnected = (userId) => {
-    return connections.some(c =>
-      (c.requester_id === userId || c.receiver_id === userId) &&
-      c.status === 'accepted'
-    );
-  };
-
-  const hasPendingRequest = (userId) => {
-    return connections.some(c =>
-      (c.requester_id === userId || c.receiver_id === userId) &&
-      c.status === 'pending'
-    );
-  };
-
-  const acceptedConnections = connections.filter(c => c.status === 'accepted');
-  const pendingReceived = connections.filter(c => c.receiver_id === user?.id && c.status === 'pending');
-  const pendingSent = connections.filter(c => c.requester_id === user?.id && c.status === 'pending');
-
-  const suggestedUsers = allUsers.filter(u => {
-    if (u.id === user?.id) return false;
-    if (isConnected(u.id)) return false;
-    if (hasPendingRequest(u.id)) return false;
-    
-    if (!searchQuery.trim()) return true;
-    
-    const query = searchQuery.toLowerCase();
-    const candidate = getCandidateForUser(u.id);
-    const company = getCompanyForUser(u.id);
-    
-    const searchableText = [
-      u.full_name || '',
-      u.email || '',
-      candidate?.headline || '',
-      candidate?.location || '',
-      candidate?.bio || '',
-      ...(candidate?.skills || []),
-      company?.name || '',
-      company?.industry || ''
-    ].join(' ').toLowerCase();
-    
-    return searchableText.includes(query);
-  }).slice(0, 20);
 
   if (loading) {
     return (
@@ -143,209 +107,225 @@ export default function Connections() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
       <style>{`
-        .swipe-gradient { background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%); }
+        .swipe-gradient {
+          background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
+        }
       `}</style>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-8 h-8 text-pink-500" />
-            My Network
-          </h1>
-          <p className="text-gray-500">{acceptedConnections.length} connections</p>
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Connections</h1>
+          <p className="text-gray-500 dark:text-gray-400">Manage your professional network</p>
         </div>
 
-        <Tabs defaultValue="connections" className="space-y-4">
-          <TabsList className="bg-white rounded-xl p-1 shadow-sm">
-            <TabsTrigger value="connections" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg">
-              Connections ({acceptedConnections.length})
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <Card className="border-0 shadow-sm dark:bg-slate-900">
+            <CardContent className="p-4 text-center">
+              <UserCheck className="w-8 h-8 mx-auto mb-2 text-green-500" />
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{connections.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Connections</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm dark:bg-slate-900">
+            <CardContent className="p-4 text-center">
+              <Clock className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingRequests.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Requests</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm dark:bg-slate-900">
+            <CardContent className="p-4 text-center">
+              <UserPlus className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{sentRequests.length}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Sent</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="connections" className="space-y-6">
+          <TabsList className="bg-white dark:bg-slate-900 rounded-xl p-1 shadow-sm">
+            <TabsTrigger value="connections" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-lg">
+              My Connections
             </TabsTrigger>
-            <TabsTrigger value="pending" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg">
-              Pending ({pendingReceived.length})
+            <TabsTrigger value="requests" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-lg">
+              Requests ({pendingRequests.length})
             </TabsTrigger>
-            <TabsTrigger value="discover" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-lg">
-              Discover
+            <TabsTrigger value="sent" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-lg">
+              Sent ({sentRequests.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="connections" className="space-y-4">
-            {acceptedConnections.length === 0 ? (
-              <Card className="border-0 shadow-sm">
+          {/* My Connections */}
+          <TabsContent value="connections">
+            {connections.length === 0 ? (
+              <Card className="border-0 shadow-sm dark:bg-slate-900">
                 <CardContent className="py-12 text-center">
-                  <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No connections yet. Start networking!</p>
+                  <Users className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No connections yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400">Start connecting with recruiters and candidates!</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {acceptedConnections.map((conn, i) => {
-                  const connUser = getConnectionUser(conn);
-                  const candidate = getCandidateForUser(connUser?.id);
+              <div className="grid gap-4">
+                {connections.map((connection) => {
+                  const otherUserId = connection.requester_id === user.id 
+                    ? connection.receiver_id 
+                    : connection.requester_id;
+                  const otherUser = users[otherUserId];
+
                   return (
-                    <motion.div key={conn.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                      <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <motion.div
+                      key={connection.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900">
                         <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center font-semibold text-pink-500">
-                              {connUser?.full_name?.charAt(0) || 'U'}
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full swipe-gradient flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                              {otherUser?.full_name?.charAt(0) || 'U'}
                             </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900">{connUser?.full_name}</p>
-                              <p className="text-sm text-gray-500">{candidate?.headline || 'SwipeHire Member'}</p>
-                            </div>
-                            <Link to={createPageUrl('DirectMessages') + `?connectionId=${conn.id}`}>
-                              <Button variant="outline" size="sm">
-                                <MessageSquare className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="pending" className="space-y-4">
-            {pendingReceived.length === 0 ? (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="py-12 text-center">
-                  <Clock className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No pending requests</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {pendingReceived.map((conn, i) => {
-                  const connUser = getConnectionUser(conn);
-                  const candidate = getCandidateForUser(connUser?.id);
-                  return (
-                    <motion.div key={conn.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                      <Card className="border-0 shadow-sm">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center font-semibold text-pink-500">
-                              {connUser?.full_name?.charAt(0) || 'U'}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900">{connUser?.full_name}</p>
-                              <p className="text-sm text-gray-500">{candidate?.headline || 'wants to connect'}</p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" className="swipe-gradient text-white" onClick={() => handleAccept(conn)}>
-                                <UserCheck className="w-4 h-4 mr-1" /> Accept
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleReject(conn)}>
-                                <UserX className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="discover" className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search by name, skills, company, location..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <p className="text-sm text-gray-500">
-              {suggestedUsers.length} people found {searchQuery && `for "${searchQuery}"`}
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {suggestedUsers.map((suggestedUser, i) => {
-                const candidate = getCandidateForUser(suggestedUser.id);
-                const company = getCompanyForUser(suggestedUser.id);
-                const userType = getUserType(suggestedUser.id);
-                const photo = candidate?.photo_url || company?.logo_url;
-                
-                return (
-                  <motion.div key={suggestedUser.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          {photo ? (
-                            <img src={photo} alt="" className="w-12 h-12 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center font-semibold text-pink-500">
-                              {suggestedUser.full_name?.charAt(0) || 'U'}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-gray-900 truncate">{suggestedUser.full_name}</p>
-                              <Badge variant="secondary" className="text-xs">
-                                {userType === 'employer' ? (
-                                  <><Building2 className="w-3 h-3 mr-1" /> Employer</>
-                                ) : userType === 'candidate' ? (
-                                  <><Briefcase className="w-3 h-3 mr-1" /> Candidate</>
-                                ) : 'Member'}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                                {otherUser?.full_name || 'User'}
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                {otherUser?.email}
+                              </p>
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                <UserCheck className="w-3 h-3 mr-1" /> Connected
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-500 truncate">
-                              {company?.name || candidate?.headline || 'SwipeHire Member'}
-                            </p>
-                            {(candidate?.location || company?.location) && (
-                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3" />
-                                {candidate?.location || company?.location}
-                              </p>
-                            )}
-                            {candidate?.skills?.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {candidate.skills.slice(0, 3).map((skill, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">{skill}</Badge>
-                                ))}
-                              </div>
-                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => handleMessage(connection)}
+                              className="swipe-gradient text-white"
+                            >
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                              Message
+                            </Button>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                          <Button size="sm" className="flex-1 swipe-gradient text-white" onClick={() => handleConnect(suggestedUser.id)}>
-                            <UserPlus className="w-4 h-4 mr-1" /> Connect
-                          </Button>
-                          {candidate && (
-                            <Link to={createPageUrl('ViewCandidateProfile') + `?id=${candidate.id}`}>
-                              <Button size="sm" variant="outline">View</Button>
-                            </Link>
-                          )}
-                          {company && (
-                            <Link to={createPageUrl('CompanyProfile') + `?id=${company.id}`}>
-                              <Button size="sm" variant="outline">View</Button>
-                            </Link>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
 
-            {suggestedUsers.length === 0 && searchQuery && (
-              <Card className="border-0 shadow-sm">
+          {/* Pending Requests */}
+          <TabsContent value="requests">
+            {pendingRequests.length === 0 ? (
+              <Card className="border-0 shadow-sm dark:bg-slate-900">
                 <CardContent className="py-12 text-center">
-                  <Search className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">No people found matching "{searchQuery}"</p>
+                  <Clock className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No pending requests</p>
                 </CardContent>
               </Card>
+            ) : (
+              <div className="grid gap-4">
+                {pendingRequests.map((request) => {
+                  const requester = users[request.requester_id];
+
+                  return (
+                    <motion.div
+                      key={request.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="border-0 shadow-sm dark:bg-slate-900 bg-gradient-to-r from-pink-50/50 to-orange-50/50 dark:from-pink-950/20 dark:to-orange-950/20">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full swipe-gradient flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                              {requester?.full_name?.charAt(0) || 'U'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                                {requester?.full_name || 'User'}
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                {requester?.email}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                {format(new Date(request.created_date), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleAccept(request.id)}
+                                className="swipe-gradient text-white"
+                              >
+                                <Check className="w-4 h-4 mr-1" />
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleReject(request.id)}
+                                className="text-gray-600 dark:text-gray-400"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Sent Requests */}
+          <TabsContent value="sent">
+            {sentRequests.length === 0 ? (
+              <Card className="border-0 shadow-sm dark:bg-slate-900">
+                <CardContent className="py-12 text-center">
+                  <UserPlus className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No sent requests</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {sentRequests.map((request) => {
+                  const receiver = users[request.receiver_id];
+
+                  return (
+                    <motion.div
+                      key={request.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="border-0 shadow-sm dark:bg-slate-900">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center text-amber-800 text-xl font-bold flex-shrink-0">
+                              {receiver?.full_name?.charAt(0) || 'U'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                                {receiver?.full_name || 'User'}
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                {receiver?.email}
+                              </p>
+                              <Badge className="mt-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                <Clock className="w-3 h-3 mr-1" /> Pending
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
             )}
           </TabsContent>
         </Tabs>
