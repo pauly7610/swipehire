@@ -632,14 +632,14 @@ export default function BrowseCandidates() {
                     <ConnectionButton
                       targetUserId={candidate.user_id}
                       currentUserId={user?.id}
-                      size="sm"
+                      iconOnly={true}
                       variant="outline"
                     />
                     <QuickMessageButton
                       targetUserId={candidate.user_id}
                       targetName={usersMap[candidate.user_id]?.full_name || 'Candidate'}
                       currentUserId={user?.id}
-                      size="sm"
+                      iconOnly={true}
                       variant="outline"
                     />
 

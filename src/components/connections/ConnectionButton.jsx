@@ -13,7 +13,8 @@ export default function ConnectionButton({
   currentUserId, 
   onStatusChange,
   size = 'default',
-  variant = 'default'
+  variant = 'default',
+  iconOnly = false
 }) {
   const [status, setStatus] = useState(null); // null, 'pending', 'accepted', 'sent'
   const [loading, setLoading] = useState(false);
@@ -110,16 +111,17 @@ export default function ConnectionButton({
   if (status === 'accepted') {
     return (
       <Button
-        size={size}
+        size={iconOnly ? 'icon' : size}
         variant="outline"
         className={cn(
           "border-green-200 bg-green-50 text-green-700 hover:bg-green-100",
-          "dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-400"
+          "dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-400",
+          iconOnly && "h-9 w-9 p-0"
         )}
         disabled
       >
-        <UserCheck className="w-3.5 h-3.5 mr-1.5" />
-        Connected
+        <UserCheck className={iconOnly ? "w-4 h-4" : "w-3.5 h-3.5 mr-1.5"} />
+        {!iconOnly && "Connected"}
       </Button>
     );
   }
@@ -127,13 +129,16 @@ export default function ConnectionButton({
   if (status === 'sent') {
     return (
       <Button
-        size={size}
+        size={iconOnly ? 'icon' : size}
         variant="outline"
         disabled
-        className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-400"
+        className={cn(
+          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-400",
+          iconOnly && "h-9 w-9 p-0"
+        )}
       >
-        <Clock className="w-3.5 h-3.5 mr-1.5" />
-        Pending
+        <Clock className={iconOnly ? "w-4 h-4" : "w-3.5 h-3.5 mr-1.5"} />
+        {!iconOnly && "Pending"}
       </Button>
     );
   }
@@ -141,27 +146,33 @@ export default function ConnectionButton({
   if (status === 'pending') {
     return (
       <Button
-        size={size}
+        size={iconOnly ? 'icon' : size}
         onClick={handleAccept}
         disabled={loading}
-        className="swipe-gradient text-white"
+        className={cn(
+          "swipe-gradient text-white",
+          iconOnly && "h-9 w-9 p-0"
+        )}
       >
-        <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-        Accept
+        <UserPlus className={iconOnly ? "w-4 h-4" : "w-3.5 h-3.5 mr-1.5"} />
+        {!iconOnly && "Accept"}
       </Button>
     );
   }
 
   return (
     <Button
-      size={size}
+      size={iconOnly ? 'icon' : size}
       variant={variant}
       onClick={handleConnect}
       disabled={loading}
-      className={variant === 'default' ? 'swipe-gradient text-white' : ''}
+      className={cn(
+        variant === 'default' ? 'swipe-gradient text-white' : '',
+        iconOnly && "h-9 w-9 p-0"
+      )}
     >
-      <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-      Connect
+      <UserPlus className={iconOnly ? "w-4 h-4" : "w-3.5 h-3.5 mr-1.5"} />
+      {!iconOnly && "Connect"}
     </Button>
   );
 }

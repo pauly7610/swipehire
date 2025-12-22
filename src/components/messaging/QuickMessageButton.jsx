@@ -17,7 +17,8 @@ export default function QuickMessageButton({
   currentUserId,
   size = 'default',
   variant = 'outline',
-  onSent
+  onSent,
+  iconOnly = false
 }) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
@@ -112,12 +113,13 @@ export default function QuickMessageButton({
   return (
     <>
       <Button
-        size={size}
+        size={iconOnly ? 'icon' : size}
         variant={variant}
         onClick={() => setOpen(true)}
+        className={iconOnly ? "h-9 w-9 p-0" : ""}
       >
-        <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-        Message
+        <MessageCircle className={iconOnly ? "w-4 h-4" : "w-3.5 h-3.5 mr-1.5"} />
+        {!iconOnly && "Message"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -1286,18 +1286,18 @@ export default function ATS() {
                               <ConnectionButton
                                 targetUserId={user?.id}
                                 currentUserId={currentUser?.id}
-                                size="sm"
+                                iconOnly={true}
                                 variant="outline"
                               />
                               <QuickMessageButton
                                 targetUserId={user?.id}
                                 targetName={user?.full_name || 'Candidate'}
                                 currentUserId={currentUser?.id}
-                                size="sm"
+                                iconOnly={true}
                                 variant="outline"
                               />
                               <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
-                                <Button size="sm" variant="outline" className="h-9 px-2">
+                                <Button size="icon" variant="outline" className="h-9 w-9 p-0">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </Link>
@@ -1488,14 +1488,14 @@ export default function ATS() {
                             <ConnectionButton
                               targetUserId={user?.id}
                               currentUserId={currentUser?.id}
-                              size="sm"
+                              iconOnly={true}
                               variant="outline"
                             />
                             <QuickMessageButton
                               targetUserId={user?.id}
                               targetName={user?.full_name || 'Candidate'}
                               currentUserId={currentUser?.id}
-                              size="sm"
+                              iconOnly={true}
                               variant="outline"
                             />
                             <DropdownMenu>
