@@ -1281,23 +1281,23 @@ export default function ATS() {
                               <Badge variant="outline" className="text-gray-500">Not in pipeline</Badge>
                             )}
                           </td>
-                          <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
-                            <div className="flex items-center gap-1">
+                          <td className="sticky right-0 z-10 p-4 bg-gradient-to-l from-white/95 via-white/90 to-transparent dark:from-slate-900/95 dark:via-slate-900/90 backdrop-blur-sm">
+                            <div className="flex items-center gap-1 justify-end">
                               <ConnectionButton
                                 targetUserId={user?.id}
                                 currentUserId={currentUser?.id}
                                 iconOnly={true}
-                                variant="outline"
+                                variant="ghost"
                               />
                               <QuickMessageButton
                                 targetUserId={user?.id}
                                 targetName={user?.full_name || 'Candidate'}
                                 currentUserId={currentUser?.id}
                                 iconOnly={true}
-                                variant="outline"
+                                variant="ghost"
                               />
                               <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
-                                <Button size="icon" variant="outline" className="h-9 w-9 p-0">
+                                <Button size="icon" variant="ghost" className="h-9 w-9 p-0 hover:swipe-gradient hover:text-white">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </Link>
@@ -1483,20 +1483,20 @@ export default function ATS() {
                           )}
                         </td>
                         <td className="p-4 text-gray-500 dark:text-gray-400">{format(new Date(match.created_date), 'MMM d, yyyy')}</td>
-                        <td className="sticky right-0 bg-white dark:bg-slate-900 z-10 p-4">
-                          <div className="flex items-center gap-1">
+                        <td className="sticky right-0 z-10 p-4 bg-gradient-to-l from-white/95 via-white/90 to-transparent dark:from-slate-900/95 dark:via-slate-900/90 backdrop-blur-sm">
+                          <div className="flex items-center gap-1 justify-end">
                             <ConnectionButton
                               targetUserId={user?.id}
                               currentUserId={currentUser?.id}
                               iconOnly={true}
-                              variant="outline"
+                              variant="ghost"
                             />
                             <QuickMessageButton
                               targetUserId={user?.id}
                               targetName={user?.full_name || 'Candidate'}
                               currentUserId={currentUser?.id}
                               iconOnly={true}
-                              variant="outline"
+                              variant="ghost"
                             />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
