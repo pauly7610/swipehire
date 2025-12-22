@@ -1279,6 +1279,7 @@ export default function ATS() {
                     })}
                   </tbody>
                 </table>
+                </div>
               )}
             </CardContent>
           </Card>
