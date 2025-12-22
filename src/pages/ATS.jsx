@@ -801,23 +801,43 @@ export default function ATS() {
           </div>
 
           {selectedMatches.size > 0 && (
-            <div className="col-span-2 flex gap-2">
-              <Button 
-                onClick={() => setShowMassMessageDialog(true)} 
-                className="flex-1 swipe-gradient text-white h-11"
-                size="sm"
-              >
-                Message {selectedMatches.size}
-              </Button>
-              <Button 
-                onClick={() => setShowBulkMoveDialog(true)} 
-                variant="outline"
-                size="sm"
-                className="h-11"
-              >
-                Move
-              </Button>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="col-span-2 bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-900/20 dark:to-orange-900/20 rounded-xl p-3 border-2 border-pink-200 dark:border-pink-800"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {selectedMatches.size} selected
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedMatches(new Set())}
+                  className="h-7 text-xs"
+                >
+                  Clear
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setShowMassMessageDialog(true)} 
+                  className="flex-1 swipe-gradient text-white h-10"
+                  size="sm"
+                >
+                  <Mail className="w-4 h-4 mr-1" />
+                  Message
+                </Button>
+                <Button 
+                  onClick={() => setShowBulkMoveDialog(true)} 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10"
+                  size="sm"
+                >
+                  <ArrowUpCircle className="w-4 h-4 mr-1" />
+                  Move to Stage
+                </Button>
+              </div>
+            </motion.div>
           )}
         </div>
 
@@ -1181,25 +1201,29 @@ export default function ATS() {
                       const matchSummary = enhancedSearch.getMatchSummary(matchSources);
                       
                       return (
-                        <tr key={candidate.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
+                        <tr key={candidate.id} className={`border-b dark:border-slate-700 transition-colors ${match && selectedMatches.has(match.id) ? 'bg-pink-50 dark:bg-pink-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
                         <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
-                          <label className="flex items-center justify-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={match ? selectedMatches.has(match.id) : false}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                if (match) {
-                                  toggleSelectMatch(match.id);
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-colors"
-                              style={{
-                                accentColor: '#ec4899',
-                                pointerEvents: 'auto'
-                              }}
-                            />
+                          <label className="flex items-center justify-center cursor-pointer group">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                checked={match ? selectedMatches.has(match.id) : false}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  if (match) {
+                                    toggleSelectMatch(match.id);
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="appearance-none w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-all checked:bg-gradient-to-br checked:from-pink-500 checked:to-orange-500 checked:border-pink-500"
+                                style={{ pointerEvents: 'auto' }}
+                              />
+                              {match && selectedMatches.has(match.id) && (
+                                <svg className="absolute inset-0 w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
                           </label>
                         </td>
                           <td 
