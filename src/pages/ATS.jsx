@@ -1182,28 +1182,30 @@ export default function ATS() {
                       
                       return (
                         <tr key={candidate.id} className="border-b dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800">
-                         <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
-                           <label className="flex items-center justify-center cursor-pointer">
-                             <input
-                               type="checkbox"
-                               checked={match ? selectedMatches.has(match.id) : false}
-                               disabled={!match}
-                               onChange={(e) => {
-                                 e.stopPropagation();
-                                 if (match) {
-                                   toggleSelectMatch(match.id);
-                                 }
-                               }}
-                               onClick={(e) => e.stopPropagation()}
-                               className="w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                               style={{
-                                 accentColor: '#ec4899',
-                                 pointerEvents: 'auto'
-                               }}
-                             />
-                           </label>
-                         </td>
-                          <td className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4">
+                        <td className="sticky left-0 bg-white dark:bg-slate-900 z-10 p-4" onClick={(e) => e.stopPropagation()}>
+                          <label className="flex items-center justify-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={match ? selectedMatches.has(match.id) : false}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                if (match) {
+                                  toggleSelectMatch(match.id);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-5 h-5 rounded border-2 border-gray-400 cursor-pointer hover:border-pink-500 transition-colors"
+                              style={{
+                                accentColor: '#ec4899',
+                                pointerEvents: 'auto'
+                              }}
+                            />
+                          </label>
+                        </td>
+                          <td 
+                            className="sticky left-10 bg-white dark:bg-slate-900 z-10 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            onClick={() => window.open(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`, '_blank')}
+                          >
                             <div className="flex items-center gap-3">
                               {candidate?.photo_url ? (
                                 <img src={candidate.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
