@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 import ResumeViewer from '@/components/profile/ResumeViewer';
 import QuickMessageDialog from '@/components/networking/QuickMessageDialog';
 import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
+import { sanitizeHTML } from '@/components/utils/htmlSanitizer';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
