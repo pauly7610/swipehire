@@ -116,7 +116,7 @@ export default function QuickMessageButton({
         variant={variant}
         onClick={() => setOpen(true)}
       >
-        <MessageCircle className="w-4 h-4 mr-2" />
+        <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
         Message
       </Button>
 

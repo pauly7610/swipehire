@@ -118,7 +118,7 @@ export default function ConnectionButton({
         )}
         disabled
       >
-        <UserCheck className="w-4 h-4 mr-2" />
+        <UserCheck className="w-3.5 h-3.5 mr-1.5" />
         Connected
       </Button>
     );
@@ -132,7 +132,7 @@ export default function ConnectionButton({
         disabled
         className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-400"
       >
-        <Clock className="w-4 h-4 mr-2" />
+        <Clock className="w-3.5 h-3.5 mr-1.5" />
         Pending
       </Button>
     );
@@ -146,8 +146,8 @@ export default function ConnectionButton({
         disabled={loading}
         className="swipe-gradient text-white"
       >
-        <UserPlus className="w-4 h-4 mr-2" />
-        Accept Request
+        <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+        Accept
       </Button>
     );
   }
@@ -160,7 +160,7 @@ export default function ConnectionButton({
       disabled={loading}
       className={variant === 'default' ? 'swipe-gradient text-white' : ''}
     >
-      <UserPlus className="w-4 h-4 mr-2" />
+      <UserPlus className="w-3.5 h-3.5 mr-1.5" />
       Connect
     </Button>
   );
