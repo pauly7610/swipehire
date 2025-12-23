@@ -28,6 +28,10 @@ import DualViewIntelligence from '@/components/video/DualViewIntelligence';
 import SwipeFeedbackPanel from '@/components/video/SwipeFeedbackPanel';
 import VerifiedBadge from '@/components/video/VerifiedBadge';
 import ChallengeFeed from '@/components/video/ChallengeFeed';
+import MobileVideoPlayer from '@/components/video/MobileVideoPlayer';
+import IntelligenceTray from '@/components/video/IntelligenceTray';
+import FeedModeSelector from '@/components/video/FeedModeSelector';
+import VideoFeedbackCard from '@/components/video/VideoFeedbackCard';
 
 const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, job, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
@@ -533,6 +537,9 @@ export default function VideoFeed() {
   const [showChallengeFeed, setShowChallengeFeed] = useState(false);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [currentJobs, setCurrentJobs] = useState([]);
+  const [feedMode, setFeedMode] = useState('discovery');
+  const [showFeedbackCard, setShowFeedbackCard] = useState(false);
+  const [feedbackData, setFeedbackData] = useState(null);
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const PAGE_SIZE = 20;
