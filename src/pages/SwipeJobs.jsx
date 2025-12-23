@@ -27,6 +27,7 @@ import { Zap, Heart } from 'lucide-react';
 import audioFeedback from '@/components/shared/AudioFeedback';
 import MobileSwipeActions from '@/components/swipe/MobileSwipeActions';
 import SwipeNotificationHandler from '@/components/swipe/SwipeNotificationHandler';
+import buildLink, { getPageParams } from '@/components/utils/linkBuilder';
 
 export default function SwipeJobs() {
   const navigate = useNavigate();
@@ -68,6 +69,19 @@ export default function SwipeJobs() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Handle deep link navigation (from email/notification)
+  useEffect(() => {
+    const params = getPageParams();
+    if (params.jobId && jobs.length > 0) {
+      const targetIndex = jobs.findIndex(j => j.id === params.jobId);
+      if (targetIndex !== -1) {
+        setCurrentIndex(targetIndex);
+        // Clear URL params after navigation
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [jobs]);
 
   // PREFETCH next 3 cards
   useEffect(() => {
@@ -239,7 +253,8 @@ export default function SwipeJobs() {
               title: '🎉 It\'s a Match!',
               message: `You matched with a candidate for ${currentJob.title}!`,
               match_id: match.id,
-              job_id: currentJob.id
+              job_id: currentJob.id,
+              link: buildLink.match.employerChat(match.id)
             }) : Promise.resolve()
           ]);
 
