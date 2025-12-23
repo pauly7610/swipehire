@@ -309,7 +309,17 @@ export async function scheduleDigestEmails() {
     const candidates = await base44.entities.Candidate.list();
     
     for (const candidate of candidates) {
-      if (!candidate.email_frequency || candidate.email_frequency === 'never') continue;
+      // Only send digests, not individual alerts
+      if (!candidate.email_frequency || candidate.email_frequency === 'never' || candidate.email_frequency === 'relevant_only') continue;
+      
+      // Check if alerts are paused
+      if (candidate.alert_preferences?.paused_until && 
+          new Date(candidate.alert_preferences.paused_until) > new Date()) {
+        continue;
+      }
+      
+      // Check if email alerts are disabled
+      if (candidate.alert_preferences?.email_alerts_enabled === false) continue;
       
       // Check if it's time to send based on preference
       const lastEmail = await base44.entities.EmailEvent.filter({
@@ -322,7 +332,7 @@ export async function scheduleDigestEmails() {
         const now = new Date();
         const hoursSince = (now - lastSent) / (1000 * 60 * 60);
 
-        // Skip if recently sent
+        // Skip if recently sent - enforce strict limits
         if (candidate.email_frequency === 'daily_digest' && hoursSince < 24) continue;
         if (candidate.email_frequency === 'weekly_digest' && hoursSince < 168) continue;
       }
@@ -334,19 +344,10 @@ export async function scheduleDigestEmails() {
   }
 }
 
-// Check for inactive users and send re-engagement
+// Check for inactive users and send re-engagement (DISABLED - too spammy)
 export async function checkInactiveUsers() {
-  try {
-    const candidates = await base44.entities.Candidate.list();
-    
-    for (const candidate of candidates) {
-      if (candidate.job_search_status === 'not_looking') continue;
-      
-      await sendReEngagementEmail(candidate.id, candidate.user_id);
-    }
-  } catch (error) {
-    console.error('Failed to check inactive users:', error);
-  }
+  // Disabled to reduce email volume
+  return;
 }
 
 // ===== NEW JOB POSTING EMAIL AUTOMATION =====
@@ -364,30 +365,64 @@ export async function sendJobPostingAlert(jobId) {
     // Get all active job-seeking candidates
     const candidates = await base44.entities.Candidate.list();
     
-    // Segment candidates - only send to relevant ones
+    // Segment candidates - only send to relevant ones with HIGH FIT
     const relevantCandidates = candidates.filter(candidate => {
       if (candidate.job_search_status === 'not_looking') return false;
       if (candidate.email_frequency === 'never') return false;
       
-      // Match by target job titles
-      if (candidate.target_job_titles?.some(title => 
-        job.title.toLowerCase().includes(title.toLowerCase()) ||
-        title.toLowerCase().includes(job.title.toLowerCase())
-      )) return true;
+      // Check if alerts are paused
+      if (candidate.alert_preferences?.paused_until && 
+          new Date(candidate.alert_preferences.paused_until) > new Date()) {
+        return false;
+      }
       
-      // Match by location
-      if (candidate.preferred_locations?.some(loc => 
-        job.location?.toLowerCase().includes(loc.toLowerCase()) ||
-        loc.toLowerCase() === 'remote'
-      )) return true;
+      // Check if email alerts are disabled
+      if (candidate.alert_preferences?.email_alerts_enabled === false) return false;
       
-      // Match by seniority
-      if (candidate.target_seniority === job.seniority) return true;
+      // Check if alert preferences exist and are configured
+      const prefs = candidate.alert_preferences;
+      if (!prefs || !prefs.role_types?.length || !prefs.employment_types?.length) {
+        return false; // Skip if preferences not configured
+      }
       
-      // Match by industry
-      if (candidate.industry === company?.industry) return true;
+      let matchCount = 0;
       
-      return false;
+      // Match by configured role types (MUST MATCH)
+      const roleMatch = prefs.role_types?.some(role => 
+        job.title.toLowerCase().includes(role.toLowerCase()) ||
+        role.toLowerCase().includes(job.title.toLowerCase())
+      );
+      if (!roleMatch) return false;
+      matchCount++;
+      
+      // Match by employment type (MUST MATCH)
+      const employmentMatch = prefs.employment_types?.includes(job.job_type?.toLowerCase());
+      if (!employmentMatch) return false;
+      matchCount++;
+      
+      // Match by seniority if specified
+      if (prefs.target_seniority_levels?.length > 0) {
+        if (prefs.target_seniority_levels.includes(job.seniority)) matchCount++;
+      }
+      
+      // Match by work location if specified
+      if (prefs.work_locations?.length > 0) {
+        const workLocationMatch = prefs.work_locations.some(loc => {
+          if (loc === 'remote' && job.location?.toLowerCase().includes('remote')) return true;
+          if (loc === 'onsite' && !job.location?.toLowerCase().includes('remote')) return true;
+          if (loc === 'hybrid' && job.location?.toLowerCase().includes('hybrid')) return true;
+          return false;
+        });
+        if (workLocationMatch) matchCount++;
+      }
+      
+      // Match by industry if specified
+      if (prefs.target_industries?.length > 0) {
+        if (prefs.target_industries.includes(company?.industry)) matchCount++;
+      }
+      
+      // Require at least 3 criteria matches for high-fit
+      return matchCount >= 3;
     });
 
     // Check email frequency limits
@@ -399,13 +434,17 @@ export async function sendJobPostingAlert(jobId) {
           email_type: 'job_alert'
         }, '-sent_at', 5);
 
-        // Count emails in last 7 days
+        // Count emails in last 24 hours (max 1 per day)
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+        const dailyCount = recentAlerts.filter(e => new Date(e.sent_at) > oneDayAgo).length;
+        if (dailyCount >= 1) continue;
+
+        // Count emails in last 7 days (max 2-3 per week)
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
-        const recentCount = recentAlerts.filter(e => new Date(e.sent_at) > weekAgo).length;
-
-        // Hard cap: max 2 per week
-        if (recentCount >= 2) continue;
+        const weeklyCount = recentAlerts.filter(e => new Date(e.sent_at) > weekAgo).length;
+        if (weeklyCount >= 2) continue;
 
         // Check if we already sent this job
         const alreadySent = recentAlerts.some(e => e.job_id === jobId);
@@ -488,8 +527,11 @@ export async function sendJobPostingAlert(jobId) {
 
 /**
  * Send engagement nudge 24-48h after initial alert if opened but no action
+ * DISABLED - reduces email volume
  */
 export async function sendEngagementNudges() {
+  // Disabled to reduce email volume
+  return;
   try {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -588,8 +630,11 @@ export async function sendEngagementNudges() {
 
 /**
  * Send referral activation email 72h after initial alert to non-applicants
+ * DISABLED - reduces email volume
  */
 export async function sendReferralActivation() {
+  // Disabled to reduce email volume
+  return;
   try {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);

@@ -28,13 +28,16 @@ export default function EmailScheduler() {
       }
     };
 
-    // Run immediately on mount
-    checkEmails();
+    // Run on mount after 5 minutes (prevent startup spam)
+    const initialTimeout = setTimeout(checkEmails, 5 * 60 * 1000);
 
-    // Then run every hour
-    const interval = setInterval(checkEmails, 60 * 60 * 1000);
+    // Then run every 6 hours (reduced frequency)
+    const interval = setInterval(checkEmails, 6 * 60 * 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, []);
 
   return null; // This component doesn't render anything
