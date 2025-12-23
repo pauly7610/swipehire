@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/shared/Logo';
 import { usePageTracking } from '@/components/analytics/Analytics';
 import EmailScheduler from '@/components/email/EmailScheduler';
+import NotificationHandler from '@/components/alerts/NotificationHandler';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import audioFeedback from '@/components/shared/AudioFeedback';
@@ -465,6 +466,9 @@ import audioFeedback from '@/components/shared/AudioFeedback';
 
               {/* Email Scheduler - runs in background */}
               {!hideLayout && user && <EmailScheduler />}
+
+              {/* Notification Deep Link Handler */}
+              <NotificationHandler />
               </div>
               </ThemeProvider>
               );

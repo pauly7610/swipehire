@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import buildLink from '@/components/utils/linkBuilder';
 
 /**
  * Email Automation Service
@@ -70,7 +71,7 @@ export async function sendMatchNotificationEmails(match, job, company, candidate
               <li>Schedule an interview</li>
             </ul>
             
-            <p><a href="${window.location.origin}/matches" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">View Match</a></p>
+            <p><a href="${buildLink.match.employerChat(match.id)}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">View Match</a></p>
             
             <p style="color: #666; font-size: 12px; margin-top: 20px;">This is an automated notification from SwipeHire.</p>
           `
@@ -189,11 +190,11 @@ export async function sendJobDigestEmail(candidateId, userId, frequency = 'relev
           ${jobsHTML}
           
           <p style="text-align: center; margin-top: 32px;">
-            <a href="${window.location.origin}/swipe-jobs" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">Explore More Jobs</a>
+            <a href="${buildLink.toPage('SwipeJobs')}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">Explore More Jobs</a>
           </p>
           
           <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 32px;">
-            Don't want these emails? <a href="${window.location.origin}/candidate-profile" style="color: #FF005C;">Update your preferences</a>
+            Don't want these emails? <a href="${buildLink.candidate.profile()}" style="color: #FF005C;">Update your preferences</a>
           </p>
         </div>
       `
@@ -278,7 +279,7 @@ export async function sendReEngagementEmail(candidateId, userId) {
           `).join('')}
           
           <p style="text-align: center; margin-top: 32px;">
-            <a href="${window.location.origin}/swipe-jobs" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">Start Swiping</a>
+            <a href="${buildLink.toPage('SwipeJobs')}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">Start Swiping</a>
           </p>
           
           <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
@@ -443,12 +444,12 @@ export async function sendJobPostingAlert(jobId) {
               </p>
               
               <p style="text-align: center; margin: 32px 0;">
-                <a href="${window.location.origin}/swipe-jobs" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">View role & start swiping</a>
+                <a href="${buildLink.job.view(jobId)}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: 600;">View role & start swiping</a>
               </p>
               
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
                 Not looking right now?<br>
-                Forward this to someone who is — they can apply here: <a href="${window.location.origin}/welcome" style="color: #FF005C;">SwipeHire Signup</a>
+                Forward this to someone who is — they can apply here: <a href="${buildLink.welcome()}" style="color: #FF005C;">SwipeHire Signup</a>
               </p>
               
               <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
@@ -556,8 +557,8 @@ export async function sendEngagementNudges() {
               </p>
               
               <p style="text-align: center; margin: 24px 0;">
-                <a href="${window.location.origin}/swipe-jobs" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; display: inline-block; font-weight: 600; margin-right: 12px;">View role</a>
-                <a href="${window.location.origin}/welcome" style="color: #FF005C; padding: 12px 24px; text-decoration: none; border: 2px solid #FF005C; border-radius: 10px; display: inline-block; font-weight: 600;">Send to a friend</a>
+                <a href="${buildLink.job.view(alert.job_id)}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 10px; display: inline-block; font-weight: 600; margin-right: 12px;">View role</a>
+                <a href="${buildLink.welcome()}" style="color: #FF005C; padding: 12px 24px; text-decoration: none; border: 2px solid #FF005C; border-radius: 10px; display: inline-block; font-weight: 600;">Send to a friend</a>
               </p>
               
               <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
@@ -647,7 +648,7 @@ export async function sendReferralActivation() {
               
               <p style="color: #4b5563; line-height: 1.6;">
                 If a friend applies, they just need to create a profile here:<br>
-                <a href="${window.location.origin}/welcome" style="color: #FF005C; font-weight: 600;">SwipeHire Signup</a>
+                <a href="${buildLink.welcome()}" style="color: #FF005C; font-weight: 600;">SwipeHire Signup</a>
               </p>
               
               <p style="color: #6b7280; margin-top: 24px;">

@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { format, isSameDay, addHours, addMinutes, differenceInHours, differenceInMinutes } from 'date-fns';
 import AICandidateSourcing from '@/components/recruiter/AICandidateSourcing';
+import buildLink from '@/components/utils/linkBuilder';
 import AutoScheduler from '@/components/recruiter/AutoScheduler';
 import RecruitmentAnalytics from '@/components/recruiter/RecruitmentAnalytics';
 import AdvancedHiringAnalytics from '@/components/analytics/AdvancedHiringAnalytics';
@@ -143,7 +144,8 @@ export default function EmployerDashboard() {
               title: `⏰ Interview Reminder`,
               message: `Your interview with ${companyData.name} is in ${timeLabel}!`,
               match_id: interview.match_id,
-              navigate_to: 'Chat'
+              navigate_to: 'Chat',
+              link: buildLink.match.chat(interview.match_id)
             });
 
             await base44.integrations.Core.SendEmail({
