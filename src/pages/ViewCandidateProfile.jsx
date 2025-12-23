@@ -14,6 +14,8 @@ import ResumeViewer from '@/components/profile/ResumeViewer';
 import QuickMessageDialog from '@/components/networking/QuickMessageDialog';
 import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
 import { sanitizeHTML } from '@/components/utils/htmlSanitizer';
+import { trackProfileView } from '@/components/activity/ActivityTracker';
+import ErrorState from '@/components/shared/ErrorState';
 
 export default function ViewCandidateProfile() {
   const [searchParams] = useSearchParams();
@@ -23,6 +25,7 @@ export default function ViewCandidateProfile() {
   const [candidate, setCandidate] = useState(null);
   const [candidateUser, setCandidateUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [connection, setConnection] = useState(null);
   const [sendingConnection, setSendingConnection] = useState(false);
@@ -38,8 +41,13 @@ export default function ViewCandidateProfile() {
   const loadCandidate = async () => {
     if (!candidateId) {
       setLoading(false);
+      setError(new Error('No candidate ID provided'));
       return;
     }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
       // Load candidate profile (public view)
       const isAuth = await base44.auth.isAuthenticated();
@@ -64,37 +72,46 @@ export default function ViewCandidateProfile() {
       const allCandidates = await base44.entities.Candidate.list();
       const candidates = allCandidates.filter(c => c.id === candidateId);
       
-      if (candidates.length > 0) {
-        setCandidate(candidates[0]);
-        
-        // Check if already connected
-        if (user) {
-          const connections = await base44.entities.Connection.filter({
-            $or: [
-              { requester_id: user.id, receiver_id: candidates[0].user_id },
-              { requester_id: candidates[0].user_id, receiver_id: user.id }
-            ]
-          });
-          if (connections.length > 0) {
-            setConnection(connections[0]);
-          }
+      if (candidates.length === 0) {
+        throw new Error('Candidate not found');
+      }
+      
+      setCandidate(candidates[0]);
+      
+      // Track profile view
+      if (user && candidates[0]) {
+        await trackProfileView(user.id, candidates[0].user_id, candidateId);
+      }
+      
+      // Check if already connected
+      if (user) {
+        const connections = await base44.entities.Connection.filter({
+          $or: [
+            { requester_id: user.id, receiver_id: candidates[0].user_id },
+            { requester_id: candidates[0].user_id, receiver_id: user.id }
+          ]
+        });
+        if (connections.length > 0) {
+          setConnection(connections[0]);
         }
-        
-        // Try to get user info
-        try {
-          const users = await base44.entities.User.list();
-          const candUser = users.find(u => u.id === candidates[0].user_id);
-          if (candUser) {
-            setCandidateUser(candUser);
-          }
-        } catch (userError) {
-          console.log('Could not load user info:', userError);
+      }
+      
+      // Try to get user info
+      try {
+        const users = await base44.entities.User.list();
+        const candUser = users.find(u => u.id === candidates[0].user_id);
+        if (candUser) {
+          setCandidateUser(candUser);
         }
+      } catch (userError) {
+        console.log('Could not load user info:', userError);
       }
     } catch (error) {
       console.error('Failed to load candidate:', error);
+      setError(error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleConnect = async () => {
@@ -142,17 +159,21 @@ export default function ViewCandidateProfile() {
     );
   }
 
-  if (!candidate) {
+  if (error || !candidate) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="p-8 text-center">
-          <User className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Candidate Not Found</h3>
-          <p className="text-gray-500 mb-4">This profile may no longer be available.</p>
-          <Link to={createPageUrl('EmployerMatches')}>
-            <Button>Back to Matches</Button>
-          </Link>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 p-4">
+        <div className="max-w-md w-full">
+          <ErrorState
+            title="Candidate Not Found"
+            description={error?.message || "This profile may no longer be available or you don't have permission to view it."}
+            onRetry={loadCandidate}
+          />
+          <div className="text-center mt-4">
+            <Button onClick={() => navigate(-1)} variant="outline">
+              Go Back
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

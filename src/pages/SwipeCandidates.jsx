@@ -316,16 +316,22 @@ export default function SwipeCandidates() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-slate-950 dark:to-slate-900 p-4">
         <div className="max-w-md mx-auto">
+          <div className="text-center mb-3">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 rounded-full shadow-lg">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-xs font-bold tracking-wide text-gray-700 dark:text-gray-300">LOADING</span>
+            </div>
+          </div>
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded-lg w-2/3 mx-auto" />
-            <div className="h-12 bg-gray-200 rounded-xl" />
-            <div className="h-[540px] bg-gray-200 rounded-3xl" />
+            <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded-lg w-2/3 mx-auto" />
+            <div className="h-12 bg-gray-200 dark:bg-slate-800 rounded-xl" />
+            <div className="h-[540px] bg-gray-200 dark:bg-slate-800 rounded-3xl" />
             <div className="flex gap-4 justify-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
             </div>
           </div>
         </div>

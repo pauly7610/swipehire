@@ -175,8 +175,11 @@ export default function BrowseJobs() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-pink-500 mx-auto mb-3" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading jobs...</p>
+        </div>
       </div>
     );
   }

@@ -310,8 +310,26 @@ export default function BrowseCandidates() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-pink-500 mx-auto mb-3" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading candidates...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 p-4">
+        <div className="max-w-md w-full">
+          <ErrorState
+            title="Failed to Load Candidates"
+            description="We couldn't load the candidate list. Please check your connection and try again."
+            error={error}
+            onRetry={loadData}
+          />
+        </div>
       </div>
     );
   }

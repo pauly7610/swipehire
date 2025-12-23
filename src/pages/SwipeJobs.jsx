@@ -378,16 +378,22 @@ export default function SwipeJobs() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4">
         <div className="max-w-md mx-auto">
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-gray-200/60 dark:border-slate-700/60 rounded-full mb-3 shadow-lg">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-bold tracking-wide text-gray-700 dark:text-gray-300">LOADING</span>
+            </div>
+          </div>
           {/* Skeleton Loader */}
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded-lg w-3/4 mx-auto" />
-            <div className="h-[520px] bg-gray-200 rounded-3xl" />
+            <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded-lg w-3/4 mx-auto" />
+            <div className="h-[520px] bg-gray-200 dark:bg-slate-800 rounded-3xl" />
             <div className="flex gap-4 justify-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
-              <div className="w-16 h-16 bg-gray-200 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
+              <div className="w-16 h-16 bg-gray-200 dark:bg-slate-800 rounded-full" />
             </div>
           </div>
         </div>

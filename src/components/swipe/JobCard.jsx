@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-mo
 import { MapPin, DollarSign, Briefcase, Building2, Clock, ChevronDown, ChevronUp, ExternalLink, Zap, TrendingUp, Users, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { sanitizeHTML, extractPlainText } from '@/components/utils/htmlSanitizer';
 
 export default function JobCard({ job, company, isFlipped, onFlip, matchScore, onQuickApply, onRefer, isDragging, onDragStart, onDragEnd, exitX }) {
   const [showInsights, setShowInsights] = useState(false);
@@ -254,7 +255,7 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
               {job.description && (
                 <div className="mb-3">
                   <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                    {job.description}
+                    {extractPlainText(job.description)}
                   </p>
                 </div>
               )}
@@ -324,7 +325,10 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                     </div>
                     About the Role
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{job.description}</p>
+                  <div 
+                    className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(job.description) }}
+                  />
                 </div>
 
                 {job.responsibilities?.length > 0 && (

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { MapPin, Briefcase, User, Star, Video, ChevronDown, ChevronUp, GraduationCap, Award, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { sanitizeHTML, extractPlainText } from '@/components/utils/htmlSanitizer';
 
 export default function CandidateCard({ candidate, user, isFlipped, onFlip, matchScore, isDragging, onDragStart, onDragEnd, exitX }) {
   // Drag motion values
@@ -155,7 +156,7 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
               {candidate?.bio && (
                 <div className="mb-4">
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
-                    {candidate.bio}
+                    {extractPlainText(candidate.bio)}
                   </p>
                 </div>
               )}
@@ -243,9 +244,13 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                     </div>
                     About
                   </h4>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                    {candidate?.bio || 'No bio provided'}
-                  </p>
+                  <div className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {candidate?.bio ? (
+                      <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(candidate.bio) }} />
+                    ) : (
+                      <p>No bio provided</p>
+                    )}
+                  </div>
                 </div>
 
                 {candidate?.experience?.length > 0 && (
@@ -266,7 +271,9 @@ export default function CandidateCard({ candidate, user, isFlipped, onFlip, matc
                           <p className="font-semibold text-gray-900 dark:text-white text-sm">{exp.title}</p>
                           <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">{exp.company}</p>
                           {exp.description && (
-                            <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-2">{exp.description}</p>
+                            <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-2">
+                              {extractPlainText(exp.description)}
+                            </p>
                           )}
                         </motion.div>
                       ))}

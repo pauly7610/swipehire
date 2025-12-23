@@ -200,8 +200,11 @@ export default function EmployerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full swipe-gradient animate-pulse" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full swipe-gradient animate-pulse mx-auto mb-3" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
