@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   Trash2, Search, Users, Briefcase, Building2, Video, 
-  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog, RefreshCw
+  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog, RefreshCw, FileText, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { format } from 'date-fns';
