@@ -43,12 +43,16 @@ export default function AdminPanel() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteType, setDeleteType] = useState('');
   const [recruiterFeedback, setRecruiterFeedback] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
@@ -67,17 +71,26 @@ export default function AdminPanel() {
         base44.entities.RecruiterFeedback.list()
       ]);
 
-      setCandidates(allCandidates);
-      setCompanies(allCompanies);
-      setJobs(allJobs);
-      setVideos(allVideos);
-      setRecruiterFeedback(allFeedback);
+      console.log('Loaded data:', {
+        candidates: allCandidates.length,
+        companies: allCompanies.length,
+        jobs: allJobs.length,
+        videos: allVideos.length,
+        users: allUsers.length
+      });
+
+      setCandidates(allCandidates || []);
+      setCompanies(allCompanies || []);
+      setJobs(allJobs || []);
+      setVideos(allVideos || []);
+      setRecruiterFeedback(allFeedback || []);
 
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
       setUsers(userMap);
     } catch (error) {
       console.error('Failed to load admin data:', error);
+      setError(error);
     }
     setLoading(false);
   };
@@ -123,8 +136,26 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-pink-500 mx-auto mb-3" />
+          <p className="text-sm text-gray-500">Loading admin data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="p-8 text-center max-w-md">
+          <ShieldAlert className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Data</h1>
+          <p className="text-gray-500 mb-4">{error.message || 'Something went wrong'}</p>
+          <Button onClick={loadData} className="swipe-gradient text-white">
+            Retry
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -233,276 +264,354 @@ export default function AdminPanel() {
 
           <TabsContent value="candidates">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Headline</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {candidates
-                    .filter(c => {
+              {candidates.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No candidates in the system yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Headline</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {candidates
+                      .filter(c => {
+                        const u = users[c.user_id];
+                        return !search || 
+                          u?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+                          c.headline?.toLowerCase().includes(search.toLowerCase());
+                      })
+                      .map((candidate) => {
+                        const u = users[candidate.user_id];
+                        return (
+                          <TableRow key={candidate.id}>
+                            <TableCell className="font-medium">{u?.full_name || 'Unknown'}</TableCell>
+                            <TableCell>{u?.email || '-'}</TableCell>
+                            <TableCell>{candidate.headline || '-'}</TableCell>
+                            <TableCell>{format(new Date(candidate.created_date), 'MMM d, yyyy')}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => { setDeleteTarget(candidate); setDeleteType('candidate'); }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {candidates.filter(c => {
                       const u = users[c.user_id];
                       return !search || 
                         u?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
                         c.headline?.toLowerCase().includes(search.toLowerCase());
-                    })
-                    .map((candidate) => {
-                      const u = users[candidate.user_id];
-                      return (
-                        <TableRow key={candidate.id}>
-                          <TableCell className="font-medium">{u?.full_name || 'Unknown'}</TableCell>
-                          <TableCell>{u?.email || '-'}</TableCell>
-                          <TableCell>{candidate.headline || '-'}</TableCell>
-                          <TableCell>{format(new Date(candidate.created_date), 'MMM d, yyyy')}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => { setDeleteTarget(candidate); setDeleteType('candidate'); }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+                    }).length === 0 && search && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          No candidates match your search
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
           <TabsContent value="recruiters">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Recruiter</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Reviews</TableHead>
-                    <TableHead>Jobs Posted</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {companies
-                    .filter(c => !search || 
+              {companies.length === 0 ? (
+                <div className="p-12 text-center">
+                  <UserCog className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No recruiters in the system yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Recruiter</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Reviews</TableHead>
+                      <TableHead>Jobs Posted</TableHead>
+                      <TableHead>Joined</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {companies
+                      .filter(c => !search || 
+                        c.name?.toLowerCase().includes(search.toLowerCase()) ||
+                        users[c.user_id]?.full_name?.toLowerCase().includes(search.toLowerCase())
+                      )
+                      .map((company) => {
+                        const recruiter = users[company.user_id];
+                        const feedback = recruiterFeedback.filter(f => f.recruiter_id === company.user_id);
+                        const avgRating = feedback.length > 0 
+                          ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length 
+                          : 0;
+                        const recruiterJobs = jobs.filter(j => j.company_id === company.id);
+                        
+                        return (
+                          <TableRow key={company.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {company.logo_url ? (
+                                  <img src={company.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">
+                                    {recruiter?.full_name?.charAt(0) || '?'}
+                                  </div>
+                                )}
+                                <span className="font-medium">{recruiter?.full_name || '-'}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{recruiter?.email || '-'}</TableCell>
+                            <TableCell>{company.name}</TableCell>
+                            <TableCell>
+                              <RecruiterRating rating={avgRating} size="sm" />
+                            </TableCell>
+                            <TableCell>{feedback.length}</TableCell>
+                            <TableCell>{recruiterJobs.length}</TableCell>
+                            <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {companies.filter(c => !search || 
                       c.name?.toLowerCase().includes(search.toLowerCase()) ||
                       users[c.user_id]?.full_name?.toLowerCase().includes(search.toLowerCase())
-                    )
-                    .map((company) => {
-                      const recruiter = users[company.user_id];
-                      const feedback = recruiterFeedback.filter(f => f.recruiter_id === company.user_id);
-                      const avgRating = feedback.length > 0 
-                        ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length 
-                        : 0;
-                      const recruiterJobs = jobs.filter(j => j.company_id === company.id);
-                      
-                      return (
-                        <TableRow key={company.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              {company.logo_url ? (
-                                <img src={company.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">
-                                  {recruiter?.full_name?.charAt(0) || '?'}
-                                </div>
-                              )}
-                              <span className="font-medium">{recruiter?.full_name || '-'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{recruiter?.email || '-'}</TableCell>
-                          <TableCell>{company.name}</TableCell>
-                          <TableCell>
-                            <RecruiterRating rating={avgRating} size="sm" />
-                          </TableCell>
-                          <TableCell>{feedback.length}</TableCell>
-                          <TableCell>{recruiterJobs.length}</TableCell>
-                          <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+                    ).length === 0 && search && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          No recruiters match your search
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
           <TabsContent value="companies">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Recruiter</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Industry</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {companies
-                    .filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()))
-                    .map((company) => {
-                      const recruiter = users[company.user_id];
-                      return (
-                        <TableRow key={company.id}>
-                          <TableCell className="font-medium">{company.name}</TableCell>
-                          <TableCell>{recruiter?.full_name || '-'}</TableCell>
-                          <TableCell>{recruiter?.email || '-'}</TableCell>
-                          <TableCell>{company.industry || '-'}</TableCell>
-                          <TableCell>{company.location || '-'}</TableCell>
-                          <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => { setDeleteTarget(company); setDeleteType('company'); }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+              {companies.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Building2 className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No companies in the system yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Recruiter</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Industry</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {companies
+                      .filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()))
+                      .map((company) => {
+                        const recruiter = users[company.user_id];
+                        return (
+                          <TableRow key={company.id}>
+                            <TableCell className="font-medium">{company.name}</TableCell>
+                            <TableCell>{recruiter?.full_name || '-'}</TableCell>
+                            <TableCell>{recruiter?.email || '-'}</TableCell>
+                            <TableCell>{company.industry || '-'}</TableCell>
+                            <TableCell>{company.location || '-'}</TableCell>
+                            <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => { setDeleteTarget(company); setDeleteType('company'); }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {companies.filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase())).length === 0 && search && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          No companies match your search
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
           <TabsContent value="jobs">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {jobs
-                    .filter(j => !search || j.title?.toLowerCase().includes(search.toLowerCase()))
-                    .map((job) => {
-                      const company = companies.find(c => c.id === job.company_id);
-                      return (
-                        <TableRow key={job.id}>
-                          <TableCell className="font-medium">{job.title}</TableCell>
-                          <TableCell>{company?.name || '-'}</TableCell>
-                          <TableCell>{job.location || '-'}</TableCell>
-                          <TableCell>
-                            <Badge className={job.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}>
-                              {job.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => { setDeleteTarget(job); setDeleteType('job'); }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+              {jobs.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Briefcase className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No jobs in the system yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {jobs
+                      .filter(j => !search || j.title?.toLowerCase().includes(search.toLowerCase()))
+                      .map((job) => {
+                        const company = companies.find(c => c.id === job.company_id);
+                        return (
+                          <TableRow key={job.id}>
+                            <TableCell className="font-medium">{job.title}</TableCell>
+                            <TableCell>{company?.name || '-'}</TableCell>
+                            <TableCell>{job.location || '-'}</TableCell>
+                            <TableCell>
+                              <Badge className={job.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}>
+                                {job.is_active ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => { setDeleteTarget(job); setDeleteType('job'); }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {jobs.filter(j => !search || j.title?.toLowerCase().includes(search.toLowerCase())).length === 0 && search && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          No jobs match your search
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
           <TabsContent value="videos">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Caption</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {videos
-                    .filter(v => !search || v.caption?.toLowerCase().includes(search.toLowerCase()))
-                    .map((video) => {
-                      const u = users[video.author_id];
-                      return (
-                        <TableRow key={video.id} className={video.is_flagged ? 'bg-red-50' : ''}>
-                          <TableCell className="font-medium">{u?.full_name || 'Unknown'}</TableCell>
-                          <TableCell className="max-w-xs truncate">{video.caption || '-'}</TableCell>
-                          <TableCell>{video.type}</TableCell>
-                          <TableCell>
-                            {video.is_flagged && (
-                              <Badge className="bg-red-100 text-red-700 mr-1">
-                                <Flag className="w-3 h-3 mr-1" /> Flagged
+              {videos.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Video className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No videos in the system yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Caption</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {videos
+                      .filter(v => !search || v.caption?.toLowerCase().includes(search.toLowerCase()))
+                      .map((video) => {
+                        const u = users[video.author_id];
+                        return (
+                          <TableRow key={video.id} className={video.is_flagged ? 'bg-red-50' : ''}>
+                            <TableCell className="font-medium">{u?.full_name || 'Unknown'}</TableCell>
+                            <TableCell className="max-w-xs truncate">{video.caption || '-'}</TableCell>
+                            <TableCell>{video.type}</TableCell>
+                            <TableCell>
+                              {video.is_flagged && (
+                                <Badge className="bg-red-100 text-red-700 mr-1">
+                                  <Flag className="w-3 h-3 mr-1" /> Flagged
+                                </Badge>
+                              )}
+                              <Badge className={
+                                video.moderation_status === 'approved' ? 'bg-green-100 text-green-700' :
+                                video.moderation_status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }>
+                                {video.moderation_status || 'pending'}
                               </Badge>
-                            )}
-                            <Badge className={
-                              video.moderation_status === 'approved' ? 'bg-green-100 text-green-700' :
-                              video.moderation_status === 'rejected' ? 'bg-red-100 text-red-700' :
-                              'bg-yellow-100 text-yellow-700'
-                            }>
-                              {video.moderation_status || 'pending'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(video.video_url, '_blank')}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            {video.moderation_status !== 'approved' && (
+                            </TableCell>
+                            <TableCell className="text-right space-x-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-green-600"
-                                onClick={() => handleApproveVideo(video)}
+                                onClick={() => window.open(video.video_url, '_blank')}
                               >
-                                Approve
+                                <Eye className="w-4 h-4" />
                               </Button>
-                            )}
-                            {video.moderation_status !== 'rejected' && (
+                              {video.moderation_status !== 'approved' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-green-600"
+                                  onClick={() => handleApproveVideo(video)}
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                              {video.moderation_status !== 'rejected' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-orange-600"
+                                  onClick={() => handleRejectVideo(video)}
+                                >
+                                  <Ban className="w-4 h-4" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-orange-600"
-                                onClick={() => handleRejectVideo(video)}
+                                className="text-red-600"
+                                onClick={() => { setDeleteTarget(video); setDeleteType('video'); }}
                               >
-                                <Ban className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600"
-                              onClick={() => { setDeleteTarget(video); setDeleteType('video'); }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {videos.filter(v => !search || v.caption?.toLowerCase().includes(search.toLowerCase())).length === 0 && search && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          No videos match your search
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </TabsContent>
 
