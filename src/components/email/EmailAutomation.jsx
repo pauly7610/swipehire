@@ -28,7 +28,7 @@ export async function sendMatchNotificationEmails(match, job, company, candidate
               <li>Learn more about the role and company</li>
             </ul>
             
-            <p><a href="${window.location.origin}/matches" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">View Match</a></p>
+            <p><a href="${buildLink.match.employerChat(match.id)}" style="background: linear-gradient(135deg, #FF005C, #FF7B00); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">View Match</a></p>
             
             <p style="color: #666; font-size: 12px; margin-top: 20px;">This is an automated notification from SwipeHire.</p>
           `
