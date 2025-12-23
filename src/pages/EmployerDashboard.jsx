@@ -25,6 +25,7 @@ import AutoScheduler from '@/components/recruiter/AutoScheduler';
 import RecruitmentAnalytics from '@/components/recruiter/RecruitmentAnalytics';
 import AdvancedHiringAnalytics from '@/components/analytics/AdvancedHiringAnalytics';
 import AIRecruiterAssistant from '@/components/recruiter/AIRecruiterAssistant';
+import EngagementMetrics from '@/components/signals/EngagementMetrics';
 
 export default function EmployerDashboard() {
   const [company, setCompany] = useState(null);
@@ -41,6 +42,7 @@ export default function EmployerDashboard() {
   const [showCompanySearch, setShowCompanySearch] = useState(false);
   const [allCompanies, setAllCompanies] = useState([]);
   const [companySearch, setCompanySearch] = useState('');
+  const [recruiterSignal, setRecruiterSignal] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,6 +88,12 @@ export default function EmployerDashboard() {
         const userMap = {};
         allUsers.forEach(u => { userMap[u.id] = u; });
         setUsers(userMap);
+
+        // Load recruiter signals
+        const signals = await base44.entities.RecruiterSignal.filter({ company_id: companyData.id });
+        if (signals.length > 0) {
+          setRecruiterSignal(signals[0]);
+        }
 
         // Check and send interview reminders
         await checkInterviewReminders(companyInterviews, candidateMap, userMap, companyData);
@@ -359,6 +367,13 @@ export default function EmployerDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-6">
+            {/* Engagement Metrics */}
+            {recruiterSignal && (
+              <div className="mb-6">
+                <EngagementMetrics signal={recruiterSignal} />
+              </div>
+            )}
+
             {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => (

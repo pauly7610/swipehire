@@ -37,6 +37,7 @@ import CalendarIntegration from '@/components/calendar/CalendarIntegration';
 import ImageCropper from '@/components/shared/ImageCropper';
 import JobPreferences from '@/components/candidate/JobPreferences';
 import ResumeAutoParser from '@/components/profile/ResumeAutoParser';
+import ActivityFeed from '@/components/signals/ActivityFeed';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -1038,6 +1039,14 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="tools" className="space-y-6">
+            {/* Activity Feed */}
+            {candidate && user && (
+              <ActivityFeed 
+                candidateId={candidate.id}
+                userId={user.id}
+              />
+            )}
+
             {/* Job Alert Preferences */}
             <JobPreferences 
               candidate={candidate}
