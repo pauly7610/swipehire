@@ -38,6 +38,8 @@ import ImageCropper from '@/components/shared/ImageCropper';
 import JobPreferences from '@/components/candidate/JobPreferences';
 import ResumeAutoParser from '@/components/profile/ResumeAutoParser';
 import ActivityFeed from '@/components/signals/ActivityFeed';
+import AutoResumeIndexer from '@/components/resume/AutoResumeIndexer';
+import ResumeIndexManager from '@/components/resume/ResumeIndexManager';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -231,13 +233,29 @@ export default function CandidateProfile() {
 
   return (
     <>
-      {/* Auto-parse resume when uploaded */}
+      {/* Auto-index resume when uploaded */}
       {candidate?.resume_url && (
-        <ResumeAutoParser 
-          candidate={candidate} 
-          resumeUrl={candidate.resume_url}
-          onParsed={(parsed) => console.log('Resume auto-parsed:', parsed)}
-        />
+        <>
+          <AutoResumeIndexer
+            candidate={candidate}
+            onIndexComplete={async () => {
+              // Reload candidate to get indexed text
+              const updated = await base44.entities.Candidate.filter({ id: candidate.id });
+              if (updated[0]) {
+                setCandidate(updated[0]);
+                setEditData(updated[0]);
+              }
+            }}
+            onIndexError={(error) => {
+              console.error('Resume indexing failed:', error);
+            }}
+          />
+          <ResumeAutoParser 
+            candidate={candidate} 
+            resumeUrl={candidate.resume_url}
+            onParsed={(parsed) => console.log('Resume auto-parsed:', parsed)}
+          />
+        </>
       )}
       
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 pb-24">
@@ -937,6 +955,20 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="resume" className="space-y-4">
+            {/* Resume Index Status */}
+            {candidate?.resume_url && (
+              <ResumeIndexManager
+                candidate={candidate}
+                onIndexComplete={async () => {
+                  const updated = await base44.entities.Candidate.filter({ id: candidate.id });
+                  if (updated[0]) {
+                    setCandidate(updated[0]);
+                    setEditData(updated[0]);
+                  }
+                }}
+              />
+            )}
+
             <Card className="bg-gradient-to-br from-pink-50 to-orange-50 border-pink-200">
               <CardContent className="py-6">
                 <div className="flex items-start gap-4">
@@ -981,10 +1013,18 @@ export default function CandidateProfile() {
                       if (!file) return;
                       try {
                         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                        const updated = { ...candidate, resume_url: file_url };
-                        await base44.entities.Candidate.update(candidate.id, { resume_url: file_url });
+                        
+                        // Update with pending status first
+                        await base44.entities.Candidate.update(candidate.id, { 
+                          resume_url: file_url,
+                          index_status: 'pending'
+                        });
+                        
+                        const updated = { ...candidate, resume_url: file_url, index_status: 'pending' };
                         setCandidate(updated);
-                        setEditData({ ...editData, resume_url: file_url });
+                        setEditData({ ...editData, resume_url: file_url, index_status: 'pending' });
+
+                        // Trigger indexing (AutoResumeIndexer will handle this)
                       } catch (error) {
                         console.error('Upload failed:', error);
                         alert('Upload failed. Please try again.');

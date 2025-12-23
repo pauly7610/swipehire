@@ -100,8 +100,14 @@ class EnhancedATSSearch {
       index.sources.certifications = certText;
     }
 
-    // CRITICAL: Resume parsed text (full text search)
-    if (candidate?.resume_parsed_text) {
+    // CRITICAL: Resume normalized text (primary search index)
+    if (candidate?.resume_normalized_text) {
+      index.sources.resume_text = candidate.resume_normalized_text;
+    } else if (candidate?.resume_plain_text) {
+      // Fallback to plain text if normalized not available
+      index.sources.resume_text = candidate.resume_plain_text.toLowerCase();
+    } else if (candidate?.resume_parsed_text) {
+      // Legacy fallback
       index.sources.resume_text = candidate.resume_parsed_text.toLowerCase();
     }
 
