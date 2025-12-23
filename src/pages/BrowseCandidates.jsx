@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +14,15 @@ import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateBu
 import RecruiterSignalPanel from '@/components/recruiter/RecruiterSignalPanel';
 import ConnectionButton from '@/components/connections/ConnectionButton';
 import QuickMessageButton from '@/components/messaging/QuickMessageButton';
+import ErrorState from '@/components/shared/ErrorState';
+import EmptyState from '@/components/shared/EmptyState';
 
 export default function BrowseCandidates() {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [company, setCompany] = useState(null);
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -60,6 +63,9 @@ export default function BrowseCandidates() {
   }, [candidates, searchQuery, experienceLevel, industryFilter, locationFilter, skillFilter, minExperience, maxExperience, sortBy]);
 
   const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
@@ -116,9 +122,10 @@ export default function BrowseCandidates() {
 
     } catch (error) {
       console.error('Failed to load data:', error);
-      navigate(createPageUrl('Welcome'), { replace: true });
+      setError(error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const applyFilters = () => {
@@ -314,6 +321,21 @@ export default function BrowseCandidates() {
         <div className="text-center">
           <Loader2 className="w-10 h-10 animate-spin text-pink-500 mx-auto mb-3" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Loading candidates...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 p-4">
+        <div className="max-w-md w-full">
+          <ErrorState
+            title="Failed to Load Candidates"
+            description="We couldn't load the candidate list. Please check your connection and try again."
+            error={error}
+            onRetry={loadData}
+          />
         </div>
       </div>
     );
@@ -564,22 +586,28 @@ export default function BrowseCandidates() {
                   />
 
                   {/* Profile Photo */}
-                  <div className="cursor-pointer flex-shrink-0" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                  <Link 
+                    to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}
+                    className="flex-shrink-0"
+                  >
                     {candidate.photo_url ? (
                       <img
                         src={candidate.photo_url}
                         alt={candidate.headline}
-                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                        className="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-slate-700"
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-lg swipe-gradient flex items-center justify-center">
                         <User className="w-8 h-8 text-white" />
                       </div>
                     )}
-                  </div>
+                  </Link>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`)}>
+                  <Link 
+                    to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}
+                    className="flex-1 min-w-0"
+                  >
                     <div className="flex items-start justify-between gap-4 mb-1">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate mb-1">
@@ -643,7 +671,7 @@ export default function BrowseCandidates() {
                         )}
                       </div>
                     )}
-                  </div>
+                  </Link>
 
                   {/* Actions - COMPACT icon sizing */}
                   <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
@@ -675,16 +703,14 @@ export default function BrowseCandidates() {
                     </button>
 
                     {/* View Profile Button */}
-                    <Button
-                      size="sm"
-                      className="swipe-gradient text-white h-9"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`);
-                      }}
-                    >
-                      View
-                    </Button>
+                    <Link to={createPageUrl('ViewCandidateProfile') + `?candidateId=${candidate.id}`}>
+                      <Button
+                        size="sm"
+                        className="swipe-gradient text-white h-9"
+                      >
+                        View
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -694,16 +720,13 @@ export default function BrowseCandidates() {
 
         {/* Empty State */}
         {filteredCandidates.length === 0 && (
-          <Card className="p-12 dark:bg-slate-900 dark:border-slate-800">
-            <div className="text-center">
-              <Search className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No candidates found</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Try adjusting your filters or search query</p>
-              <Button onClick={clearFilters} variant="outline">
-                Clear All Filters
-              </Button>
-            </div>
-          </Card>
+          <EmptyState
+            icon={Search}
+            title="No Candidates Found"
+            description="Try adjusting your filters or search query to find more candidates."
+            actionLabel="Clear All Filters"
+            onAction={clearFilters}
+          />
         )}
       </div>
 
