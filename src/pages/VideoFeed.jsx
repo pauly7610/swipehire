@@ -17,13 +17,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VideoAnalytics from '@/components/video/VideoAnalytics';
+import buildLink from '@/components/utils/linkBuilder';
 import ConfirmPostDialog from '@/components/video/ConfirmPostDialog';
 import FeedFilters from '@/components/video/FeedFilters';
 import VideoIntroRecorder from '@/components/candidate/VideoIntroRecorder';
 import AIVideoAssistant from '@/components/video/AIVideoAssistant';
 import RoleRealityTags from '@/components/video/RoleRealityTags';
+import VideoIntelligenceOverlay from '@/components/video/VideoIntelligenceOverlay';
+import DualViewIntelligence from '@/components/video/DualViewIntelligence';
+import SwipeFeedbackPanel from '@/components/video/SwipeFeedbackPanel';
+import VerifiedBadge from '@/components/video/VerifiedBadge';
+import ChallengeFeed from '@/components/video/ChallengeFeed';
 
-const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
+const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, job, onComment, onShare, onFollow, isFollowing, onDelete, isOwner, onReport, onSwipe, viewerType, canSwipe, onConnect, isConnected, hasPendingConnection }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -32,6 +38,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(isFollowing);
   const [dragX, setDragX] = useState(0);
+  const [showIntelligence, setShowIntelligence] = useState(true);
 
   // Determine swipe labels based on content type and viewer
   const getSwipeLabels = () => {
@@ -217,13 +224,35 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
         )}
       </AnimatePresence>
 
-      {/* Type badge + Reality Tags */}
+      {/* Type badge + Reality Tags + Verified */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        <Badge className="bg-black/60 backdrop-blur-md text-white border-0 text-xs font-bold shadow-lg">
-          {getTypeLabel(post.type)}
-        </Badge>
-        {post.type === 'day_in_life' && (
-          <RoleRealityTags tags={['fast_paced', 'client_facing', 'high_autonomy']} />
+        <div className="flex items-center gap-2">
+          <Badge className="bg-black/60 backdrop-blur-md text-white border-0 text-xs font-bold shadow-lg">
+            {getTypeLabel(post.type)}
+          </Badge>
+          {post.is_verified && <VerifiedBadge isVerified={true} size="sm" />}
+          {post.is_featured && (
+            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs">
+              Featured
+            </Badge>
+          )}
+        </div>
+        {post.type === 'day_in_life' && post.reality_tags && (
+          <RoleRealityTags tags={post.reality_tags} />
+        )}
+        {post.type === 'day_in_life' && (post.pros || post.cons) && (
+          <div className="space-y-1">
+            {post.pros?.slice(0, 2).map((pro, i) => (
+              <Badge key={i} className="bg-green-500/80 backdrop-blur-md text-white text-[10px] block">
+                ✓ {pro}
+              </Badge>
+            ))}
+            {post.cons?.slice(0, 1).map((con, i) => (
+              <Badge key={i} className="bg-orange-500/80 backdrop-blur-md text-white text-[10px] block">
+                ⚠ {con}
+              </Badge>
+            ))}
+          </div>
         )}
       </div>
 
@@ -427,6 +456,32 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, o
           <p className="text-[10px] text-white/40 mt-2 font-semibold drop-shadow-md">← {swipeLabels.left} • {swipeLabels.right} →</p>
         )}
       </div>
+
+      {/* AI Intelligence Overlay */}
+      {showIntelligence && post.ai_insights && (
+        <VideoIntelligenceOverlay
+          insights={post.ai_insights}
+          viewerType={viewerType}
+          matchScore={post.match_score}
+          onSegmentJump={(timestamp) => {
+            if (videoRef.current) {
+              videoRef.current.currentTime = timestamp;
+              videoRef.current.play();
+            }
+          }}
+        />
+      )}
+
+      {/* Dual-View Intelligence */}
+      {showIntelligence && (viewerType === 'employer' || viewerType === 'candidate') && (
+        <DualViewIntelligence
+          videoPost={post}
+          candidate={candidate}
+          job={job}
+          viewerType={viewerType}
+          viewerId={user?.id}
+        />
+      )}
       </motion.div>
     </div>
   );
@@ -473,6 +528,11 @@ export default function VideoFeed() {
   const [viewerType, setViewerType] = useState(null); // 'candidate' or 'employer'
   const [allPostsData, setAllPostsData] = useState([]);
   const [connections, setConnections] = useState([]);
+  const [showSwipeFeedback, setShowSwipeFeedback] = useState(false);
+  const [latestSwipe, setLatestSwipe] = useState(null);
+  const [showChallengeFeed, setShowChallengeFeed] = useState(false);
+  const [currentCompany, setCurrentCompany] = useState(null);
+  const [currentJobs, setCurrentJobs] = useState([]);
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const PAGE_SIZE = 20;
@@ -539,7 +599,14 @@ export default function VideoFeed() {
       const companyDataCheck = allCompanies.find(c => c.user_id === currentUser.id);
       const candidateDataCheck = allCandidates.find(c => c.user_id === currentUser.id);
       const currentViewerType = companyDataCheck ? 'employer' : (candidateDataCheck ? 'candidate' : null);
-      if (!isLoadMore) setViewerType(currentViewerType);
+      if (!isLoadMore) {
+        setViewerType(currentViewerType);
+        setCurrentCompany(companyDataCheck);
+        if (companyDataCheck) {
+          const companyJobsList = await base44.entities.Job.filter({ company_id: companyDataCheck.id });
+          setCurrentJobs(companyJobsList);
+        }
+      }
 
       // ============================================
       // ENHANCED "FOR YOU" ALGORITHM
@@ -991,8 +1058,22 @@ const scoredPosts = allScoredPosts.map((p, index) => {
         views: 0,
         shares: 0,
         comments_count: 0,
-        moderation_status: 'approved'
+        moderation_status: 'approved',
+        company_id: companyData?.id || null
       });
+
+      // Trigger AI analysis in background
+      try {
+        await base44.functions.invoke('analyzeVideo', {
+          video_post_id: post.id,
+          video_url: videoUrl,
+          caption: newPost.caption,
+          tags: newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+          candidate: candidateData
+        });
+      } catch (analysisError) {
+        console.warn('Video analysis failed (non-blocking):', analysisError);
+      }
 
       // Refresh the feed to show the new post
       setShowConfirmPost(false);
@@ -1142,6 +1223,7 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                   user={users[post.author_id]}
                   candidate={candidates[post.author_id]}
                   company={companies[post.author_id]}
+                  job={post.job_id ? currentJobs.find(j => j.id === post.job_id) : null}
                   isActive={index === currentIndex}
                   onLike={() => handleLike(post)}
                   onView={() => handleView(post)}
@@ -1180,11 +1262,12 @@ const scoredPosts = allScoredPosts.map((p, index) => {
 
                                             // Notify the user
                                             await base44.entities.Notification.create({
-                                              user_id: post.author_id,
-                                              type: 'system',
-                                              title: '🤝 Connection Request',
-                                              message: `${user.full_name} wants to connect with you!`,
-                                              navigate_to: 'Connections'
+                                             user_id: post.author_id,
+                                             type: 'system',
+                                             title: '🤝 Connection Request',
+                                             message: `${user.full_name} wants to connect with you!`,
+                                             navigate_to: 'Connections',
+                                             link: buildLink.toPage('Connections')
                                             });
                                           }}
                   onSwipe={async (direction) => {
@@ -1214,12 +1297,21 @@ const scoredPosts = allScoredPosts.map((p, index) => {
                             direction: 'right'
                           });
 
-                          // Notify the candidate someone swiped on them (anonymous)
+                          // Notify the candidate with feedback
+                          setLatestSwipe({
+                            direction: 'right',
+                            candidate: authorCandidate,
+                            job: null,
+                            company: Object.values(companies).find(c => c.user_id === user.id)
+                          });
+                          setShowSwipeFeedback(true);
+
                           await base44.entities.Notification.create({
                             user_id: post.author_id,
                             type: 'system',
                             title: '👀 Someone is interested!',
-                            message: 'A recruiter swiped right on your intro video. Keep posting to get more visibility!'
+                            message: 'A recruiter swiped right on your intro video. Keep posting to get more visibility!',
+                            link: buildLink.toPage('VideoFeed')
                           });
 
                           // Check for mutual match - did candidate also swipe right on any of this employer's jobs?
@@ -1378,6 +1470,14 @@ const scoredPosts = allScoredPosts.map((p, index) => {
             >
               <Search className="w-5 h-5 text-white" />
             </button>
+            {viewerType === 'employer' && (
+              <Badge 
+                className="bg-purple-500/80 text-white border-0 cursor-pointer backdrop-blur-sm"
+                onClick={() => setShowChallengeFeed(true)}
+              >
+                <Zap className="w-3 h-3 mr-1" /> Challenges
+              </Badge>
+            )}
             <Badge 
               className="bg-black/40 text-white border-0 cursor-pointer"
               onClick={() => setShowAnalytics(true)}
@@ -1668,6 +1768,32 @@ const scoredPosts = allScoredPosts.map((p, index) => {
               <Flag className="w-4 h-4 mr-2" /> Submit Report
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Swipe Feedback Panel */}
+      {showSwipeFeedback && latestSwipe && (
+        <SwipeFeedbackPanel
+          swipe={latestSwipe}
+          candidate={latestSwipe.candidate}
+          job={latestSwipe.job}
+          company={latestSwipe.company}
+          onClose={() => setShowSwipeFeedback(false)}
+        />
+      )}
+
+      {/* Challenge Feed Dialog */}
+      <Dialog open={showChallengeFeed} onOpenChange={setShowChallengeFeed}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Proof-of-Work Challenges</DialogTitle>
+          </DialogHeader>
+          <ChallengeFeed
+            viewerType={viewerType}
+            user={user}
+            company={currentCompany}
+            jobs={currentJobs}
+          />
         </DialogContent>
       </Dialog>
 
