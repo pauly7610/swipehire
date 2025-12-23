@@ -71,8 +71,6 @@ export default function SwipeJobs() {
 
   // PREFETCH next 3 cards
   useEffect(() => {
-    if (!currentJob) return;
-    
     const prefetchJobs = jobs.slice(currentIndex + 1, currentIndex + 4);
     prefetchJobs.forEach(job => {
       const company = companies[job.company_id];
@@ -469,7 +467,7 @@ export default function SwipeJobs() {
           {currentJob ? (
             <>
               {/* Background cards for depth */}
-              {jobs[currentIndex + 2] && (
+              {jobs[currentIndex + 2] && companies[jobs[currentIndex + 2].company_id] && (
                 <motion.div 
                   className="absolute inset-0 scale-90 opacity-30"
                   initial={{ scale: 0.85, opacity: 0.2 }}
@@ -483,7 +481,7 @@ export default function SwipeJobs() {
                   />
                 </motion.div>
               )}
-              {jobs[currentIndex + 1] && (
+              {jobs[currentIndex + 1] && companies[jobs[currentIndex + 1].company_id] && (
                 <motion.div 
                   className="absolute inset-0 scale-95 opacity-50"
                   initial={{ scale: 0.90, opacity: 0.3 }}
