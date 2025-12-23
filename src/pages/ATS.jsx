@@ -694,51 +694,55 @@ export default function ATS() {
   };
 
   // Search all candidates in SwipeHire (not just matched ones)
-  // ENHANCED: Now searches across structured fields, profile content, AND resume text
+  // ENHANCED: Now searches across structured fields, profile content, AND indexed resume text
   const searchAllCandidates = async () => {
     setLoading(true);
     try {
-      // Always fetch FRESH data to ensure we get ALL candidates in the system
-      const freshCandidates = await base44.entities.Candidate.list();
-      
-      let results = [...freshCandidates];
-      
-      // Apply enhanced search if query exists
-      if (searchQuery.trim()) {
-        // Use enhanced search that covers ALL data sources
-        const searchResults = enhancedSearch.search(searchQuery, results, users);
-        
-        // Store results with scores and matches for display
-        setSearchResults(searchResults);
-        
-        // Extract just the candidates for further filtering
-        results = searchResults.map(r => r.candidate);
-      } else {
-        // No search query - show all with zero scores
-        setSearchResults(results.map(c => ({ candidate: c, score: 0, matches: [] })));
-      }
-      
-      // Apply advanced filters
-      results = applyAdvancedFilters(results);
-      
-      // Update search results to match filtered candidates
-      if (searchQuery.trim()) {
-        setSearchResults(prev => prev.filter(r => results.includes(r.candidate)));
-      } else {
-        setSearchResults(results.map(c => ({ candidate: c, score: 0, matches: [] })));
-      }
-      
-      // Track search analytics
-      analytics.track('ATS Search Executed', {
+      // Use backend search function for comprehensive Boolean + indexed resume search
+      const response = await base44.functions.invoke('searchCandidates', {
         query: searchQuery,
-        mode: searchMode,
-        resultsCount: results.length,
-        totalCandidatesInSystem: freshCandidates.length,
-        hasAdvancedFilters: Object.values(advancedFilters).some(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false))
+        filters: {
+          experience_level: advancedFilters.experienceLevel || undefined,
+          industry: advancedFilters.industry || undefined,
+          location: advancedFilters.location || undefined,
+          min_experience: advancedFilters.experienceYearsMin || undefined,
+          max_experience: advancedFilters.experienceYearsMax || undefined
+        }
       });
-      
-      setGlobalSearchResults(results);
-      setAllCandidatesList(freshCandidates); // Update local cache
+
+      if (response.data.success) {
+        const results = response.data.candidates || [];
+        
+        // Apply client-side advanced filters
+        const filteredResults = applyAdvancedFilters(results);
+        
+        // Build search results with match context
+        const searchResultsWithContext = filteredResults.map(candidate => ({
+          candidate,
+          score: 0, // Score calculated server-side
+          matches: candidate.match_context?.map(context => ({
+            source: context,
+            term: searchQuery,
+            snippet: ''
+          })) || []
+        }));
+        
+        setSearchResults(searchResultsWithContext);
+        setGlobalSearchResults(filteredResults);
+        setAllCandidatesList(results); // Update cache
+        
+        // Track search analytics
+        analytics.track('ATS Search Executed', {
+          query: searchQuery,
+          mode: searchMode,
+          resultsCount: filteredResults.length,
+          totalCandidatesInSystem: results.length,
+          hasAdvancedFilters: Object.values(advancedFilters).some(v => v && (Array.isArray(v) ? v.length > 0 : v !== '' && v !== 0 && v !== false))
+        });
+      } else {
+        setGlobalSearchResults([]);
+        setSearchResults([]);
+      }
     } catch (error) {
       console.error('Search failed:', error);
       setGlobalSearchResults([]);
