@@ -103,10 +103,15 @@ export default function NotificationBell() {
                 ) : (
   notifications.map((notif) => {
                     const getNotifLink = () => {
-                      // Use navigate_to if specified
+                      // Priority: use explicit link if provided
+                      if (notif.link) {
+                        return notif.link;
+                      }
+                      // Legacy: use navigate_to if specified
                       if (notif.navigate_to) {
                         return createPageUrl(notif.navigate_to);
                       }
+                      // Fallback navigation based on type
                       if (notif.type === 'status_change') {
                         return createPageUrl('ApplicationTracker');
                       }
@@ -130,7 +135,13 @@ export default function NotificationBell() {
                         onClick={(e) => {
                           markAsRead(notif);
                           if (link) {
-                            setIsOpen(false);
+                            // If it's a full URL, use window.location
+                            if (link.startsWith('http')) {
+                              e.preventDefault();
+                              window.location.href = link;
+                            } else {
+                              setIsOpen(false);
+                            }
                           } else {
                             e.preventDefault();
                           }

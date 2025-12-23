@@ -39,6 +39,7 @@ import ConnectionButton from '@/components/connections/ConnectionButton';
 import QuickMessageButton from '@/components/messaging/QuickMessageButton';
 import EnhancedATSSearch from '@/components/ats/EnhancedATSSearch';
 import { sanitizeHTML, extractPlainText } from '@/components/utils/htmlSanitizer';
+import buildLink from '@/components/utils/linkBuilder';
 
 const PIPELINE_STAGES = [
   { id: 'applied', label: 'Applied', color: 'bg-blue-100 text-blue-700', status: 'matched' },
@@ -489,7 +490,8 @@ export default function ATS() {
         message: `Your application for ${job.title} has moved to ${stageLabel}`,
         job_id: job.id,
         match_id: matchId,
-        navigate_to: 'ApplicationTracker'
+        navigate_to: 'ApplicationTracker',
+        link: buildLink.application.tracker()
       });
     }
     
@@ -531,7 +533,8 @@ export default function ATS() {
           message: `Your application for ${job.title} has moved to ${stageLabel}`,
           job_id: job.id,
           match_id: matchId,
-          navigate_to: 'ApplicationTracker'
+          navigate_to: 'ApplicationTracker',
+          link: buildLink.application.tracker()
         });
       }
     }
