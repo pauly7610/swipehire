@@ -6,7 +6,7 @@ import {
   Heart, MessageCircle, Share2, Plus, Play, Pause,
   Volume2, VolumeX, User, Briefcase, Building2, Loader2,
   Sparkles, BookmarkPlus, Send, Trash2, Flag, MoreVertical, Search,
-  UserPlus, UserCheck, Clock, Filter, Video, ExternalLink
+  UserPlus, UserCheck, Clock, Filter, Video, ExternalLink, Zap
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion, AnimatePresence } from 'framer-motion';
