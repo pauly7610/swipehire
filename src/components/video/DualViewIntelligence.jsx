@@ -127,13 +127,13 @@ export default function DualViewIntelligence({ videoPost, candidate, job, viewer
   if (!intelligence) return null;
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-15 pointer-events-auto max-w-xs hidden md:block">
+    <div className="fixed right-4 bottom-20 z-15 pointer-events-auto w-64 hidden md:block">
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
       >
         <Card className="bg-black/90 backdrop-blur-xl border border-white/30 text-white shadow-2xl">
-          <div className="p-3 space-y-2">
+          <div className="p-2.5 space-y-1.5">
             {/* Candidate View */}
             {viewerType === 'candidate' && (
               <div className="space-y-2">
