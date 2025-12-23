@@ -9,6 +9,7 @@ import MatchModal from '@/components/swipe/MatchModal';
 
 import { useAIMatching } from '@/components/matching/useAIMatching';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import buildLink from '@/components/utils/linkBuilder';
 import { Loader2, Inbox, Briefcase, Sparkles } from 'lucide-react';
 import SwipeFeedback from '@/components/matching/SwipeFeedback';
 import FavoriteCandidateButton from '@/components/networking/FavoriteCandidateButton';
@@ -187,7 +188,8 @@ export default function SwipeCandidates() {
                         title: '🎉 New Match!',
                         message: `You matched with ${company.name} for ${selectedJob.title}!`,
                         match_id: match.id,
-                        job_id: selectedJobId
+                        job_id: selectedJobId,
+                        link: buildLink.match.chat(match.id)
                       }),
                       base44.entities.Notification.create({
                         user_id: user.id,
@@ -195,7 +197,8 @@ export default function SwipeCandidates() {
                         title: '🎉 New Match!',
                         message: `${currentCandidateUser?.full_name || 'A candidate'} matched for ${selectedJob.title}!`,
                         match_id: match.id,
-                        job_id: selectedJobId
+                        job_id: selectedJobId,
+                        link: buildLink.match.employerChat(match.id)
                       })
                     ]);
 
