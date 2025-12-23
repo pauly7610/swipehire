@@ -25,11 +25,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   Trash2, Search, Users, Briefcase, Building2, Video, 
-  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog
+  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog, RefreshCw
 } from 'lucide-react';
 import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { format } from 'date-fns';
 import BackfillResumeParser from '@/components/utils/BackfillResumeParser';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,9 @@ export default function AdminPanel() {
   const [deleteType, setDeleteType] = useState('');
   const [recruiterFeedback, setRecruiterFeedback] = useState([]);
   const [error, setError] = useState(null);
+  const [reindexing, setReindexing] = useState(false);
+  const [reindexResults, setReindexResults] = useState(null);
+  const [indexStats, setIndexStats] = useState({ total: 0, indexed: 0, failed: 0, pending: 0 });
 
   useEffect(() => {
     loadData();
@@ -88,6 +92,15 @@ export default function AdminPanel() {
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
       setUsers(userMap);
+
+      // Calculate index stats
+      const stats = {
+        total: allCandidates.filter(c => c.resume_url).length,
+        indexed: allCandidates.filter(c => c.index_status === 'success').length,
+        failed: allCandidates.filter(c => c.index_status === 'failed').length,
+        pending: allCandidates.filter(c => c.resume_url && !c.index_status).length
+      };
+      setIndexStats(stats);
     } catch (error) {
       console.error('Failed to load admin data:', error);
       setError(error);
@@ -132,6 +145,31 @@ export default function AdminPanel() {
   const handleApproveVideo = async (video) => {
     await base44.entities.VideoPost.update(video.id, { moderation_status: 'approved', is_flagged: false });
     setVideos(videos.map(v => v.id === video.id ? { ...v, moderation_status: 'approved', is_flagged: false } : v));
+  };
+
+  const handleReindexAll = async () => {
+    if (!confirm(`This will reindex ${indexStats.total} resumes. This may take several minutes. Continue?`)) {
+      return;
+    }
+
+    setReindexing(true);
+    setReindexResults(null);
+
+    try {
+      const response = await base44.functions.invoke('reindexAllResumes', {});
+      
+      if (response.data.success) {
+        setReindexResults(response.data.results);
+        await loadData(); // Reload to show updated stats
+      } else {
+        setError(response.data.error || 'Reindex failed');
+      }
+    } catch (err) {
+      console.error('Reindex error:', err);
+      setError(err.message || 'Failed to reindex resumes');
+    }
+
+    setReindexing(false);
   };
 
   if (loading) {
@@ -616,6 +654,124 @@ export default function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="tools" className="space-y-6">
+            {/* Resume Index Tool */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                  Resume Index Manager
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Total Resumes</p>
+                    <p className="text-2xl font-bold text-blue-600">{indexStats.total}</p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Indexed</p>
+                    <p className="text-2xl font-bold text-green-600">{indexStats.indexed}</p>
+                  </div>
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Failed</p>
+                    <p className="text-2xl font-bold text-red-600">{indexStats.failed}</p>
+                  </div>
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Not Indexed</p>
+                    <p className="text-2xl font-bold text-yellow-600">{indexStats.pending}</p>
+                  </div>
+                </div>
+
+                {reindexResults && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      Reindex complete: {reindexResults.success} succeeded, {reindexResults.failed} failed out of {reindexResults.total} total
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  onClick={handleReindexAll}
+                  disabled={reindexing || indexStats.total === 0}
+                  className="w-full swipe-gradient text-white"
+                >
+                  {reindexing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Reindexing {indexStats.total} resumes...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Reindex All Resumes
+                    </>
+                  )}
+                </Button>
+
+                <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+                  <p className="font-semibold mb-2">What this does:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Extracts text from all resume files (PDF/DOCX)</li>
+                    <li>Normalizes and indexes content for search</li>
+                    <li>Enables Boolean search across resume content</li>
+                    <li>Updates ATS search results</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Failed Resumes List */}
+            {indexStats.failed > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    Failed Resume Indexes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {candidates
+                      .filter(c => c.index_status === 'failed')
+                      .map(candidate => {
+                        const u = users[candidate.user_id];
+                        return (
+                          <div key={candidate.id} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900">{u?.full_name || 'Unknown'}</p>
+                                <p className="text-sm text-gray-600">{candidate.headline || 'No title'}</p>
+                                {candidate.index_error && (
+                                  <p className="text-xs text-red-600 mt-1">{candidate.index_error}</p>
+                                )}
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={async () => {
+                                  try {
+                                    await base44.functions.invoke('indexResume', {
+                                      candidate_id: candidate.id,
+                                      resume_url: candidate.resume_url
+                                    });
+                                    await loadData();
+                                  } catch (err) {
+                                    alert('Failed to reindex: ' + err.message);
+                                  }
+                                }}
+                              >
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Resume Backfill Tool */}
             <BackfillResumeParser
               onComplete={(results) => {
