@@ -42,7 +42,8 @@ export default function CommunicationHub() {
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        navigate(createPageUrl('Welcome'), { replace: true });
+        console.log('[CommunicationHub] Not authenticated');
+        setLoading(false);
         return;
       }
 
@@ -54,6 +55,7 @@ export default function CommunicationHub() {
       const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });
       
       if (!candidateData && !companyData) {
+        console.log('[CommunicationHub] No profile found - redirecting to onboarding');
         navigate(createPageUrl('Onboarding'), { replace: true });
         return;
       }
@@ -130,8 +132,8 @@ export default function CommunicationHub() {
         setCompanies(companyMap);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
-      navigate(createPageUrl('Welcome'), { replace: true });
+      console.error('[CommunicationHub] Load error:', error);
+      // Don't force redirect on error - let layout handle auth
     }
     setLoading(false);
   };

@@ -67,6 +67,8 @@ export default function EmployerDashboard() {
       setAllCompanies(companiesList);
 
       if (!companyData) {
+        console.log('[EmployerDashboard] No company found - redirecting to onboarding');
+        setLoading(false);
         navigate(createPageUrl('Onboarding'), { replace: true });
         return;
       }
@@ -106,8 +108,8 @@ export default function EmployerDashboard() {
         await checkInterviewReminders(companyInterviews, candidateMap, userMap, companyData);
       }
     } catch (error) {
-      console.error('Failed to load dashboard:', error);
-      navigate(createPageUrl('Welcome'), { replace: true });
+      console.error('[EmployerDashboard] Load error:', error);
+      // Don't redirect on error - just show loading false
     }
     setLoading(false);
   };

@@ -18,8 +18,9 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import audioFeedback from '@/components/shared/AudioFeedback';
 import ErrorLogger from '@/components/debugging/ErrorLogger';
+import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
 
-      export default function Layout({ children, currentPageName }) {
+            export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
@@ -310,6 +311,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
   return (
     <ThemeProvider>
     <ErrorLogger />
+    <AuthErrorBoundary>
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       <style>{`
         :root {
@@ -471,6 +473,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
               {/* Notification Deep Link Handler */}
               <NotificationHandler />
               </div>
+              </AuthErrorBoundary>
               </ThemeProvider>
               );
               }

@@ -132,9 +132,10 @@ export default function OnboardingWizard() {
           localStorage.removeItem('swipehire_selected_role');
         }
       } catch (e) {
-        console.error('Auth check failed:', e);
+        console.error('[OnboardingWizard] Auth check failed:', e);
+        // Don't redirect on auth check error - let user retry
         if (mounted) {
-          navigate(createPageUrl('Welcome'), { replace: true });
+          setLoading(false);
         }
       }
     };
