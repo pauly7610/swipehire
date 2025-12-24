@@ -290,9 +290,6 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
                     { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
                   ];
 
-  // Only show Admin to the specific admin email
-  const isMainAdmin = user?.email === 'xmitchell99@gmail.com';
-  
   const employerNav = [
                                     { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard', mobile: true },
                                     { name: 'Browse', icon: Search, page: 'BrowseCandidates', mobile: false },
@@ -303,7 +300,8 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
                                     { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
                                     { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
                                     { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
-                                    ...(isMainAdmin ? [{ name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false }, { name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : [{ name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false }]),
+                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false },
+                                    ...(user?.role === 'admin' ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : []),
                                   ];
 
   const navItems = userType === 'employer' ? employerNav : candidateNav;
