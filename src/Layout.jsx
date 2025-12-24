@@ -17,6 +17,7 @@ import NotificationHandler from '@/components/alerts/NotificationHandler';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import audioFeedback from '@/components/shared/AudioFeedback';
+import ErrorLogger from '@/components/debugging/ErrorLogger';
 
       export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -309,6 +310,7 @@ import audioFeedback from '@/components/shared/AudioFeedback';
 
   return (
     <ThemeProvider>
+    <ErrorLogger />
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       <style>{`
         :root {

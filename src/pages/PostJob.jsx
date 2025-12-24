@@ -125,29 +125,48 @@ export default function PostJob() {
   const handlePublish = async () => {
     setLoading(true);
     try {
-      await base44.entities.Job.create({
+      const newJob = await base44.entities.Job.create({
         ...jobData,
         company_id: company.id,
         salary_min: parseFloat(jobData.salary_min) || 0,
         salary_max: parseFloat(jobData.salary_max) || 0,
         is_active: true
       });
-      localStorage.removeItem('job_posting_draft'); // Clear draft
+      
+      // Trigger job posting alerts
+      try {
+        const { triggerJobAlerts } = await import('@/components/jobs/JobPublishHandler');
+        await triggerJobAlerts(newJob.id);
+      } catch (alertError) {
+        console.warn('Alert sending failed (non-blocking):', alertError);
+      }
+      
+      localStorage.removeItem('job_posting_draft');
       navigate(createPageUrl('ManageJobs'));
     } catch (error) {
       console.error('Failed to post job:', error);
+      alert('Failed to post job. Please try again.');
     }
     setLoading(false);
   };
 
   const handleAIWizardComplete = async (wizardJobData) => {
     try {
-      await base44.entities.Job.create({
+      const newJob = await base44.entities.Job.create({
         ...wizardJobData,
         company_id: company.id,
         is_active: true
       });
-      localStorage.removeItem('job_posting_draft'); // Clear draft
+      
+      // Trigger job posting alerts
+      try {
+        const { triggerJobAlerts } = await import('@/components/jobs/JobPublishHandler');
+        await triggerJobAlerts(newJob.id);
+      } catch (alertError) {
+        console.warn('Alert sending failed (non-blocking):', alertError);
+      }
+      
+      localStorage.removeItem('job_posting_draft');
       setShowAIWizard(false);
       navigate(createPageUrl('ManageJobs'));
     } catch (error) {

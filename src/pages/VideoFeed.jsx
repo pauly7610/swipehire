@@ -148,10 +148,10 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, j
   };
 
   return (
-    <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden pointer-events-none">
       {/* Video Container - Swipeable */}
       <motion.div 
-        className="relative w-full max-w-md h-full max-h-[85vh] mx-auto"
+        className="relative w-full md:max-w-md h-full md:max-h-[85vh] mx-auto pointer-events-auto"
         drag={canSwipe ? "x" : false}
         dragConstraints={{ left: -200, right: 200 }}
         dragElastic={0.7}
@@ -189,12 +189,14 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, j
         <video
           ref={videoRef}
           src={post.video_url}
-          className="w-full h-full object-contain bg-black rounded-2xl"
+          className="w-full h-full object-cover md:object-contain bg-black rounded-none md:rounded-2xl"
           loop
           muted={isMuted}
           playsInline
           onClick={togglePlay}
           onDoubleClick={handleDoubleTap}
+          poster={post.thumbnail_url || undefined}
+          preload="metadata"
         />
 
       {/* Play/Pause overlay */}
@@ -261,7 +263,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, j
       </div>
 
       {/* Top right controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-20 pointer-events-auto">
         <button
           onClick={handleMuteToggle}
           className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
@@ -291,7 +293,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, j
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-2 bottom-24 flex flex-col items-center gap-4 z-20">
+      <div className="absolute right-2 bottom-24 md:bottom-32 flex flex-col items-center gap-4 z-20 pointer-events-auto">
         {/* Profile */}
         <div className="flex flex-col items-center">
           <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden">
@@ -407,7 +409,7 @@ const VideoCard = ({ post, user, isActive, onLike, onView, candidate, company, j
                       </div>
 
       {/* Bottom info - Enhanced with CTA */}
-      <div className="absolute bottom-4 left-3 right-16 text-white z-10">
+      <div className="absolute bottom-4 left-3 right-16 md:right-20 text-white z-10 pointer-events-auto">
         {/* AI Intelligence Badge */}
         {post.type === 'day_in_life' && (
           <motion.div

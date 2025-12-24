@@ -161,9 +161,9 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
             transition={{ delay: 0.4 }}
             className="text-gray-600 dark:text-gray-300 mb-8"
           >
-            {candidate 
+            {viewerType === 'candidate' 
               ? `You matched with ${company?.name || 'the company'} for ${job?.title || 'this position'}!`
-              : `${candidate?.headline || 'This candidate'} is interested in your ${job?.title} position!`
+              : `A candidate is interested in your ${job?.title || 'position'}!`
             }
           </motion.p>
 
@@ -215,22 +215,17 @@ export default function MatchModal({ isOpen, onClose, match, candidate, company,
             className="space-y-3"
           >
             <Button
-              onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match?.id}`)}
+              onClick={() => {
+                const chatUrl = viewerType === 'employer' 
+                  ? createPageUrl('EmployerChat') + `?matchId=${match?.id}`
+                  : createPageUrl('Chat') + `?matchId=${match?.id}`;
+                navigate(chatUrl);
+              }}
               className="w-full swipe-gradient text-white h-12 rounded-xl text-lg font-semibold"
             >
               <MessageCircle className="w-5 h-5 mr-2" />
               Start a Conversation
             </Button>
-            {viewerType === 'candidate' && (
-              <Button
-                onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match?.id}&scheduleInterview=true`)}
-                variant="outline"
-                className="w-full h-12 rounded-xl border-pink-200 text-pink-600 hover:bg-pink-50"
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                Schedule Interview
-              </Button>
-            )}
             <Button
               onClick={onClose}
               variant="outline"

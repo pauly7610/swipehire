@@ -1,5 +1,6 @@
 import { base44 } from '@/api/base44Client';
 import buildLink from '@/components/utils/linkBuilder';
+import { hasReceivedRoleNotification, recordNotificationSent } from '@/components/utils/deduplication';
 
 /**
  * Email Automation Service
@@ -425,30 +426,39 @@ export async function sendJobPostingAlert(jobId) {
       return matchCount >= 3;
     });
 
-    // Check email frequency limits
-    for (const candidate of relevantCandidates.slice(0, 100)) { // Limit batch size
+    // Check email frequency limits and deduplication
+    for (const candidate of relevantCandidates.slice(0, 50)) { // Reduced batch size for precision
       try {
+        // DEDUPLICATION: Check if already notified about this job
+        const alreadyNotified = await hasReceivedRoleNotification(candidate.user_id, jobId);
+        if (alreadyNotified) {
+          console.log('[EmailAutomation] Skipping duplicate notification for job:', jobId, 'user:', candidate.user_id);
+          continue;
+        }
+        
         // Check recent job alerts
         const recentAlerts = await base44.entities.EmailEvent.filter({
           recipient_id: candidate.user_id,
           email_type: 'job_alert'
         }, '-sent_at', 5);
 
-        // Count emails in last 24 hours (max 1 per day)
+        // STRICT LIMITS: max 1 per day
         const oneDayAgo = new Date();
         oneDayAgo.setDate(oneDayAgo.getDate() - 1);
         const dailyCount = recentAlerts.filter(e => new Date(e.sent_at) > oneDayAgo).length;
-        if (dailyCount >= 1) continue;
+        if (dailyCount >= 1) {
+          console.log('[EmailAutomation] Daily limit reached for user:', candidate.user_id);
+          continue;
+        }
 
-        // Count emails in last 7 days (max 2-3 per week)
+        // STRICT LIMITS: max 2 per week (ideally 2-3)
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         const weeklyCount = recentAlerts.filter(e => new Date(e.sent_at) > weekAgo).length;
-        if (weeklyCount >= 2) continue;
-
-        // Check if we already sent this job
-        const alreadySent = recentAlerts.some(e => e.job_id === jobId);
-        if (alreadySent) continue;
+        if (weeklyCount >= 2) {
+          console.log('[EmailAutomation] Weekly limit reached for user:', candidate.user_id);
+          continue;
+        }
 
         // Get user email
         const [user] = await base44.entities.User.filter({ id: candidate.user_id });
@@ -460,6 +470,19 @@ export async function sendJobPostingAlert(jobId) {
           ? `$${(job.salary_min/1000).toFixed(0)}k+`
           : 'Competitive';
 
+        // Calculate which criteria matched for transparency
+        const matchedCriteria = [];
+        const prefs = candidate.alert_preferences || {};
+        if (prefs.role_types?.some(r => job.title.toLowerCase().includes(r.toLowerCase()))) {
+          matchedCriteria.push('role_type');
+        }
+        if (prefs.employment_types?.includes(job.job_type?.toLowerCase())) {
+          matchedCriteria.push('employment_type');
+        }
+        if (prefs.target_seniority_levels?.includes(job.seniority)) {
+          matchedCriteria.push('seniority');
+        }
+        
         await base44.integrations.Core.SendEmail({
           from_name: 'Rell @ SwipeHire',
           to: user.email,
@@ -512,6 +535,15 @@ export async function sendJobPostingAlert(jobId) {
           sent_at: new Date().toISOString(),
           status: 'sent'
         });
+        
+        // Record in RoleNotification for deduplication
+        await recordNotificationSent(
+          candidate.user_id,
+          jobId,
+          'email',
+          matchedCriteria,
+          null
+        );
 
       } catch (emailError) {
         console.error('Failed to send job alert to candidate:', candidate.id, emailError);

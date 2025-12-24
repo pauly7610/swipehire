@@ -136,8 +136,6 @@ export default function Matches() {
             filteredMatches.map((match, index) => {
               const company = companies[match.company_id];
               const job = jobs[match.job_id];
-              const navigate = (url) => window.location.href = url;
-
               return (
                 <motion.div
                   key={match.id}
@@ -145,17 +143,15 @@ export default function Matches() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
+                  <Link to={createPageUrl('Chat') + `?matchId=${match.id}`}>
                   <Card 
                     className="p-4 hover:shadow-lg transition-all cursor-pointer border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800"
-                    onClick={() => navigate(createPageUrl('Chat') + `?matchId=${match.id}`)}
                   >
                     <div className="flex items-start gap-4">
                       {/* Company Logo */}
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(createPageUrl('CompanyProfile') + `?id=${company?.id}`);
-                        }}
+                      <Link 
+                        to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="cursor-pointer"
                       >
                         {company?.logo_url ? (
@@ -169,22 +165,20 @@ export default function Matches() {
                             <Building2 className="w-7 h-7 text-white" />
                           </div>
                         )}
-                      </div>
+                      </Link>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <h3 className="font-semibold text-gray-900 dark:text-white truncate">{job?.title || 'Position'}</h3>
-                            <span 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(createPageUrl('CompanyProfile') + `?id=${company?.id}`);
-                              }}
+                            <Link 
+                              to={createPageUrl('CompanyProfile') + `?id=${company?.id}`}
+                              onClick={(e) => e.stopPropagation()}
                               className="text-gray-600 dark:text-gray-300 text-sm hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer"
                             >
                               {company?.name || 'Company'}
-                            </span>
+                            </Link>
                           </div>
                           {getStatusBadge(match.status)}
                         </div>
@@ -208,6 +202,7 @@ export default function Matches() {
                       </div>
                     </div>
                   </Card>
+                  </Link>
                 </motion.div>
               );
             })
