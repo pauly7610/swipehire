@@ -213,99 +213,99 @@ export default function AdminPanel() {
   const flaggedVideos = videos.filter(v => v.is_flagged);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-4 pb-24 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-500">Manage users, profiles, and content</p>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+            {flaggedVideos.length > 0 && (
+              <Badge className="bg-red-500 text-white text-xs">
+                <Flag className="w-3 h-3 mr-1" /> {flaggedVideos.length}
+              </Badge>
+            )}
           </div>
-          {flaggedVideos.length > 0 && (
-            <Badge className="bg-red-500 text-white">
-              <Flag className="w-3 h-3 mr-1" /> {flaggedVideos.length} Flagged
-            </Badge>
-          )}
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage users, profiles, and content</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <Card className="p-3 md:p-4 dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{candidates.length}</p>
-                <p className="text-sm text-gray-500">Candidates</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{companies.length}</p>
-                <p className="text-sm text-gray-500">Companies</p>
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{candidates.length}</p>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">Candidates</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-green-600" />
+          <Card className="p-3 md:p-4 dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{jobs.length}</p>
-                <p className="text-sm text-gray-500">Jobs</p>
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{companies.length}</p>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">Companies</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center">
-                <Video className="w-5 h-5 text-pink-600" />
+          <Card className="p-3 md:p-4 dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{videos.length}</p>
-                <p className="text-sm text-gray-500">Videos</p>
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{jobs.length}</p>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">Jobs</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3 md:p-4 dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center flex-shrink-0">
+                <Video className="w-5 h-5 md:w-6 md:h-6 text-pink-600 dark:text-pink-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{videos.length}</p>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">Videos</p>
               </div>
             </div>
           </Card>
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="relative mb-4 md:mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 dark:text-gray-500" />
           <Input
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-9 md:pl-10 h-11 md:h-12 text-sm md:text-base dark:bg-slate-900 dark:border-slate-700"
           />
         </div>
 
         <Tabs defaultValue="candidates">
-          <TabsList className="mb-4">
-            <TabsTrigger value="candidates">Candidates</TabsTrigger>
-            <TabsTrigger value="recruiters">Recruiters</TabsTrigger>
-            <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="videos">
-              Videos {flaggedVideos.length > 0 && <Badge className="ml-2 bg-red-500">{flaggedVideos.length}</Badge>}
+          <TabsList className="mb-4 w-full overflow-x-auto flex-nowrap justify-start dark:bg-slate-900">
+            <TabsTrigger value="candidates" className="text-xs md:text-sm flex-shrink-0">Candidates</TabsTrigger>
+            <TabsTrigger value="recruiters" className="text-xs md:text-sm flex-shrink-0">Recruiters</TabsTrigger>
+            <TabsTrigger value="companies" className="text-xs md:text-sm flex-shrink-0">Companies</TabsTrigger>
+            <TabsTrigger value="jobs" className="text-xs md:text-sm flex-shrink-0">Jobs</TabsTrigger>
+            <TabsTrigger value="videos" className="text-xs md:text-sm flex-shrink-0">
+              Videos {flaggedVideos.length > 0 && <Badge className="ml-1 md:ml-2 bg-red-500 text-xs">{flaggedVideos.length}</Badge>}
             </TabsTrigger>
-            <TabsTrigger value="tools">
-              🔧 Tools
+            <TabsTrigger value="tools" className="text-xs md:text-sm flex-shrink-0">
+              Tools
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="candidates">
-            <Card>
+            <Card className="dark:bg-slate-900 dark:border-slate-800 overflow-x-auto">
               {candidates.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500">No candidates in the system yet</p>
+                <div className="p-8 md:p-12 text-center">
+                  <Users className="w-12 h-12 md:w-16 md:h-16 mx-auto text-gray-300 dark:text-gray-600 mb-3 md:mb-4" />
+                  <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">No candidates in the system yet</p>
                 </div>
               ) : (
                 <Table>
