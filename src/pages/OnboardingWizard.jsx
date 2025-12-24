@@ -150,7 +150,7 @@ export default function OnboardingWizard() {
   useEffect(() => {
     if (!userType || currentStep <= 1) return;
 
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       setAutoSaving(true);
       setSavingError(null);
 
@@ -179,7 +179,7 @@ export default function OnboardingWizard() {
 
         setTimeout(() => setAutoSaving(false), 800);
       } catch (err) {
-        console.error('Failed to save draft:', err);
+        console.error('[Onboarding] Failed to save draft:', err);
         setSavingError('Failed to save progress');
         setAutoSaving(false);
       }
@@ -275,27 +275,42 @@ export default function OnboardingWizard() {
     setLoading(true);
     setSavingError(null);
 
+    console.log('[Onboarding] Starting profile creation...', { userType, user: user?.email });
+
     try {
       if (userType === 'candidate') {
-        // Validate required fields
-        if (!candidateData.headline || !candidateData.bio || !candidateData.location) {
-          throw new Error('Missing required fields');
+        // STRICT validation before submission
+        const validationErrors = [];
+        
+        if (!candidateData.headline?.trim()) validationErrors.push('Job title is required');
+        if (!candidateData.bio?.trim()) validationErrors.push('Professional summary is required');
+        if (!candidateData.location?.trim()) validationErrors.push('Location is required');
+        if (!candidateData.experience || candidateData.experience.length === 0) validationErrors.push('At least 1 work experience is required');
+        if (!candidateData.skills || candidateData.skills.length < 3) validationErrors.push('At least 3 skills are required');
+        
+        if (validationErrors.length > 0) {
+          console.error('[Onboarding] Validation failed:', validationErrors);
+          throw new Error(validationErrors.join(', '));
         }
 
         const profileData = {
           user_id: user.id,
           photo_url: candidateData.photo_url || '',
-          headline: candidateData.headline,
-          bio: candidateData.bio,
-          location: candidateData.location,
-          industry: candidateData.industry || '',
+          headline: candidateData.headline.trim(),
+          bio: candidateData.bio.trim(),
+          location: candidateData.location.trim(),
+          industry: candidateData.industry?.trim() || '',
           experience: candidateData.experience || [],
           education: candidateData.education || [],
-          skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s : s.skill),
+          skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s.trim() : s.skill?.trim()),
           resume_url: candidateData.resume_url || '',
         };
 
+        console.log('[Onboarding] Creating candidate profile...', { fields: Object.keys(profileData) });
+
         const newCandidate = await base44.entities.Candidate.create(profileData);
+        
+        console.log('[Onboarding] Candidate created:', newCandidate.id);
 
         analytics.track('Onboarding Completed', {
           userType: 'candidate',
@@ -305,13 +320,15 @@ export default function OnboardingWizard() {
           hasResume: !!candidateData.resume_url
         });
 
-        // Verify creation with retry
+        // Verify creation with extended retry and logging
         let profileFound = false;
-        for (let i = 0; i < 12; i++) {
-          await new Promise(resolve => setTimeout(resolve, 400));
+        for (let i = 0; i < 15; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
           const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
+          console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, candidates.length, 'profiles found');
           if (candidates.length > 0) {
             profileFound = true;
+            console.log('[Onboarding] Profile verified!');
             break;
           }
         }
@@ -320,49 +337,63 @@ export default function OnboardingWizard() {
           localStorage.setItem('swipehire_view_mode', 'candidate');
           localStorage.removeItem('onboarding_draft_v2');
           sessionStorage.removeItem('onboarding_draft_v2');
+          console.log('[Onboarding] Redirecting to SwipeJobs...');
           navigate(createPageUrl('SwipeJobs'), { replace: true });
         } else {
-          throw new Error('Profile creation verification timeout');
+          throw new Error('Profile creation verification timeout - profile may still be processing');
         }
       } else {
-        // Validate required fields
-        if (!recruiterData.recruiter_name || !recruiterData.title) {
-          throw new Error('Missing recruiter information');
+        // STRICT validation for recruiter
+        const validationErrors = [];
+        
+        if (!recruiterData.recruiter_name?.trim()) validationErrors.push('Your name is required');
+        if (!recruiterData.title?.trim()) validationErrors.push('Your title is required');
+        if (!companyData.name?.trim()) validationErrors.push('Company name is required');
+        if (!companyData.industry?.trim()) validationErrors.push('Company industry is required');
+        
+        if (validationErrors.length > 0) {
+          console.error('[Onboarding] Validation failed:', validationErrors);
+          throw new Error(validationErrors.join(', '));
         }
-        if (!companyData.name || !companyData.industry) {
-          throw new Error('Missing company information');
-        }
+
+        console.log('[Onboarding] Updating recruiter info...');
 
         // Save recruiter info
         await base44.auth.updateMe({
-          recruiter_name: recruiterData.recruiter_name,
-          recruiter_title: recruiterData.title,
+          recruiter_name: recruiterData.recruiter_name.trim(),
+          recruiter_title: recruiterData.title.trim(),
           recruiter_photo: recruiterData.photo_url || '',
         });
+
+        console.log('[Onboarding] Creating company...');
 
         // Create company
         const newCompany = await base44.entities.Company.create({
           user_id: user.id,
-          name: companyData.name,
-          industry: companyData.industry,
-          location: companyData.location || '',
-          website: companyData.website || '',
+          name: companyData.name.trim(),
+          industry: companyData.industry.trim(),
+          location: companyData.location?.trim() || '',
+          website: companyData.website?.trim() || '',
           size: companyData.size || '11-50',
           logo_url: companyData.logo_url || '',
         });
+
+        console.log('[Onboarding] Company created:', newCompany.id);
 
         analytics.track('Onboarding Completed', {
           userType: 'employer',
           hasLogo: !!companyData.logo_url
         });
 
-        // Verify creation with retry
+        // Verify creation with extended retry and logging
         let companyFound = false;
-        for (let i = 0; i < 12; i++) {
-          await new Promise(resolve => setTimeout(resolve, 400));
+        for (let i = 0; i < 15; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
           const companies = await base44.entities.Company.filter({ user_id: user.id });
+          console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, companies.length, 'companies found');
           if (companies.length > 0) {
             companyFound = true;
+            console.log('[Onboarding] Company verified!');
             break;
           }
         }
@@ -371,13 +402,14 @@ export default function OnboardingWizard() {
           localStorage.setItem('swipehire_view_mode', 'employer');
           localStorage.removeItem('onboarding_draft_v2');
           sessionStorage.removeItem('onboarding_draft_v2');
+          console.log('[Onboarding] Redirecting to EmployerDashboard...');
           navigate(createPageUrl('EmployerDashboard'), { replace: true });
         } else {
-          throw new Error('Company creation verification timeout');
+          throw new Error('Company creation verification timeout - company may still be processing');
         }
       }
     } catch (error) {
-      console.error('Onboarding completion failed:', error);
+      console.error('[Onboarding] Completion failed:', error);
       setSavingError(error.message || 'Failed to create profile. Please try again.');
       
       analytics.track('Onboarding Failed', {

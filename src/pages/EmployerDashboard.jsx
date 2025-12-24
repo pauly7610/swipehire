@@ -52,6 +52,12 @@ export default function EmployerDashboard() {
 
   const loadDashboard = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setLoading(false);
+        return;
+      }
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const [companyData] = await base44.entities.Company.filter({ user_id: currentUser.id });

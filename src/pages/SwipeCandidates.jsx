@@ -56,6 +56,12 @@ export default function SwipeCandidates() {
 
   const loadData = async () => {
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setLoading(false);
+        return;
+      }
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
