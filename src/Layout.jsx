@@ -89,7 +89,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
         }
 
         // Only redirect if no profile exists and not already on onboarding or welcome
-        if (!hasCompany && !hasCandidate && !['Onboarding', 'Welcome'].includes(currentPageName)) {
+        if (!hasCompany && !hasCandidate && !['Onboarding', 'Welcome', 'OnboardingWizard'].includes(currentPageName)) {
           navigate(createPageUrl('Onboarding'), { replace: true });
           return;
         }
@@ -108,18 +108,20 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
       } catch (e) {
         console.error('[Layout] Auth error:', e);
         
-        // Only clear user on explicit auth failures, not network errors
-        if (e?.response?.status === 401 || e?.message?.includes('unauthorized')) {
-          console.warn('[Layout] 401/Unauthorized - clearing user');
+        // CRITICAL: Only clear session on explicit 401/403 auth failures
+        // Network errors, timeouts, 500s should NOT log user out
+        if (e?.response?.status === 401 || e?.response?.status === 403) {
+          console.warn('[Layout] Explicit auth failure - clearing user');
           if (isMounted) {
             setUser(null);
+            setLoading(false);
           }
         } else {
-          console.log('[Layout] Non-auth error, keeping session');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
+          // Keep user logged in for network/server errors
+          console.log('[Layout] Temporary error, preserving session');
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       }
     };
@@ -182,7 +184,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
         navigate(createPageUrl('Onboarding'));
       };
 
-  const hideLayout = ['Welcome', 'Onboarding', 'Chat', 'EmployerChat'].includes(currentPageName);
+  const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat', 'EmployerChat'].includes(currentPageName);
   const publicPages = ['Welcome', 'Onboarding', 'BrowseJobs', 'PublicJobView', 'CompanyProfile', 'VideoFeed', 'BrowseCandidates', 'ViewCandidateProfile'];
 
   // Show loading while checking auth
@@ -198,7 +200,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
           return (
             <>
               {children}
-              {currentPageName === 'Onboarding' && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
+              {(currentPageName === 'Onboarding' || currentPageName === 'OnboardingWizard') && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
             </>
           );
         }
