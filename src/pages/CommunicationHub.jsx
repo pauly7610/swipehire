@@ -411,18 +411,30 @@ function FeedItem({ item, jobs, companies, onRead, index, navigate }) {
   const job = jobs[data?.job_id];
   const company = companies[data?.company_id || job?.company_id];
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (type === 'notification' && !isRead) {
       onRead(data.id);
     }
 
-    // Navigate based on type
-    if (type === 'message' && data.connection_id) {
-      navigate(createPageUrl('DirectMessages'));
+    // Navigate based on type with proper async handling
+    if (type === 'message') {
+      if (data.match_id) {
+        navigate(createPageUrl('Chat') + `?matchId=${data.match_id}`);
+      } else if (data.connection_id) {
+        navigate(createPageUrl('DirectMessages') + `?connectionId=${data.connection_id}`);
+      } else {
+        navigate(createPageUrl('DirectMessages'));
+      }
     } else if (type === 'interview' && data.match_id) {
       navigate(createPageUrl('Chat') + `?matchId=${data.match_id}`);
-    } else if (type === 'notification' && data.navigate_to) {
-      navigate(createPageUrl(data.navigate_to));
+    } else if (type === 'notification') {
+      if (data.link) {
+        window.location.href = data.link;
+      } else if (data.navigate_to) {
+        navigate(createPageUrl(data.navigate_to));
+      } else if (data.match_id) {
+        navigate(createPageUrl('Chat') + `?matchId=${data.match_id}`);
+      }
     } else if (type === 'status' && data.id) {
       navigate(createPageUrl('ApplicationTracker'));
     }

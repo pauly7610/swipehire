@@ -71,14 +71,14 @@ export default function ScheduleInterview({ onSchedule, onClose }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col"
       >
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900">Schedule Interview</h2>
-          <p className="text-gray-500">Choose the interview format</p>
+        <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex-shrink-0">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule Interview</h2>
+          <p className="text-gray-500 dark:text-gray-400">Choose the interview format</p>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Interview Type Selection */}
           <RadioGroup value={interviewType} onValueChange={setInterviewType}>
             <div className="grid grid-cols-2 gap-4">
@@ -142,16 +142,17 @@ export default function ScheduleInterview({ onSchedule, onClose }) {
               </div>
 
               <div>
-                <Label>Select Time</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <Label className="dark:text-gray-300">Select Time</Label>
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mt-2 max-h-60 overflow-y-auto p-1">
                   {timeSlots.map((time) => (
                     <button
                       key={time}
                       onClick={() => setSelectedTime(time)}
-                      className={`py-2 px-3 rounded-lg text-sm transition-all ${
+                      type="button"
+                      className={`py-2.5 px-3 rounded-lg text-sm transition-all flex-shrink-0 ${
                         selectedTime === time 
-                          ? 'swipe-gradient text-white' 
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'swipe-gradient text-white shadow-md' 
+                          : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
                       }`}
                     >
                       {time}
@@ -214,14 +215,14 @@ export default function ScheduleInterview({ onSchedule, onClose }) {
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-t border-gray-100 flex gap-3">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+        <div className="p-6 border-t border-gray-100 dark:border-slate-700 flex gap-3 flex-shrink-0">
+          <Button variant="outline" onClick={onClose} className="flex-1 h-12 dark:border-slate-600 dark:text-gray-300">
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || (interviewType === 'live' && (!selectedDate || !selectedTime))}
-            className="flex-1 swipe-gradient text-white"
+            className="flex-1 h-12 swipe-gradient text-white"
           >
             {loading ? 'Sending...' : (
               <>

@@ -853,12 +853,7 @@ export default function ATS() {
                 Search
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400 px-1">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">Boolean examples:</span>
-              <code className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded font-mono">Python AND React</code>
-              <code className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded font-mono">Designer OR Engineer</code>
-              <code className="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded font-mono">NOT Remote</code>
-            </div>
+
           </div>
           
           <div className="grid grid-cols-2 gap-2">
