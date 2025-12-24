@@ -233,14 +233,20 @@ export default function PublicJobView() {
                 </Card>
               )}
 
-              {/* Skills */}
+              {/* Skills - Mobile Optimized Chips */}
               {job.skills_required?.length > 0 && (
                 <Card className="border-0 shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                  <CardContent className="p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Skills Required</h2>
+                  <CardContent className="p-4 md:p-6">
+                    <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Skills Required</h2>
                     <div className="flex flex-wrap gap-2">
                       {job.skills_required.map((skill, i) => (
-                        <Badge key={i} className="bg-pink-100 text-pink-700">{skill}</Badge>
+                        <Badge 
+                          key={i} 
+                          className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-3 py-2 text-sm font-medium cursor-default select-none"
+                          style={{ minHeight: '36px', minWidth: '44px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {skill}
+                        </Badge>
                       ))}
                     </div>
                   </CardContent>

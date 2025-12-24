@@ -161,7 +161,7 @@ export default function DirectMessages() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex">
       <style>{`
         .swipe-gradient {
           background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
@@ -169,19 +169,19 @@ export default function DirectMessages() {
       `}</style>
 
       {/* Sidebar - Connections List */}
-      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Messages</h2>
+      <div className={`${selectedConnection ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex-col`}>
+        <div className="p-4 border-b border-gray-200 dark:border-slate-800">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Messages</h2>
         </div>
 
         <ScrollArea className="flex-1">
           {connections.length === 0 ? (
             <div className="p-8 text-center">
-              <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 text-sm">No connections yet</p>
+              <MessageCircle className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No connections yet</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-800">
               {connections.map((connection) => {
                 const otherUser = getOtherUser(connection);
                 return (
@@ -191,18 +191,18 @@ export default function DirectMessages() {
                       setSelectedConnection(connection);
                       loadMessages(connection.id);
                     }}
-                    className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors ${
-                      selectedConnection?.id === connection.id ? 'bg-pink-50' : ''
+                    className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors ${
+                      selectedConnection?.id === connection.id ? 'bg-pink-50 dark:bg-pink-900/20' : ''
                     }`}
                   >
                     <div className="w-12 h-12 rounded-full swipe-gradient flex items-center justify-center text-white font-semibold flex-shrink-0">
                       {otherUser?.full_name?.charAt(0) || 'U'}
                     </div>
                     <div className="flex-1 text-left min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">
                         {otherUser?.full_name || 'User'}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {otherUser?.email}
                       </p>
                     </div>
@@ -215,34 +215,37 @@ export default function DirectMessages() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${selectedConnection ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-gray-50 dark:bg-slate-950`}>
         {selectedConnection ? (
           <>
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+            <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-4 flex items-center gap-3">
               <button
                 onClick={() => setSelectedConnection(null)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-full"
+                className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </button>
               <div className="w-10 h-10 rounded-full swipe-gradient flex items-center justify-center text-white font-semibold">
                 {getOtherUser(selectedConnection)?.full_name?.charAt(0) || 'U'}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
                   {getOtherUser(selectedConnection)?.full_name || 'User'}
                 </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {getOtherUser(selectedConnection)?.email}
+                </p>
               </div>
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-slate-950">
               <div className="max-w-3xl mx-auto space-y-4">
                 {messages.length === 0 ? (
                   <div className="text-center py-12">
-                    <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500">No messages yet. Start the conversation!</p>
+                    <MessageCircle className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
                   </div>
                 ) : (
                   <AnimatePresence>
@@ -258,12 +261,12 @@ export default function DirectMessages() {
                           <div
                             className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                               isMe
-                                ? 'swipe-gradient text-white rounded-br-md'
-                                : 'bg-white text-gray-900 rounded-bl-md shadow-sm'
+                                ? 'swipe-gradient text-white rounded-br-md shadow-md'
+                                : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-bl-md shadow-sm border border-gray-200 dark:border-slate-700'
                             }`}
                           >
-                            <p>{msg.content}</p>
-                            <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400'}`}>
+                            <p className="break-words">{msg.content}</p>
+                            <p className={`text-xs mt-1 ${isMe ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'}`}>
                               {format(new Date(msg.created_date), 'h:mm a')}
                             </p>
                           </div>
@@ -274,10 +277,10 @@ export default function DirectMessages() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
+            <div className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 p-4">
               <div className="max-w-3xl mx-auto">
                 <form
                   onSubmit={(e) => {
@@ -290,17 +293,18 @@ export default function DirectMessages() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 h-12 rounded-full border-gray-200 px-4"
+                    className="flex-1 h-12 rounded-full border-gray-200 dark:border-slate-700 dark:bg-slate-800 px-4"
+                    autoFocus
                   />
                   <Button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="w-12 h-12 rounded-full swipe-gradient p-0"
+                    className="w-12 h-12 rounded-full swipe-gradient p-0 flex-shrink-0"
                   >
                     {sending ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
                     ) : (
-                      <Send className="w-5 h-5" />
+                      <Send className="w-5 h-5 text-white" />
                     )}
                   </Button>
                 </form>
@@ -308,11 +312,11 @@ export default function DirectMessages() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-center p-8">
+          <div className="flex-1 flex items-center justify-center text-center p-8 bg-gray-50 dark:bg-slate-950">
             <div>
-              <MessageCircle className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a conversation</h3>
-              <p className="text-gray-500">Choose a connection to start messaging</p>
+              <MessageCircle className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Select a conversation</h3>
+              <p className="text-gray-500 dark:text-gray-400">Choose a connection to start messaging</p>
             </div>
           </div>
         )}

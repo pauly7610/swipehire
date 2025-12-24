@@ -40,6 +40,10 @@ import ResumeAutoParser from '@/components/profile/ResumeAutoParser';
 import ActivityFeed from '@/components/signals/ActivityFeed';
 import AutoResumeIndexer from '@/components/resume/AutoResumeIndexer';
 import ResumeIndexManager from '@/components/resume/ResumeIndexManager';
+import StructuredLocationInput from '@/components/location/StructuredLocationInput';
+import { Switch } from '@/components/ui/switch';
+import AISkillSuggestions from '@/components/candidate/AISkillSuggestions';
+import ProfileVisibilityControl from '@/components/candidate/ProfileVisibilityControl';
 
 export default function CandidateProfile() {
   const [user, setUser] = useState(null);
@@ -64,6 +68,7 @@ export default function CandidateProfile() {
   const [suggestedSkills, setSuggestedSkills] = useState([]);
   const [showResume, setShowResume] = useState(false);
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [profileVisible, setProfileVisible] = useState(true);
 
   useEffect(() => {
     loadProfile();
@@ -103,6 +108,7 @@ export default function CandidateProfile() {
       
       setCandidate(candidateData);
       setEditData(candidateData);
+      setProfileVisible(candidateData.job_search_status !== 'not_looking');
 
       // Load video stats
       const videos = await base44.entities.VideoPost.filter({ author_id: currentUser.id });
@@ -130,9 +136,13 @@ export default function CandidateProfile() {
 
   const handleSave = async () => {
     if (candidate?.id) {
-      await base44.entities.Candidate.update(candidate.id, editData);
+      const updates = {
+        ...editData,
+        job_search_status: profileVisible ? (editData.job_search_status || 'actively_looking') : 'not_looking'
+      };
+      await base44.entities.Candidate.update(candidate.id, updates);
+      setCandidate(updates);
     }
-    setCandidate(editData);
     setEditing(false);
   };
 
@@ -414,19 +424,20 @@ export default function CandidateProfile() {
                 </p>
               )}
 
-              <div className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400">
-                <MapPin className="w-4 h-4" />
-                {editing ? (
-                  <Input
+              {editing ? (
+                <div className="mt-4">
+                  <Label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Location</Label>
+                  <StructuredLocationInput
                     value={editData.location || ''}
-                    onChange={(e) => setEditData({ ...editData, location: e.target.value })}
-                    placeholder="Your location"
-                    className="h-8"
+                    onChange={(v) => setEditData({ ...editData, location: v })}
                   />
-                ) : (
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-2 text-gray-500 dark:text-gray-400">
+                  <MapPin className="w-4 h-4" />
                   <span>{candidate?.location || 'Add location'}</span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* View Resume Button */}
               {candidate?.resume_url && !editing && (
@@ -554,6 +565,21 @@ export default function CandidateProfile() {
               />
             )}
 
+            {/* AI Skill Suggestions - Candidate Approval Required */}
+            {editing && (editData.headline || candidate?.resume_url) && (
+              <AISkillSuggestions
+                candidate={candidate}
+                headline={editData.headline}
+                resumeUrl={candidate?.resume_url}
+                onSkillsAdded={(skills) => {
+                  setEditData({
+                    ...editData,
+                    skills: [...new Set([...(editData.skills || []), ...skills])]
+                  });
+                }}
+              />
+            )}
+
             {/* Skills */}
             <Card className="dark:bg-slate-900 dark:border-slate-800">
               <CardHeader>
@@ -561,39 +587,17 @@ export default function CandidateProfile() {
               </CardHeader>
               <CardContent>
                 {editing && (
-                  <>
-                    {/* Suggested Skills */}
-                    {suggestedSkills.length > 0 && (
-                      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm font-medium text-blue-900 mb-2">Suggested for {editData.headline}:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {suggestedSkills.slice(0, 10).map((skill) => (
-                            <Badge
-                              key={skill}
-                              className="cursor-pointer bg-white text-blue-700 hover:bg-blue-100 border border-blue-200"
-                              onClick={() => addSkill(skill)}
-                            >
-                              <Plus className="w-3 h-3 mr-1" />
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Manual Skill Input */}
-                    <div className="flex gap-2 mb-4">
-                      <Input
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        placeholder="Add a custom skill"
-                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                      />
-                      <Button onClick={() => addSkill()} className="swipe-gradient">
-                        <Plus className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </>
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      placeholder="Add a skill manually"
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                    />
+                    <Button onClick={() => addSkill()} className="swipe-gradient">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
                 )}
                 
                 {/* Current Skills */}
@@ -1079,6 +1083,16 @@ export default function CandidateProfile() {
           </TabsContent>
 
           <TabsContent value="tools" className="space-y-6">
+            {/* Profile Visibility Control */}
+            <ProfileVisibilityControl
+              candidate={candidate}
+              onUpdate={(updates) => {
+                setCandidate({ ...candidate, ...updates });
+                setEditData({ ...editData, ...updates });
+                setProfileVisible(updates.job_search_status !== 'not_looking');
+              }}
+            />
+
             {/* Activity Feed */}
             {candidate && user && (
               <ActivityFeed 

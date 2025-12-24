@@ -225,27 +225,30 @@ export default function JobCard({ job, company, isFlipped, onFlip, matchScore, o
                 </motion.div>
               </div>
 
-              {/* Required Skills */}
+              {/* Required Skills - Mobile Optimized */}
               <div className="mb-3">
                 <h4 className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Key Skills</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {job.skills_required?.slice(0, 6).map((skill, i) => (
+                <div className="flex flex-wrap gap-2 pointer-events-auto">
+                  {job.skills_required?.slice(0, 8).map((skill, i) => (
                     <motion.div
                       key={i}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.03 * i, type: "spring", stiffness: 400 }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
                     >
                       <Badge 
-                        className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-2.5 py-1 shadow-sm text-[10px] font-semibold"
+                        className="bg-gradient-to-r from-pink-500 to-orange-500 text-white border-0 px-3 py-1.5 shadow-sm text-xs font-semibold cursor-default select-none"
+                        style={{ minHeight: '32px', minWidth: '44px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         {skill}
                       </Badge>
                     </motion.div>
                   ))}
-                  {job.skills_required?.length > 6 && (
-                    <Badge variant="outline" className="border-gray-300 text-gray-600 text-[10px]">
-                      +{job.skills_required.length - 6} more
+                  {job.skills_required?.length > 8 && (
+                    <Badge variant="outline" className="border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400 text-xs min-h-[32px] px-3">
+                      +{job.skills_required.length - 8}
                     </Badge>
                   )}
                 </div>

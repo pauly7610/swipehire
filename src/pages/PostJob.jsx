@@ -17,8 +17,10 @@ import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import AIJobWizard from '@/components/jobs/AIJobWizard';
 import AIJobDescriptionAssistant from '@/components/jobs/AIJobDescriptionAssistant';
+import AIJobWizardModal from '@/components/jobs/AIJobWizardModal';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import LocationSelect from '@/components/shared/LocationSelect';
+import StructuredLocationInput from '@/components/location/StructuredLocationInput';
 import IndustrySelect from '@/components/shared/IndustrySelect';
 
 export default function PostJob() {
@@ -26,6 +28,7 @@ export default function PostJob() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
+  const [showAIWizardModal, setShowAIWizardModal] = useState(false);
   const [step, setStep] = useState(1);
   const [newSkill, setNewSkill] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
@@ -207,17 +210,16 @@ export default function PostJob() {
               </div>
             </div>
 
+            <div>
+              <Label className="text-gray-700 dark:text-gray-300 text-base mb-2 block">Job Location</Label>
+              <StructuredLocationInput
+                value={jobData.location}
+                onChange={(v) => setJobData({ ...jobData, location: v })}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-gray-700 dark:text-gray-300 text-base">Location</Label>
-                <div className="mt-2">
-                  <LocationSelect
-                    value={jobData.location}
-                    onChange={(v) => setJobData({ ...jobData, location: v })}
-                    placeholder="Select location"
-                  />
-                </div>
-              </div>
+              <div className="hidden"></div>
               <div>
                 <Label className="text-gray-700 dark:text-gray-300 text-base">Job Type</Label>
                 <Select
@@ -280,28 +282,37 @@ export default function PostJob() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            {/* AI Assistant */}
-            <AIJobDescriptionAssistant
-              jobData={jobData}
-              onApply={(generated) => {
-                setJobData({
-                  ...jobData,
-                  description: generated.description || jobData.description,
-                  responsibilities: generated.responsibilities || jobData.responsibilities,
-                  requirements: generated.requirements || jobData.requirements,
-                  benefits: generated.benefits || jobData.benefits,
-                  skills_required: [...new Set([...jobData.skills_required, ...(generated.suggested_keywords || [])])]
-                });
-              }}
-            />
+            {/* AI Wizard Prompt */}
+            <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-900/20 dark:to-orange-900/20 dark:border-pink-800">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+                    <Wand2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Use AI to Write This?</h3>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                      Let our AI create a professional job description based on your role details. You can edit everything before publishing.
+                    </p>
+                    <Button
+                      onClick={() => setShowAIWizardModal(true)}
+                      className="swipe-gradient text-white"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate with AI
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div>
               <Label className="text-gray-700 dark:text-gray-300 text-base">Job Description *</Label>
               <Textarea
                 value={jobData.description}
                 onChange={(e) => setJobData({ ...jobData, description: e.target.value })}
-                placeholder="Describe the role, what the candidate will do, and what makes this opportunity exciting..."
-                className="mt-2 min-h-[150px]"
+                placeholder="Describe the role, what the candidate will do, and what makes this opportunity exciting... (or use AI wizard above)"
+                className="mt-2 min-h-[200px]"
               />
             </div>
 
@@ -559,6 +570,19 @@ export default function PostJob() {
           onClose={() => setShowAIWizard(false)}
         />
       )}
+
+      {/* AI Job Wizard Modal */}
+      <AIJobWizardModal
+        open={showAIWizardModal}
+        onOpenChange={setShowAIWizardModal}
+        jobData={{
+          ...jobData,
+          companyName: company?.name
+        }}
+        onComplete={(description) => {
+          setJobData({ ...jobData, description });
+        }}
+      />
 
       <div className="max-w-3xl mx-auto">
         {/* Header */}
