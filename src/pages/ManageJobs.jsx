@@ -35,12 +35,6 @@ export default function ManageJobs() {
 
   const loadJobs = async () => {
     try {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        navigate(createPageUrl('Welcome'), { replace: true });
-        return;
-      }
-
       const user = await base44.auth.me();
       const [companyData] = await base44.entities.Company.filter({ user_id: user.id });
       
@@ -51,16 +45,13 @@ export default function ManageJobs() {
 
       setCompany(companyData);
 
-      if (companyData) {
-        const companyJobs = await base44.entities.Job.filter({ company_id: companyData.id });
-        setJobs(companyJobs);
+      const companyJobs = await base44.entities.Job.filter({ company_id: companyData.id });
+      setJobs(companyJobs);
 
-        const companyMatches = await base44.entities.Match.filter({ company_id: companyData.id });
-        setMatches(companyMatches);
-      }
+      const companyMatches = await base44.entities.Match.filter({ company_id: companyData.id });
+      setMatches(companyMatches);
     } catch (error) {
       console.error('Failed to load jobs:', error);
-      navigate(createPageUrl('Welcome'), { replace: true });
     }
     setLoading(false);
   };
