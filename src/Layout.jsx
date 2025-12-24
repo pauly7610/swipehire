@@ -300,7 +300,6 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
                                     { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
                                     { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
                                     { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
-                                    { name: 'Referrals', icon: TrendingUp, page: 'Referrals', mobile: false },
                                     ...(user?.role === 'admin' ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : []),
                                   ];
 
