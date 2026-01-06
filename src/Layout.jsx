@@ -47,8 +47,11 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
   }, []);
 
   useEffect(() => {
-    // Skip auth checks - just set loading to false immediately
+    // No auth - just load immediately
     setLoading(false);
+    setUser({ id: 'demo-user', email: 'demo@swipehire.com', full_name: 'Demo User' });
+    setUserType('candidate');
+    setViewMode('candidate');
   }, []);
 
   const toggleViewMode = async () => {
@@ -79,100 +82,13 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
       };
 
   const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat', 'EmployerChat'].includes(currentPageName);
-  const publicPages = ['Welcome', 'Onboarding', 'BrowseJobs', 'PublicJobView', 'CompanyProfile', 'VideoFeed', 'BrowseCandidates', 'ViewCandidateProfile'];
-
-  // Show loading while checking auth
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 animate-pulse" />
-      </div>
-    );
-  }
 
   if (hideLayout) {
-          return (
-            <>
-              {children}
-              {(currentPageName === 'Onboarding' || currentPageName === 'OnboardingWizard') && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
-            </>
-          );
-        }
-
-  // For public pages, show simplified navigation without login
-  if (!user && publicPages.includes(currentPageName)) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <style>{`
-          .swipe-gradient {
-            background: linear-gradient(135deg, #FF005C 0%, #FF7B00 100%);
-          }
-        `}</style>
-
-        {/* Simple header for public pages */}
-        <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <Link to={createPageUrl('Welcome')}>
-              <Logo size="sm" />
-            </Link>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => {
-                try {
-                  base44.auth.redirectToLogin(window.location.pathname);
-                } catch (err) {
-                  window.location.href = '/api/auth/login';
-                }
-              }}>
-                Login
-              </Button>
-              <Button className="swipe-gradient text-white" onClick={() => {
-                try {
-                  base44.auth.redirectToLogin(createPageUrl('Onboarding'));
-                } catch (err) {
-                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(createPageUrl('Onboarding'));
-                }
-              }}>
-                Sign Up
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        <main className="pt-16">
-          {children}
-        </main>
-      </div>
-    );
-  }
-
-  // Show login prompt for protected pages
-  if (!user && !publicPages.includes(currentPageName)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 mx-auto mb-4 flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Login Required</h2>
-            <p className="text-gray-600 mb-6">Please login to access this feature</p>
-            <Button 
-              onClick={() => {
-                try {
-                  const nextUrl = window.location.pathname + window.location.search;
-                  base44.auth.redirectToLogin(nextUrl);
-                } catch (err) {
-                  console.error('Login redirect failed:', err);
-                  window.location.href = '/api/auth/login?next=' + encodeURIComponent(window.location.pathname);
-                }
-              }}
-              className="w-full swipe-gradient text-white"
-            >
-              Login to Continue
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        {children}
+        {(currentPageName === 'Onboarding' || currentPageName === 'OnboardingWizard') && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
+      </>
     );
   }
 
