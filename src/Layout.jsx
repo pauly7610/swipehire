@@ -42,8 +42,38 @@ import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
 
   const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat'].includes(currentPageName);
 
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 animate-pulse" />
+      </div>
+    );
+  }
+
   if (hideLayout) {
     return children;
+  }
+
+  if (!user && currentPageName !== 'Welcome') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 mx-auto mb-4 flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+            <p className="text-gray-600 mb-6">Please sign in to continue</p>
+            <Button 
+              onClick={() => navigate(createPageUrl('Welcome'))}
+              className="w-full swipe-gradient text-white"
+            >
+              Go to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const navItems = [
