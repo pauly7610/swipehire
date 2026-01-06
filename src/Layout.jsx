@@ -17,10 +17,10 @@ import ThemeToggle from '@/components/theme/ThemeToggle';
 import audioFeedback from '@/components/shared/AudioFeedback';
 import ErrorLogger from '@/components/debugging/ErrorLogger';
 import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
+import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
 
-            export default function Layout({ children, currentPageName }) {
-  const user = { id: 'demo-user', email: 'demo@swipehire.com', full_name: 'Demo User' };
-  const logout = () => {};
+          export default function Layout({ children, currentPageName }) {
+  const { user, isLoadingAuth, logout } = useClerkAuth();
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
 
