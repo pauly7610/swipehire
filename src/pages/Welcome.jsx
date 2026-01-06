@@ -9,13 +9,6 @@ import SplashScreen from '@/components/splash/SplashScreen';
 import Logo from '@/components/shared/Logo';
 
 export default function Welcome() {
-  const navigate = useNavigate();
-  const [showSplash, setShowSplash] = useState(true);
-  const [loading, setLoading] = useState(true);
-
-  // No auth check - just show the sign in page directly
-
-  // Sign In page
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 flex items-center justify-center p-4 relative overflow-hidden">
       <style>{`
