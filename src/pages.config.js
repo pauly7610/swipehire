@@ -1,4 +1,3 @@
-import AdminPanel from './pages/AdminPanel';
 import ApplicationDashboard from './pages/ApplicationDashboard';
 import ApplicationTracker from './pages/ApplicationTracker';
 import BrowseJobs from './pages/BrowseJobs';
@@ -21,7 +20,6 @@ import JobsList from './pages/JobsList';
 import Matches from './pages/Matches';
 import MinimalSwipeJobs from './pages/MinimalSwipeJobs';
 import Onboarding from './pages/Onboarding';
-import OnboardingWizard from './pages/OnboardingWizard';
 import PublicJobView from './pages/PublicJobView';
 import Referrals from './pages/Referrals';
 import SkillTests from './pages/SkillTests';
@@ -29,11 +27,12 @@ import SwipeJobs from './pages/SwipeJobs';
 import SwipePeople from './pages/SwipePeople';
 import VideoFeed from './pages/VideoFeed';
 import Welcome from './pages/Welcome';
+import AdminPanel from './pages/AdminPanel';
+import OnboardingWizard from './pages/OnboardingWizard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AdminPanel": AdminPanel,
     "ApplicationDashboard": ApplicationDashboard,
     "ApplicationTracker": ApplicationTracker,
     "BrowseJobs": BrowseJobs,
@@ -56,7 +55,6 @@ export const PAGES = {
     "Matches": Matches,
     "MinimalSwipeJobs": MinimalSwipeJobs,
     "Onboarding": Onboarding,
-    "OnboardingWizard": OnboardingWizard,
     "PublicJobView": PublicJobView,
     "Referrals": Referrals,
     "SkillTests": SkillTests,
@@ -64,6 +62,8 @@ export const PAGES = {
     "SwipePeople": SwipePeople,
     "VideoFeed": VideoFeed,
     "Welcome": Welcome,
+    "AdminPanel": AdminPanel,
+    "OnboardingWizard": OnboardingWizard,
 }
 
 export const pagesConfig = {
