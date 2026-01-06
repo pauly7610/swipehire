@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
+import { ClerkProvider } from '@clerk/clerk-react';
 
 import { Briefcase, User, MessageCircle, LogOut, Search, Home, TrendingUp, UserPlus, Sparkles, FileText } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
@@ -17,9 +18,11 @@ import ThemeToggle from '@/components/theme/ThemeToggle';
 import audioFeedback from '@/components/shared/AudioFeedback';
 import ErrorLogger from '@/components/debugging/ErrorLogger';
 import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
-import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
+import { ClerkAuthProvider, useClerkAuth } from '@/components/auth/ClerkAuthProvider';
 
-          export default function Layout({ children, currentPageName }) {
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+function LayoutContent({ children, currentPageName }) {
   const { user, isLoadingAuth, logout } = useClerkAuth();
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
@@ -238,3 +241,24 @@ import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
               </ThemeProvider>
               );
               }
+
+export default function Layout({ children, currentPageName }) {
+  if (!PUBLISHABLE_KEY) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Configuration Error</h1>
+          <p className="text-gray-600">Missing Clerk publishable key. Please add VITE_CLERK_PUBLISHABLE_KEY to your .env file.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/welcome">
+      <ClerkAuthProvider>
+        <LayoutContent children={children} currentPageName={currentPageName} />
+      </ClerkAuthProvider>
+    </ClerkProvider>
+  );
+}
