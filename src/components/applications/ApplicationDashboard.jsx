@@ -451,17 +451,3 @@ function EmptyState({ filter }) {
     </div>
   );
 }
-
-// Helper function
-function getTimeAgo(date) {
-  const now = new Date();
-  const past = new Date(date);
-  const diffInHours = Math.floor((now - past) / (1000 * 60 * 60));
-
-  if (diffInHours < 1) return 'Just now';
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-  const diffInWeeks = Math.floor(diffInDays / 7);
-  return `${diffInWeeks}w ago`;
-}
