@@ -1,5 +1,6 @@
 import ATS from './pages/ATS';
 import AdminPanel from './pages/AdminPanel';
+import ApplicationDashboard from './pages/ApplicationDashboard';
 import ApplicationTracker from './pages/ApplicationTracker';
 import BrowseCandidates from './pages/BrowseCandidates';
 import BrowseJobs from './pages/BrowseJobs';
@@ -44,13 +45,13 @@ import SwipePeople from './pages/SwipePeople';
 import VideoFeed from './pages/VideoFeed';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
 import Welcome from './pages/Welcome';
-import ApplicationDashboard from './pages/ApplicationDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "ATS": ATS,
     "AdminPanel": AdminPanel,
+    "ApplicationDashboard": ApplicationDashboard,
     "ApplicationTracker": ApplicationTracker,
     "BrowseCandidates": BrowseCandidates,
     "BrowseJobs": BrowseJobs,
@@ -95,7 +96,6 @@ export const PAGES = {
     "VideoFeed": VideoFeed,
     "ViewCandidateProfile": ViewCandidateProfile,
     "Welcome": Welcome,
-    "ApplicationDashboard": ApplicationDashboard,
 }
 
 export const pagesConfig = {
