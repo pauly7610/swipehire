@@ -29,6 +29,7 @@ import JobAlerts from './pages/JobAlerts';
 import JobsList from './pages/JobsList';
 import ManageJobs from './pages/ManageJobs';
 import Matches from './pages/Matches';
+import MinimalSwipeJobs from './pages/MinimalSwipeJobs';
 import Onboarding from './pages/Onboarding';
 import OnboardingWizard from './pages/OnboardingWizard';
 import PostJob from './pages/PostJob';
@@ -43,9 +44,6 @@ import SwipePeople from './pages/SwipePeople';
 import VideoFeed from './pages/VideoFeed';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
 import Welcome from './pages/Welcome';
-import MinimalSwipeJobs from './pages/MinimalSwipeJobs';
-import ApplicationDashboard from './components/applications/ApplicationDashboard';
-import PersonaOnboarding from './components/onboarding/PersonaOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +79,7 @@ export const PAGES = {
     "JobsList": JobsList,
     "ManageJobs": ManageJobs,
     "Matches": Matches,
+    "MinimalSwipeJobs": MinimalSwipeJobs,
     "Onboarding": Onboarding,
     "OnboardingWizard": OnboardingWizard,
     "PostJob": PostJob,
@@ -95,9 +94,6 @@ export const PAGES = {
     "VideoFeed": VideoFeed,
     "ViewCandidateProfile": ViewCandidateProfile,
     "Welcome": Welcome,
-    "MinimalSwipeJobs": MinimalSwipeJobs,
-    "ApplicationDashboard": ApplicationDashboard,
-    "PersonaOnboarding": PersonaOnboarding,
 }
 
 export const pagesConfig = {
