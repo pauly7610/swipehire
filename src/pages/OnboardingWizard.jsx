@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Loader2, User, Users, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import PhotoUpload from '@/components/onboarding/PhotoUpload';
 import ExperienceForm from '@/components/onboarding/ExperienceForm';
@@ -21,28 +21,19 @@ import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import analytics from '@/components/analytics/Analytics';
 
 const CANDIDATE_STEPS = [
-  { id: 1, title: 'Choose Role', subtitle: 'Select your path' },
-  { id: 2, title: 'Photo', subtitle: 'Upload photo' },
-  { id: 3, title: 'Basic Info', subtitle: 'Core details' },
-  { id: 4, title: 'Experience', subtitle: 'Work history' },
-  { id: 5, title: 'Education', subtitle: 'Optional' },
-  { id: 6, title: 'Skills', subtitle: 'Your expertise' },
-  { id: 7, title: 'Resume', subtitle: 'Optional' },
-  { id: 8, title: 'Review', subtitle: 'Publish' },
-];
-
-const RECRUITER_STEPS = [
-  { id: 1, title: 'Choose Role', subtitle: 'Select your path' },
-  { id: 2, title: 'Your Info', subtitle: 'Personal details' },
-  { id: 3, title: 'Company', subtitle: 'Company info' },
-  { id: 4, title: 'Review', subtitle: 'Publish' },
+  { id: 1, title: 'Photo', subtitle: 'Upload photo' },
+  { id: 2, title: 'Basic Info', subtitle: 'Core details' },
+  { id: 3, title: 'Experience', subtitle: 'Work history' },
+  { id: 4, title: 'Education', subtitle: 'Optional' },
+  { id: 5, title: 'Skills', subtitle: 'Your expertise' },
+  { id: 6, title: 'Resume', subtitle: 'Optional' },
+  { id: 7, title: 'Review', subtitle: 'Publish' },
 ];
 
 export default function OnboardingWizard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [draftId, setDraftId] = useState(null);
@@ -61,24 +52,6 @@ export default function OnboardingWizard() {
     resume_url: '',
   });
 
-  // Recruiter data
-  const [recruiterData, setRecruiterData] = useState({
-    photo_url: '',
-    recruiter_name: '',
-    title: '',
-    phone: '',
-  });
-
-  // Company data
-  const [companyData, setCompanyData] = useState({
-    logo_url: '',
-    name: '',
-    industry: '',
-    location: '',
-    website: '',
-    size: '11-50',
-  });
-
   // Load user and check existing profiles
   useEffect(() => {
     let mounted = true;
@@ -90,22 +63,15 @@ export default function OnboardingWizard() {
 
         setUser(currentUser);
 
-        const [candidateCheck, companyCheck] = await Promise.all([
-          base44.entities.Candidate.filter({ user_id: currentUser.id }),
-          base44.entities.Company.filter({ user_id: currentUser.id }),
-        ]);
+        const candidateCheck = await base44.entities.Candidate.filter({ user_id: currentUser.id });
 
         if (!mounted) return;
 
         const hasCandidate = candidateCheck.length > 0;
-        const hasCompany = companyCheck.length > 0;
-        const selectedRole = localStorage.getItem('swipehire_selected_role');
 
         // Redirect if already has complete profile
-        if (hasCandidate || hasCompany) {
-          const viewMode = hasCompany ? 'employer' : 'candidate';
-          localStorage.setItem('swipehire_view_mode', viewMode);
-          navigate(createPageUrl(viewMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'), { replace: true });
+        if (hasCandidate) {
+          navigate(createPageUrl('SwipeJobs'), { replace: true });
           return;
         }
 
@@ -114,22 +80,12 @@ export default function OnboardingWizard() {
         if (localDraft) {
           try {
             const parsed = JSON.parse(localDraft);
-            if (parsed.userType) setUserType(parsed.userType);
-            if (parsed.currentStep && parsed.currentStep > 1) setCurrentStep(parsed.currentStep);
+            if (parsed.currentStep && parsed.currentStep >= 1) setCurrentStep(parsed.currentStep);
             if (parsed.candidateData) setCandidateData(parsed.candidateData);
-            if (parsed.recruiterData) setRecruiterData(parsed.recruiterData);
-            if (parsed.companyData) setCompanyData(parsed.companyData);
             if (parsed.draftId) setDraftId(parsed.draftId);
           } catch (err) {
             console.error('Failed to load local draft:', err);
           }
-        }
-
-        // Handle role selection from previous page
-        if (selectedRole && !hasCandidate && !hasCompany) {
-          setUserType(selectedRole);
-          setCurrentStep(2);
-          localStorage.removeItem('swipehire_selected_role');
         }
       } catch (e) {
         console.error('[OnboardingWizard] Auth check failed:', e);
@@ -149,18 +105,15 @@ export default function OnboardingWizard() {
 
   // Auto-save draft with debounce - both localStorage AND sessionStorage for redundancy
   useEffect(() => {
-    if (!userType || currentStep <= 1) return;
+    if (currentStep < 1) return;
 
     const timer = setTimeout(() => {
       setAutoSaving(true);
       setSavingError(null);
 
       const draft = {
-        userType,
         currentStep,
-        candidateData: userType === 'candidate' ? candidateData : null,
-        recruiterData: userType === 'employer' ? recruiterData : null,
-        companyData: userType === 'employer' ? companyData : null,
+        candidateData,
         draftId,
         timestamp: new Date().toISOString(),
       };
@@ -170,10 +123,9 @@ export default function OnboardingWizard() {
         localStorage.setItem('onboarding_draft_v2', JSON.stringify(draft));
         // Redundant save to sessionStorage
         sessionStorage.setItem('onboarding_draft_v2', JSON.stringify(draft));
-        
+
         // Track save event
         analytics.track('Onboarding Draft Saved', {
-          userType,
           step: currentStep,
           hasData: true
         });
@@ -187,46 +139,29 @@ export default function OnboardingWizard() {
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [candidateData, recruiterData, companyData, userType, currentStep, draftId]);
+  }, [candidateData, currentStep, draftId]);
 
-  const steps = userType === 'candidate' ? CANDIDATE_STEPS : RECRUITER_STEPS;
+  const steps = CANDIDATE_STEPS;
   const totalSteps = steps.length;
 
   const canProceed = () => {
-    if (userType === 'candidate') {
-      switch (currentStep) {
-        case 1:
-          return !!userType;
-        case 2:
-          return true; // Photo optional
-        case 3:
-          return !!(candidateData.headline?.trim() && candidateData.bio?.trim() && candidateData.location?.trim());
-        case 4:
-          return Array.isArray(candidateData.experience) && candidateData.experience.length > 0;
-        case 5:
-          return true; // Education optional
-        case 6:
-          return Array.isArray(candidateData.skills) && candidateData.skills.length >= 3;
-        case 7:
-          return true; // Resume optional
-        case 8:
-          return true; // Review
-        default:
-          return true;
-      }
-    } else {
-      switch (currentStep) {
-        case 1:
-          return !!userType;
-        case 2:
-          return !!(recruiterData.recruiter_name?.trim() && recruiterData.title?.trim());
-        case 3:
-          return !!(companyData.name?.trim() && companyData.industry?.trim());
-        case 4:
-          return true;
-        default:
-          return true;
-      }
+    switch (currentStep) {
+      case 1:
+        return true; // Photo optional
+      case 2:
+        return !!(candidateData.headline?.trim() && candidateData.bio?.trim() && candidateData.location?.trim());
+      case 3:
+        return Array.isArray(candidateData.experience) && candidateData.experience.length > 0;
+      case 4:
+        return true; // Education optional
+      case 5:
+        return Array.isArray(candidateData.skills) && candidateData.skills.length >= 3;
+      case 6:
+        return true; // Resume optional
+      case 7:
+        return true; // Review
+      default:
+        return true;
     }
   };
 
@@ -242,7 +177,6 @@ export default function OnboardingWizard() {
     }
     
     analytics.track('Onboarding Step Completed', {
-      userType,
       step: currentStep,
       stepName: steps[currentStep - 1]?.title
     });
@@ -276,145 +210,75 @@ export default function OnboardingWizard() {
     setLoading(true);
     setSavingError(null);
 
-    console.log('[Onboarding] Starting profile creation...', { userType, user: user?.email });
+    console.log('[Onboarding] Starting profile creation...', { user: user?.email });
 
     try {
-      if (userType === 'candidate') {
-        // STRICT validation before submission
-        const validationErrors = [];
-        
-        if (!candidateData.headline?.trim()) validationErrors.push('Job title is required');
-        if (!candidateData.bio?.trim()) validationErrors.push('Professional summary is required');
-        if (!candidateData.location?.trim()) validationErrors.push('Location is required');
-        if (!candidateData.experience || candidateData.experience.length === 0) validationErrors.push('At least 1 work experience is required');
-        if (!candidateData.skills || candidateData.skills.length < 3) validationErrors.push('At least 3 skills are required');
-        
-        if (validationErrors.length > 0) {
-          console.error('[Onboarding] Validation failed:', validationErrors);
-          throw new Error(validationErrors.join(', '));
+      // STRICT validation before submission
+      const validationErrors = [];
+
+      if (!candidateData.headline?.trim()) validationErrors.push('Job title is required');
+      if (!candidateData.bio?.trim()) validationErrors.push('Professional summary is required');
+      if (!candidateData.location?.trim()) validationErrors.push('Location is required');
+      if (!candidateData.experience || candidateData.experience.length === 0) validationErrors.push('At least 1 work experience is required');
+      if (!candidateData.skills || candidateData.skills.length < 3) validationErrors.push('At least 3 skills are required');
+
+      if (validationErrors.length > 0) {
+        console.error('[Onboarding] Validation failed:', validationErrors);
+        throw new Error(validationErrors.join(', '));
+      }
+
+      const profileData = {
+        user_id: user.id,
+        photo_url: candidateData.photo_url || '',
+        headline: candidateData.headline.trim(),
+        bio: candidateData.bio.trim(),
+        location: candidateData.location.trim(),
+        industry: candidateData.industry?.trim() || '',
+        experience: candidateData.experience || [],
+        education: candidateData.education || [],
+        skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s.trim() : s.skill?.trim()),
+        resume_url: candidateData.resume_url || '',
+      };
+
+      console.log('[Onboarding] Creating candidate profile...', { fields: Object.keys(profileData) });
+
+      const newCandidate = await base44.entities.Candidate.create(profileData);
+
+      console.log('[Onboarding] Candidate created:', newCandidate.id);
+
+      analytics.track('Onboarding Completed', {
+        hasPhoto: !!candidateData.photo_url,
+        experienceCount: candidateData.experience?.length || 0,
+        skillsCount: candidateData.skills?.length || 0,
+        hasResume: !!candidateData.resume_url
+      });
+
+      // Verify creation with extended retry and logging
+      let profileFound = false;
+      for (let i = 0; i < 15; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
+        console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, candidates.length, 'profiles found');
+        if (candidates.length > 0) {
+          profileFound = true;
+          console.log('[Onboarding] Profile verified!');
+          break;
         }
+      }
 
-        const profileData = {
-          user_id: user.id,
-          photo_url: candidateData.photo_url || '',
-          headline: candidateData.headline.trim(),
-          bio: candidateData.bio.trim(),
-          location: candidateData.location.trim(),
-          industry: candidateData.industry?.trim() || '',
-          experience: candidateData.experience || [],
-          education: candidateData.education || [],
-          skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s.trim() : s.skill?.trim()),
-          resume_url: candidateData.resume_url || '',
-        };
-
-        console.log('[Onboarding] Creating candidate profile...', { fields: Object.keys(profileData) });
-
-        const newCandidate = await base44.entities.Candidate.create(profileData);
-        
-        console.log('[Onboarding] Candidate created:', newCandidate.id);
-
-        analytics.track('Onboarding Completed', {
-          userType: 'candidate',
-          hasPhoto: !!candidateData.photo_url,
-          experienceCount: candidateData.experience?.length || 0,
-          skillsCount: candidateData.skills?.length || 0,
-          hasResume: !!candidateData.resume_url
-        });
-
-        // Verify creation with extended retry and logging
-        let profileFound = false;
-        for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
-          console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, candidates.length, 'profiles found');
-          if (candidates.length > 0) {
-            profileFound = true;
-            console.log('[Onboarding] Profile verified!');
-            break;
-          }
-        }
-
-        if (profileFound) {
-          localStorage.setItem('swipehire_view_mode', 'candidate');
-          localStorage.removeItem('onboarding_draft_v2');
-          sessionStorage.removeItem('onboarding_draft_v2');
-          console.log('[Onboarding] Redirecting to SwipeJobs...');
-          navigate(createPageUrl('SwipeJobs'), { replace: true });
-        } else {
-          throw new Error('Profile creation verification timeout - profile may still be processing');
-        }
+      if (profileFound) {
+        localStorage.removeItem('onboarding_draft_v2');
+        sessionStorage.removeItem('onboarding_draft_v2');
+        console.log('[Onboarding] Redirecting to SwipeJobs...');
+        navigate(createPageUrl('SwipeJobs'), { replace: true });
       } else {
-        // STRICT validation for recruiter
-        const validationErrors = [];
-        
-        if (!recruiterData.recruiter_name?.trim()) validationErrors.push('Your name is required');
-        if (!recruiterData.title?.trim()) validationErrors.push('Your title is required');
-        if (!companyData.name?.trim()) validationErrors.push('Company name is required');
-        if (!companyData.industry?.trim()) validationErrors.push('Company industry is required');
-        
-        if (validationErrors.length > 0) {
-          console.error('[Onboarding] Validation failed:', validationErrors);
-          throw new Error(validationErrors.join(', '));
-        }
-
-        console.log('[Onboarding] Updating recruiter info...');
-
-        // Save recruiter info
-        await base44.auth.updateMe({
-          recruiter_name: recruiterData.recruiter_name.trim(),
-          recruiter_title: recruiterData.title.trim(),
-          recruiter_photo: recruiterData.photo_url || '',
-        });
-
-        console.log('[Onboarding] Creating company...');
-
-        // Create company
-        const newCompany = await base44.entities.Company.create({
-          user_id: user.id,
-          name: companyData.name.trim(),
-          industry: companyData.industry.trim(),
-          location: companyData.location?.trim() || '',
-          website: companyData.website?.trim() || '',
-          size: companyData.size || '11-50',
-          logo_url: companyData.logo_url || '',
-        });
-
-        console.log('[Onboarding] Company created:', newCompany.id);
-
-        analytics.track('Onboarding Completed', {
-          userType: 'employer',
-          hasLogo: !!companyData.logo_url
-        });
-
-        // Verify creation with extended retry and logging
-        let companyFound = false;
-        for (let i = 0; i < 15; i++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const companies = await base44.entities.Company.filter({ user_id: user.id });
-          console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, companies.length, 'companies found');
-          if (companies.length > 0) {
-            companyFound = true;
-            console.log('[Onboarding] Company verified!');
-            break;
-          }
-        }
-
-        if (companyFound) {
-          localStorage.setItem('swipehire_view_mode', 'employer');
-          localStorage.removeItem('onboarding_draft_v2');
-          sessionStorage.removeItem('onboarding_draft_v2');
-          console.log('[Onboarding] Redirecting to EmployerDashboard...');
-          navigate(createPageUrl('EmployerDashboard'), { replace: true });
-        } else {
-          throw new Error('Company creation verification timeout - company may still be processing');
-        }
+        throw new Error('Profile creation verification timeout - profile may still be processing');
       }
     } catch (error) {
       console.error('[Onboarding] Completion failed:', error);
       setSavingError(error.message || 'Failed to create profile. Please try again.');
-      
+
       analytics.track('Onboarding Failed', {
-        userType,
         step: currentStep,
         error: error.message
       });
@@ -467,51 +331,8 @@ export default function OnboardingWizard() {
   };
 
   const renderStep = () => {
-    if (userType === 'candidate') {
-      switch (currentStep) {
-        case 1:
-          return (
-            <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Welcome to SwipeHire!
-              </h2>
-              <p className="text-gray-600 mb-12 text-lg">Choose your path</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <button
-                  onClick={() => {
-                    setUserType('candidate');
-                    handleNext();
-                  }}
-                  type="button"
-                  className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-xl bg-white"
-                >
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <User className="w-10 h-10 text-pink-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Job Seeker</h3>
-                  <p className="text-gray-500">Find your dream job</p>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setUserType('employer');
-                    handleNext();
-                  }}
-                  type="button"
-                  className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-purple-500 transition-all hover:shadow-xl bg-white"
-                >
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Users className="w-10 h-10 text-purple-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Recruiter</h3>
-                  <p className="text-gray-500">Find top talent</p>
-                </button>
-              </div>
-            </div>
-          );
-
-        case 2:
+    switch (currentStep) {
+      case 1:
           return (
             <div className="max-w-lg mx-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Your Photo</h2>
@@ -523,10 +344,10 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 3:
-          return (
-            <div className="max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
+      case 2:
+        return (
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
               <p className="text-gray-600 mb-8">Tell us about yourself</p>
 
               <div className="space-y-6">
@@ -581,10 +402,10 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 4:
-          return (
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Work Experience</h2>
+      case 3:
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Work Experience</h2>
               <p className="text-gray-600 mb-8">Add your work history (at least 1 required)</p>
               <ExperienceForm
                 experiences={candidateData.experience}
@@ -593,10 +414,10 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 5:
-          return (
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Education</h2>
+      case 4:
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Education</h2>
               <p className="text-gray-600 mb-8">Add your educational background (optional but recommended)</p>
               <EducationForm
                 education={candidateData.education}
@@ -605,10 +426,10 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 6:
-          return (
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Skills</h2>
+      case 5:
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Skills</h2>
               <p className="text-gray-600 mb-8">Add at least 3 skills to improve your visibility</p>
               <SkillsPicker
                 skills={candidateData.skills}
@@ -618,10 +439,10 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 7:
-          return (
-            <div className="max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Resume</h2>
+      case 6:
+        return (
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Resume</h2>
               <p className="text-gray-600 mb-8">We'll auto-fill missing information from your resume</p>
               <ResumeUpload
                 value={candidateData.resume_url}
@@ -631,210 +452,18 @@ export default function OnboardingWizard() {
             </div>
           );
 
-        case 8:
-          return (
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Profile</h2>
-              <p className="text-gray-600 mb-8">Make sure everything looks good before publishing</p>
-              <ProfileReview data={candidateData} userType="candidate" />
-            </div>
-          );
+      case 7:
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Profile</h2>
+            <p className="text-gray-600 mb-8">Make sure everything looks good before publishing</p>
+            <ProfileReview data={candidateData} userType="candidate" />
+          </div>
+        );
 
-        default:
-          return null;
-      }
-    } else if (userType === 'employer') {
-      switch (currentStep) {
-        case 1:
-          return (
-            <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Welcome to SwipeHire!
-              </h2>
-              <p className="text-gray-600 mb-12 text-lg">Choose your path</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <button
-                  onClick={() => {
-                    setUserType('candidate');
-                    handleNext();
-                  }}
-                  type="button"
-                  className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-pink-500 transition-all hover:shadow-xl bg-white"
-                >
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-50 to-orange-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <User className="w-10 h-10 text-pink-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Job Seeker</h3>
-                  <p className="text-gray-500">Find your dream job</p>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setUserType('employer');
-                    handleNext();
-                  }}
-                  type="button"
-                  className="group p-8 rounded-3xl border-2 border-gray-200 hover:border-purple-500 transition-all hover:shadow-xl bg-white"
-                >
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Users className="w-10 h-10 text-purple-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Recruiter</h3>
-                  <p className="text-gray-500">Find top talent</p>
-                </button>
-              </div>
-            </div>
-          );
-
-        case 2:
-          return (
-            <div className="max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Information</h2>
-              <p className="text-gray-600 mb-8">Let candidates know who you are</p>
-
-              <div className="space-y-6">
-                <PhotoUpload
-                  value={recruiterData.photo_url}
-                  onChange={(url) => setRecruiterData({ ...recruiterData, photo_url: url })}
-                />
-
-                <div>
-                  <Label>
-                    Your Full Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    value={recruiterData.recruiter_name}
-                    onChange={(e) => setRecruiterData({ ...recruiterData, recruiter_name: e.target.value })}
-                    placeholder="John Doe"
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label>
-                    Your Title <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    value={recruiterData.title}
-                    onChange={(e) => setRecruiterData({ ...recruiterData, title: e.target.value })}
-                    placeholder="Senior Recruiter, HR Manager..."
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label>Phone (optional)</Label>
-                  <Input
-                    value={recruiterData.phone}
-                    onChange={(e) => setRecruiterData({ ...recruiterData, phone: e.target.value })}
-                    placeholder="+1 (555) 123-4567"
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-            </div>
-          );
-
-        case 3:
-          return (
-            <div className="max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Company Information</h2>
-              <p className="text-gray-600 mb-8">Tell candidates about your company</p>
-
-              <div className="space-y-6">
-                <PhotoUpload
-                  value={companyData.logo_url}
-                  onChange={(url) => setCompanyData({ ...companyData, logo_url: url })}
-                />
-
-                <div>
-                  <Label>
-                    Company Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    value={companyData.name}
-                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
-                    placeholder="Acme Inc."
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label>
-                    Industry <span className="text-red-500">*</span>
-                  </Label>
-                  <IndustrySelect
-                    value={companyData.industry}
-                    onChange={(v) => setCompanyData({ ...companyData, industry: v })}
-                    placeholder="Select industry"
-                  />
-                </div>
-
-                <div>
-                  <Label>Location</Label>
-                  <LocationSelect
-                    value={companyData.location}
-                    onChange={(v) => setCompanyData({ ...companyData, location: v })}
-                    placeholder="Company headquarters"
-                  />
-                </div>
-
-                <div>
-                  <Label>Website</Label>
-                  <Input
-                    value={companyData.website}
-                    onChange={(e) => setCompanyData({ ...companyData, website: e.target.value })}
-                    placeholder="https://yourcompany.com"
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label>Company Size</Label>
-                  <select
-                    value={companyData.size}
-                    onChange={(e) => setCompanyData({ ...companyData, size: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-gray-200 px-3 mt-2"
-                  >
-                    <option value="1-10">1-10 employees</option>
-                    <option value="11-50">11-50 employees</option>
-                    <option value="51-200">51-200 employees</option>
-                    <option value="201-500">201-500 employees</option>
-                    <option value="500+">500+ employees</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          );
-
-        case 4:
-          return (
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Profile</h2>
-              <p className="text-gray-600 mb-8">Everything looks good? Let's get started!</p>
-              <ProfileReview 
-                data={{
-                  recruiter_photo_url: recruiterData.photo_url,
-                  recruiter_name: recruiterData.recruiter_name,
-                  recruiter_title: recruiterData.title,
-                  company_logo_url: companyData.logo_url,
-                  company_name: companyData.name,
-                  company_industry: companyData.industry,
-                  company_location: companyData.location,
-                  company_size: companyData.size
-                }} 
-                userType="employer" 
-              />
-            </div>
-          );
-
-        default:
-          return null;
-      }
+      default:
+        return null;
     }
-
-    return null;
   };
 
   if (!user) {

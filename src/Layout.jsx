@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp, UserPlus, Sparkles, FileText } from 'lucide-react';
+import { Briefcase, User, MessageCircle, LogOut, Search, Home, TrendingUp, UserPlus, Sparkles, FileText } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
-import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
-import { Badge } from '@/components/ui/badge';
 import InterviewNotification from '@/components/interview/InterviewNotification';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,10 +21,6 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
             export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userType, setUserType] = useState(null);
-  const [isRecruiter, setIsRecruiter] = useState(false); // true if user has company profile
-  const [viewMode, setViewMode] = useState(null); // 'employer' or 'candidate'
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
 
@@ -50,74 +44,25 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
     // No auth - just load immediately
     setLoading(false);
     setUser({ id: 'demo-user', email: 'demo@swipehire.com', full_name: 'Demo User' });
-    setUserType('candidate');
-    setViewMode('candidate');
   }, []);
 
-  const toggleViewMode = async () => {
-      const newMode = viewMode === 'employer' ? 'candidate' : 'employer';
-
-      // Check if user has the required profile for the new mode
-      if (newMode === 'candidate') {
-        const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
-        if (candidates.length === 0) {
-          // User doesn't have a candidate profile, redirect to onboarding
-          localStorage.setItem('swipehire_selected_role', 'candidate');
-          navigate(createPageUrl('Onboarding'));
-          return;
-        }
-      }
-
-      setViewMode(newMode);
-      setUserType(newMode);
-      localStorage.setItem('swipehire_view_mode', newMode);
-      navigate(createPageUrl(newMode === 'employer' ? 'EmployerDashboard' : 'SwipeJobs'));
-    };
-
-      const handleRoleSelect = (role) => {
-        setShowRoleSelection(false);
-        // Store the selected role and navigate to onboarding
-        localStorage.setItem('swipehire_selected_role', role);
-        navigate(createPageUrl('Onboarding'));
-      };
-
-  const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat', 'EmployerChat'].includes(currentPageName);
+  const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat'].includes(currentPageName);
 
   if (hideLayout) {
-    return (
-      <>
-        {children}
-        {(currentPageName === 'Onboarding' || currentPageName === 'OnboardingWizard') && <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />}
-      </>
-    );
+    return children;
   }
 
-  const candidateNav = [
-                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
-                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
-                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
-                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
-                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
-                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
-                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
-                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
-                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
-                  ];
-
-  const employerNav = [
-                                    { name: 'Dashboard', icon: LayoutDashboard, page: 'EmployerDashboard', mobile: true },
-                                    { name: 'Browse', icon: Search, page: 'BrowseCandidates', mobile: false },
-                                    { name: 'Swipe', icon: Users, page: 'SwipeCandidates', mobile: true },
-                                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: false },
-                                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
-                                    { name: 'Network', icon: Users, page: 'Connections', mobile: false },
-                                    { name: 'Jobs', icon: Briefcase, page: 'ManageJobs', mobile: false },
-                                    { name: 'ATS', icon: Monitor, page: 'ATS', mobile: true },
-                                    { name: 'Profile', icon: User, page: 'RecruiterProfile', mobile: true },
-                                    ...(user?.role === 'admin' ? [{ name: 'Admin', icon: Settings, page: 'AdminPanel', mobile: false }] : []),
-                                  ];
-
-  const navItems = userType === 'employer' ? employerNav : candidateNav;
+  const navItems = [
+    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+  ];
 
   return (
     <ThemeProvider>
@@ -227,20 +172,6 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          {/* View Mode Toggle - Only for recruiters */}
-          {isRecruiter && (
-            <button
-              onClick={toggleViewMode}
-              className="flex items-center gap-3 px-4 py-3 w-full mb-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-xl transition-all"
-            >
-              <ArrowLeftRight className="w-5 h-5 text-purple-500" />
-              <div className="flex-1 text-left">
-                <span className="font-medium text-gray-700">Switch to {viewMode === 'employer' ? 'Candidate' : 'Recruiter'}</span>
-                <p className="text-xs text-gray-500">Currently: {viewMode === 'employer' ? 'Recruiter' : 'Candidate'} View</p>
-              </div>
-            </button>
-          )}
-          
           {user && (
             <div className="flex items-center gap-3 px-4 py-3">
               <div className="w-10 h-10 rounded-full swipe-gradient flex items-center justify-center text-white font-semibold">
@@ -271,9 +202,6 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
           </button>
         </div>
       </aside>
-
-              {/* Role Selection Modal for new users */}
-              <RoleSelectionModal open={showRoleSelection} onSelect={handleRoleSelect} />
 
               {/* Interview Notifications */}
               {!hideLayout && <InterviewNotification />}

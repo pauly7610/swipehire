@@ -23,11 +23,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  Trash2, Search, Users, Briefcase, Building2, Video, 
-  Flag, Loader2, ShieldAlert, Eye, Ban, Star, UserCog, RefreshCw, FileText, CheckCircle2, AlertCircle
+import {
+  Trash2, Search, Users, Briefcase, Building2, Video,
+  Flag, Loader2, ShieldAlert, Eye, Ban, UserCog, RefreshCw, FileText, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import RecruiterRating from '@/components/recruiter/RecruiterRating';
 import { format } from 'date-fns';
 import BackfillResumeParser from '@/components/utils/BackfillResumeParser';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -43,7 +42,6 @@ export default function AdminPanel() {
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteType, setDeleteType] = useState('');
-  const [recruiterFeedback, setRecruiterFeedback] = useState([]);
   const [error, setError] = useState(null);
   const [reindexing, setReindexing] = useState(false);
   const [reindexResults, setReindexResults] = useState(null);
@@ -66,13 +64,12 @@ export default function AdminPanel() {
         return;
       }
 
-      const [allCandidates, allCompanies, allJobs, allVideos, allUsers, allFeedback] = await Promise.all([
+      const [allCandidates, allCompanies, allJobs, allVideos, allUsers] = await Promise.all([
         base44.entities.Candidate.list(),
         base44.entities.Company.list(),
         base44.entities.Job.list(),
         base44.entities.VideoPost.list(),
-        base44.entities.User.list(),
-        base44.entities.RecruiterFeedback.list()
+        base44.entities.User.list()
       ]);
 
       console.log('Loaded data:', {
@@ -87,7 +84,6 @@ export default function AdminPanel() {
       setCompanies(allCompanies || []);
       setJobs(allJobs || []);
       setVideos(allVideos || []);
-      setRecruiterFeedback(allFeedback || []);
 
       const userMap = {};
       allUsers.forEach(u => { userMap[u.id] = u; });
@@ -289,7 +285,6 @@ export default function AdminPanel() {
         <Tabs defaultValue="candidates">
           <TabsList className="mb-4 w-full overflow-x-auto flex-nowrap justify-start dark:bg-slate-900">
             <TabsTrigger value="candidates" className="text-xs md:text-sm flex-shrink-0">Candidates</TabsTrigger>
-            <TabsTrigger value="recruiters" className="text-xs md:text-sm flex-shrink-0">Recruiters</TabsTrigger>
             <TabsTrigger value="companies" className="text-xs md:text-sm flex-shrink-0">Companies</TabsTrigger>
             <TabsTrigger value="jobs" className="text-xs md:text-sm flex-shrink-0">Jobs</TabsTrigger>
             <TabsTrigger value="videos" className="text-xs md:text-sm flex-shrink-0">
@@ -356,81 +351,6 @@ export default function AdminPanel() {
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                           No candidates match your search
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="recruiters">
-            <Card>
-              {companies.length === 0 ? (
-                <div className="p-12 text-center">
-                  <UserCog className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <p className="text-gray-500">No recruiters in the system yet</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Recruiter</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Rating</TableHead>
-                      <TableHead>Reviews</TableHead>
-                      <TableHead>Jobs Posted</TableHead>
-                      <TableHead>Joined</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {companies
-                      .filter(c => !search || 
-                        c.name?.toLowerCase().includes(search.toLowerCase()) ||
-                        users[c.user_id]?.full_name?.toLowerCase().includes(search.toLowerCase())
-                      )
-                      .map((company) => {
-                        const recruiter = users[company.user_id];
-                        const feedback = recruiterFeedback.filter(f => f.recruiter_id === company.user_id);
-                        const avgRating = feedback.length > 0 
-                          ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length 
-                          : 0;
-                        const recruiterJobs = jobs.filter(j => j.company_id === company.id);
-                        
-                        return (
-                          <TableRow key={company.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                {company.logo_url ? (
-                                  <img src={company.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">
-                                    {recruiter?.full_name?.charAt(0) || '?'}
-                                  </div>
-                                )}
-                                <span className="font-medium">{recruiter?.full_name || '-'}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>{recruiter?.email || '-'}</TableCell>
-                            <TableCell>{company.name}</TableCell>
-                            <TableCell>
-                              <RecruiterRating rating={avgRating} size="sm" />
-                            </TableCell>
-                            <TableCell>{feedback.length}</TableCell>
-                            <TableCell>{recruiterJobs.length}</TableCell>
-                            <TableCell>{format(new Date(company.created_date), 'MMM d, yyyy')}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    {companies.filter(c => !search || 
-                      c.name?.toLowerCase().includes(search.toLowerCase()) ||
-                      users[c.user_id]?.full_name?.toLowerCase().includes(search.toLowerCase())
-                    ).length === 0 && search && (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                          No recruiters match your search
                         </TableCell>
                       </TableRow>
                     )}
