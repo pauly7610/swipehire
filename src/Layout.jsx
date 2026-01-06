@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp, UserPlus } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, Bell, User, MessageCircle, Settings, LogOut, BellRing, Search, Trophy, ArrowLeftRight, Heart, Star, Monitor, Home, TrendingUp, UserPlus, Sparkles, FileText } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
 import RoleSelectionModal from '@/components/onboarding/RoleSelectionModal';
@@ -284,8 +284,98 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
   }
 
   const candidateNav = [
-                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: true },
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
                     { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
+                    { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
+                    { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
+                    { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
+                    { name: 'Inbox', icon: MessageCircle, page: 'CommunicationHub', mobile: true },
+                    { name: 'Profile', icon: User, page: 'CandidateProfile', mobile: true },
+                  ];
+  const candidateNav = [
+                    { name: 'Discover', icon: Sparkles, page: 'MinimalSwipeJobs', mobile: true },
+                    { name: 'Swipe', icon: Briefcase, page: 'SwipeJobs', mobile: false },
+                    { name: 'Browse', icon: Search, page: 'BrowseJobs', mobile: false },
+                    { name: 'Applications', icon: FileText, page: 'ApplicationDashboard', mobile: true },
                     { name: 'Feed', icon: Home, page: 'VideoFeed', mobile: true },
                     { name: 'Network', icon: UserPlus, page: 'Connections', mobile: false },
                     { name: 'Prep', icon: TrendingUp, page: 'InterviewPrep', mobile: false },
