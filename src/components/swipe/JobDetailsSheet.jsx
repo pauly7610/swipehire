@@ -1,7 +1,7 @@
-import BottomSheet, { BottomSheetContent, BottomSheetSection } from '../ui/BottomSheet';
+import BottomSheet, { BottomSheetContent, BottomSheetSection } from '@/components/ui/BottomSheet';
 import { MapPin, DollarSign, Clock, Users, Briefcase, Heart, X, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { colors } from '@/lib/design-system';
+import { colors } from '@/components/lib/design-system';
 
 /**
  * Job Details Bottom Sheet
@@ -112,22 +112,22 @@ export default function JobDetailsSheet({ job, isOpen, onClose, onApply, onPass 
             <DetailItem
               icon={<DollarSign className="w-5 h-5" />}
               label="Salary"
-              value={formatSalary(job.salaryMin, job.salaryMax)}
+              value={formatSalary(job.salary_min, job.salary_max)}
             />
             <DetailItem
               icon={<Briefcase className="w-5 h-5" />}
               label="Experience"
-              value={job.experienceLevel || 'Mid-Senior level'}
+              value={job.experience_level || 'Mid-Senior level'}
             />
             <DetailItem
               icon={<Users className="w-5 h-5" />}
               label="Job Type"
-              value={job.type || 'Full-time'}
+              value={job.job_type || 'Full-time'}
             />
             <DetailItem
               icon={<Clock className="w-5 h-5" />}
               label="Posted"
-              value={getTimeAgo(job.postedAt || new Date())}
+              value={getTimeAgo(job.created_date || new Date())}
             />
           </div>
         </BottomSheetSection>
@@ -142,24 +142,10 @@ export default function JobDetailsSheet({ job, isOpen, onClose, onApply, onPass 
         )}
 
         {/* Requirements */}
-        {job.requirements && job.requirements.length > 0 && (
-          <BottomSheetSection title="Requirements">
-            <ul className="space-y-2">
-              {job.requirements.map((req, index) => (
-                <li key={index} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                  <span className="text-primary mt-1">•</span>
-                  <span>{req}</span>
-                </li>
-              ))}
-            </ul>
-          </BottomSheetSection>
-        )}
-
-        {/* Skills */}
-        {job.skills && job.skills.length > 0 && (
+        {job.required_skills && job.required_skills.length > 0 && (
           <BottomSheetSection title="Required Skills">
             <div className="flex flex-wrap gap-2">
-              {job.skills.map((skill, index) => (
+              {job.required_skills.map((skill, index) => (
                 <span
                   key={index}
                   className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -171,14 +157,14 @@ export default function JobDetailsSheet({ job, isOpen, onClose, onApply, onPass 
           </BottomSheetSection>
         )}
 
-        {/* Benefits */}
-        {job.benefits && job.benefits.length > 0 && (
-          <BottomSheetSection title="Benefits">
+        {/* Responsibilities */}
+        {job.responsibilities && job.responsibilities.length > 0 && (
+          <BottomSheetSection title="Responsibilities">
             <ul className="space-y-2">
-              {job.benefits.map((benefit, index) => (
+              {job.responsibilities.map((resp, index) => (
                 <li key={index} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>{benefit}</span>
+                  <span className="text-primary mt-1">•</span>
+                  <span>{resp}</span>
                 </li>
               ))}
             </ul>

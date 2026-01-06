@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { useState } from 'react';
 import { Heart, X, Sparkles, MapPin, DollarSign, Clock } from 'lucide-react';
-import { colors, radius, shadows, springs } from '@/lib/design-system';
+import { colors, radius, shadows, springs } from '@/components/lib/design-system';
 
 /**
  * Minimal Job Card - Sorce-inspired design
@@ -67,6 +67,8 @@ export default function MinimalJobCard({ job, onSwipe, onTap }) {
     return format(min || max);
   };
 
+  const salaryDisplay = formatSalary(job.salary_min, job.salary_max);
+
   // Card variants for exit animations
   const cardVariants = {
     center: { x: 0, y: 0, rotate: 0, opacity: 1 },
@@ -129,12 +131,10 @@ export default function MinimalJobCard({ job, onSwipe, onTap }) {
             <span className="font-semibold text-lg">{job.matchScore || 95}%</span>
           </div>
 
-          {/* Quick Apply Badge */}
-          {job.quickApply && (
-            <div className="absolute top-6 left-6 px-4 py-2 rounded-full bg-primary/95 backdrop-blur-md shadow-lg">
-              <span className="text-white text-sm font-medium">⚡ Quick Apply</span>
-            </div>
-          )}
+          {/* Quick Apply Badge - Always show for MinimalSwipeJobs */}
+          <div className="absolute top-6 left-6 px-4 py-2 rounded-full backdrop-blur-md shadow-lg" style={{ background: colors.success.gradient }}>
+            <span className="text-white text-sm font-medium">⚡ Auto Apply</span>
+          </div>
         </div>
 
         {/* Card Content */}
@@ -162,21 +162,21 @@ export default function MinimalJobCard({ job, onSwipe, onTap }) {
             )}
 
             {/* Salary */}
-            {(job.salaryMin || job.salaryMax) && (
+            {salaryDisplay && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
                 <DollarSign className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {formatSalary(job.salaryMin, job.salaryMax)}
+                  {salaryDisplay}
                 </span>
               </div>
             )}
 
             {/* Posted Time */}
-            {job.postedAt && (
+            {job.created_date && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
                 <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {getTimeAgo(job.postedAt)}
+                  {getTimeAgo(job.created_date)}
                 </span>
               </div>
             )}

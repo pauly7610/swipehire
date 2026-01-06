@@ -1,13 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Zap, CheckCircle2, Loader2 } from 'lucide-react';
-import { AuthContext } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import SwipeStack from '@/components/swipe/SwipeStack';
 import JobDetailsSheet from '@/components/swipe/JobDetailsSheet';
-import { autoApplyToJob } from '@/lib/auto-apply';
-import { analyzeJobDescription, calculateMatchScore } from '@/lib/resume-intelligence';
-import { colors, springs } from '@/lib/design-system';
+import { autoApplyToJob } from '@/components/lib/auto-apply';
+import { analyzeJobDescription, calculateMatchScore } from '@/components/lib/resume-intelligence';
+import { colors, springs } from '@/components/lib/design-system';
 import { toast } from 'sonner';
 
 /**
@@ -15,7 +14,7 @@ import { toast } from 'sonner';
  * Sorce-inspired beautiful swipe experience with RezPass intelligence
  */
 export default function MinimalSwipeJobs() {
-  const { user } = useContext(AuthContext);
+  const [user, setUser] = useState(null);
   const [candidate, setCandidate] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,20 +22,19 @@ export default function MinimalSwipeJobs() {
   const [applicationInProgress, setApplicationInProgress] = useState(false);
   const [applicationProgress, setApplicationProgress] = useState(null);
 
-  // Load candidate and jobs
+  // Load user, candidate and jobs
   useEffect(() => {
-    if (user) {
-      loadCandidateAndJobs();
-    }
-  }, [user]);
+    loadCandidateAndJobs();
+  }, []);
 
   const loadCandidateAndJobs = async () => {
     try {
+      // Load user
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+
       // Load candidate profile
-      const candidateData = await base44.entities.Candidate.findOne({
-        where: { userId: user.id },
-        include: ['resume', 'skills']
-      });
+      const [candidateData] = await base44.entities.Candidate.filter({ user_id: currentUser.id });
       setCandidate(candidateData);
 
       // Load jobs
@@ -52,27 +50,29 @@ export default function MinimalSwipeJobs() {
   const loadJobs = async () => {
     try {
       // Fetch available jobs
-      const jobList = await base44.entities.Job.find({
-        where: { status: 'published' },
-        include: ['company'],
-        orderBy: { createdAt: 'desc' },
-        limit: 50
-      });
+      const jobList = await base44.entities.Job.filter({ is_active: true }, '-created_date', 50);
+
+      // Get companies
+      const companyIds = [...new Set(jobList.map(j => j.company_id))];
+      const companies = await base44.entities.Company.list();
+      const companyMap = {};
+      companies.forEach(c => { companyMap[c.id] = c; });
 
       // Calculate match scores for each job
       const jobsWithScores = await Promise.all(
         jobList.map(async (job) => {
           try {
+            const company = companyMap[job.company_id];
             const analysis = await analyzeJobDescription(
               job.description,
               job.title,
-              job.company?.name
+              company?.name
             );
             const matchScore = calculateMatchScore(candidate, analysis);
-            return { ...job, matchScore, analysis };
+            return { ...job, company, matchScore, analysis };
           } catch (error) {
             console.error('Error analyzing job:', error);
-            return { ...job, matchScore: 75 };
+            return { ...job, company: companyMap[job.company_id], matchScore: 75 };
           }
         })
       );
@@ -155,11 +155,12 @@ export default function MinimalSwipeJobs() {
   const recordSwipe = async (job, direction, applied = false) => {
     try {
       await base44.entities.Swipe.create({
-        candidateId: candidate.id,
-        jobId: job.id,
-        direction,
+        candidate_id: candidate.id,
+        swiper_id: user.id,
+        swiper_type: 'candidate',
+        job_id: job.id,
+        direction: direction === 'like' ? 'right' : direction === 'superlike' ? 'super_right' : 'left',
         applied,
-        swipedAt: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error recording swipe:', error);

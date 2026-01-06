@@ -44,6 +44,7 @@ import SwipePeople from './pages/SwipePeople';
 import VideoFeed from './pages/VideoFeed';
 import ViewCandidateProfile from './pages/ViewCandidateProfile';
 import Welcome from './pages/Welcome';
+import ApplicationDashboard from './pages/ApplicationDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -94,6 +95,7 @@ export const PAGES = {
     "VideoFeed": VideoFeed,
     "ViewCandidateProfile": ViewCandidateProfile,
     "Welcome": Welcome,
+    "ApplicationDashboard": ApplicationDashboard,
 }
 
 export const pagesConfig = {
