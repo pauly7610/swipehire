@@ -57,7 +57,7 @@ export default function Welcome() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="text-gray-600 text-lg"
           >
-            Welcome! Sign in with Google or LinkedIn to continue.
+            Find your dream job. Sign in to get started.
           </motion.p>
         </div>
 

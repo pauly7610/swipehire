@@ -167,7 +167,7 @@ function LayoutContent({ children, currentPageName }) {
         <div className="p-6 flex items-center justify-between">
                     <div>
                       <Logo size="md" />
-                      <p className="text-xs text-gray-500 mt-2">Swipe. Match. Hired.</p>
+                      <p className="text-xs text-gray-500 mt-2">Find your dream job</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <ThemeToggle />
