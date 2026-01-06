@@ -15,9 +15,19 @@ export default function Welcome() {
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId;
     
     const checkAuth = async () => {
       try {
+        // Set a timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.log('Auth check timeout, showing welcome screen');
+            setShowSplash(false);
+            setLoading(false);
+          }
+        }, 3000);
+
         const isAuth = await base44.auth.isAuthenticated();
         if (!mounted) return;
         
@@ -39,6 +49,7 @@ export default function Welcome() {
           } else {
             navigate(createPageUrl('Onboarding'), { replace: true });
           }
+          clearTimeout(timeoutId);
           return;
         }
       } catch (e) {
@@ -46,6 +57,7 @@ export default function Welcome() {
       }
       
       if (mounted) {
+        clearTimeout(timeoutId);
         const splashSeen = sessionStorage.getItem('swipehire_splash_seen');
         setShowSplash(!splashSeen);
         setLoading(false);
@@ -56,6 +68,7 @@ export default function Welcome() {
     
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [navigate]);
 
