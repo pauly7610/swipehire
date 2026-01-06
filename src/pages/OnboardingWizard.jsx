@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Loader2, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Save, CheckCircle2, AlertCircle, Upload, Linkedin } from 'lucide-react';
 import ProgressBar from '@/components/onboarding/ProgressBar';
 import PhotoUpload from '@/components/onboarding/PhotoUpload';
 import ExperienceForm from '@/components/onboarding/ExperienceForm';
@@ -15,29 +16,34 @@ import EducationForm from '@/components/onboarding/EducationForm';
 import SkillsPicker from '@/components/onboarding/SkillsPicker';
 import ResumeUpload from '@/components/onboarding/ResumeUpload';
 import ProfileReview from '@/components/onboarding/ProfileReview';
+import EEOQuestionnaire from '@/components/onboarding/EEOQuestionnaire';
 import LocationSelect from '@/components/shared/LocationSelect';
 import IndustrySelect from '@/components/shared/IndustrySelect';
 import JobTitleSelect from '@/components/shared/JobTitleSelect';
 import analytics from '@/components/analytics/Analytics';
 
 const CANDIDATE_STEPS = [
-  { id: 1, title: 'Photo', subtitle: 'Upload photo' },
-  { id: 2, title: 'Basic Info', subtitle: 'Core details' },
-  { id: 3, title: 'Experience', subtitle: 'Work history' },
-  { id: 4, title: 'Education', subtitle: 'Optional' },
-  { id: 5, title: 'Skills', subtitle: 'Your expertise' },
-  { id: 6, title: 'Resume', subtitle: 'Optional' },
-  { id: 7, title: 'Review', subtitle: 'Publish' },
+  { id: 1, title: 'Import', subtitle: 'Quick start' },
+  { id: 2, title: 'Photo', subtitle: 'Upload photo' },
+  { id: 3, title: 'Basic Info', subtitle: 'Core details' },
+  { id: 4, title: 'Experience', subtitle: 'Work history' },
+  { id: 5, title: 'Education', subtitle: 'Optional' },
+  { id: 6, title: 'Skills', subtitle: 'Your expertise' },
+  { id: 7, title: 'Resume', subtitle: 'Optional' },
+  { id: 8, title: 'EEO', subtitle: 'Optional' },
+  { id: 9, title: 'Review', subtitle: 'Publish' },
 ];
 
 export default function OnboardingWizard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user: clerkUser, clerkUser: fullClerkUser, getLinkedInData } = useClerkAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [draftId, setDraftId] = useState(null);
   const [savingError, setSavingError] = useState(null);
+  const [hasLinkedIn, setHasLinkedIn] = useState(false);
+  const [importMethod, setImportMethod] = useState(null); // 'linkedin', 'resume', or 'manual'
 
   // Candidate data
   const [candidateData, setCandidateData] = useState({
@@ -50,6 +56,11 @@ export default function OnboardingWizard() {
     education: [],
     skills: [],
     resume_url: '',
+    // EEO fields (all optional)
+    gender: '',
+    race: '',
+    veteran_status: '',
+    disability_status: ''
   });
 
   // Load user and check existing profiles
@@ -57,13 +68,21 @@ export default function OnboardingWizard() {
     let mounted = true;
 
     const loadUser = async () => {
+      if (!clerkUser) return;
+
       try {
-        const currentUser = await base44.auth.me();
         if (!mounted) return;
 
-        setUser(currentUser);
+        // Check if user has LinkedIn
+        const linkedInData = getLinkedInData();
+        if (linkedInData?.hasLinkedIn) {
+          setHasLinkedIn(true);
+        }
 
-        const candidateCheck = await base44.entities.Candidate.filter({ user_id: currentUser.id });
+        // Check if candidate profile already exists
+        const candidateCheck = await base44.entities.Candidate.filter({
+          email: clerkUser.email
+        }).catch(() => []);
 
         if (!mounted) return;
 
@@ -82,17 +101,14 @@ export default function OnboardingWizard() {
             const parsed = JSON.parse(localDraft);
             if (parsed.currentStep && parsed.currentStep >= 1) setCurrentStep(parsed.currentStep);
             if (parsed.candidateData) setCandidateData(parsed.candidateData);
+            if (parsed.importMethod) setImportMethod(parsed.importMethod);
             if (parsed.draftId) setDraftId(parsed.draftId);
           } catch (err) {
             console.error('Failed to load local draft:', err);
           }
         }
       } catch (e) {
-        console.error('[OnboardingWizard] Auth check failed:', e);
-        // Don't redirect on auth check error - let user retry
-        if (mounted) {
-          setLoading(false);
-        }
+        console.error('[OnboardingWizard] Load user failed:', e);
       }
     };
 
@@ -101,7 +117,7 @@ export default function OnboardingWizard() {
     return () => {
       mounted = false;
     };
-  }, [navigate]);
+  }, [clerkUser, navigate, getLinkedInData]);
 
   // Auto-save draft with debounce - both localStorage AND sessionStorage for redundancy
   useEffect(() => {
@@ -114,6 +130,7 @@ export default function OnboardingWizard() {
       const draft = {
         currentStep,
         candidateData,
+        importMethod,
         draftId,
         timestamp: new Date().toISOString(),
       };
@@ -139,7 +156,7 @@ export default function OnboardingWizard() {
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [candidateData, currentStep, draftId]);
+  }, [candidateData, currentStep, draftId, importMethod]);
 
   const steps = CANDIDATE_STEPS;
   const totalSteps = steps.length;
@@ -147,18 +164,22 @@ export default function OnboardingWizard() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return true; // Photo optional
+        return !!importMethod; // Must choose import method
       case 2:
-        return !!(candidateData.headline?.trim() && candidateData.bio?.trim() && candidateData.location?.trim());
+        return true; // Photo optional
       case 3:
-        return Array.isArray(candidateData.experience) && candidateData.experience.length > 0;
+        return !!(candidateData.headline?.trim() && candidateData.bio?.trim() && candidateData.location?.trim());
       case 4:
-        return true; // Education optional
+        return Array.isArray(candidateData.experience) && candidateData.experience.length > 0;
       case 5:
-        return Array.isArray(candidateData.skills) && candidateData.skills.length >= 3;
+        return true; // Education optional
       case 6:
-        return true; // Resume optional
+        return Array.isArray(candidateData.skills) && candidateData.skills.length >= 3;
       case 7:
+        return true; // Resume optional
+      case 8:
+        return true; // EEO optional
+      case 9:
         return true; // Review
       default:
         return true;
@@ -210,7 +231,7 @@ export default function OnboardingWizard() {
     setLoading(true);
     setSavingError(null);
 
-    console.log('[Onboarding] Starting profile creation...', { user: user?.email });
+    console.log('[Onboarding] Starting profile creation...', { user: clerkUser?.email });
 
     try {
       // STRICT validation before submission
@@ -228,8 +249,10 @@ export default function OnboardingWizard() {
       }
 
       const profileData = {
-        user_id: user.id,
-        photo_url: candidateData.photo_url || '',
+        email: clerkUser.email,
+        user_id: clerkUser.id,
+        clerk_id: clerkUser.clerk_id,
+        photo_url: candidateData.photo_url || fullClerkUser?.imageUrl || '',
         headline: candidateData.headline.trim(),
         bio: candidateData.bio.trim(),
         location: candidateData.location.trim(),
@@ -238,6 +261,11 @@ export default function OnboardingWizard() {
         education: candidateData.education || [],
         skills: (candidateData.skills || []).map(s => typeof s === 'string' ? s.trim() : s.skill?.trim()),
         resume_url: candidateData.resume_url || '',
+        // EEO data (optional fields)
+        eeo_gender: candidateData.gender || null,
+        eeo_race: candidateData.race || null,
+        eeo_veteran_status: candidateData.veteran_status || null,
+        eeo_disability_status: candidateData.disability_status || null
       };
 
       console.log('[Onboarding] Creating candidate profile...', { fields: Object.keys(profileData) });
@@ -257,7 +285,7 @@ export default function OnboardingWizard() {
       let profileFound = false;
       for (let i = 0; i < 15; i++) {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const candidates = await base44.entities.Candidate.filter({ user_id: user.id });
+        const candidates = await base44.entities.Candidate.filter({ email: clerkUser.email });
         console.log(`[Onboarding] Verification attempt ${i + 1}/15:`, candidates.length, 'profiles found');
         if (candidates.length > 0) {
           profileFound = true;
@@ -333,18 +361,103 @@ export default function OnboardingWizard() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-          return (
-            <div className="max-w-lg mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Your Photo</h2>
-              <p className="text-gray-600 mb-8">Add a professional photo to help recruiters recognize you</p>
-              <PhotoUpload
-                value={candidateData.photo_url}
-                onChange={(url) => setCandidateData({ ...candidateData, photo_url: url })}
-              />
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Let's Build Your Profile</h2>
+            <p className="text-gray-600 mb-12 text-center text-lg">Choose how you'd like to get started</p>
+
+            <div className="grid grid-cols-1 gap-6">
+              {hasLinkedIn && (
+                <button
+                  onClick={() => {
+                    setImportMethod('linkedin');
+                    // TODO: Implement LinkedIn profile import
+                    alert('LinkedIn import coming soon! For now, please upload your resume or fill manually.');
+                  }}
+                  type="button"
+                  className={`group p-8 rounded-2xl border-2 transition-all text-left ${
+                    importMethod === 'linkedin'
+                      ? 'border-blue-500 bg-blue-50 shadow-lg'
+                      : 'border-gray-200 hover:border-blue-400 hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Linkedin className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">Import from LinkedIn</h3>
+                      <p className="text-gray-600">
+                        Automatically import your work history, education, and skills from your LinkedIn profile
+                      </p>
+                      <div className="mt-3 text-sm text-blue-600 font-medium">✓ Fastest option (1 minute)</div>
+                    </div>
+                  </div>
+                </button>
+              )}
+
+              <button
+                onClick={() => setImportMethod('resume')}
+                type="button"
+                className={`group p-8 rounded-2xl border-2 transition-all text-left ${
+                  importMethod === 'resume'
+                    ? 'border-pink-500 bg-pink-50 shadow-lg'
+                    : 'border-gray-200 hover:border-pink-400 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Upload className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload Resume</h3>
+                    <p className="text-gray-600">
+                      Upload your existing resume and we'll extract your information automatically
+                    </p>
+                    <div className="mt-3 text-sm text-pink-600 font-medium">✓ Quick setup (2-3 minutes)</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setImportMethod('manual')}
+                type="button"
+                className={`group p-8 rounded-2xl border-2 transition-all text-left ${
+                  importMethod === 'manual'
+                    ? 'border-purple-500 bg-purple-50 shadow-lg'
+                    : 'border-gray-200 hover:border-purple-400 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Fill Out Manually</h3>
+                    <p className="text-gray-600">
+                      Enter your information step-by-step. Best for customizing your profile from scratch
+                    </p>
+                    <div className="mt-3 text-sm text-purple-600 font-medium">✓ Full control (5-10 minutes)</div>
+                  </div>
+                </div>
+              </button>
             </div>
-          );
+          </div>
+        );
 
       case 2:
+        return (
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Your Photo</h2>
+            <p className="text-gray-600 mb-8">Add a professional photo to help recruiters recognize you</p>
+            <PhotoUpload
+              value={candidateData.photo_url}
+              onChange={(url) => setCandidateData({ ...candidateData, photo_url: url })}
+            />
+          </div>
+        );
+
+      case 3:
         return (
           <div className="max-w-lg mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
@@ -402,7 +515,7 @@ export default function OnboardingWizard() {
             </div>
           );
 
-      case 3:
+      case 4:
         return (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Work Experience</h2>
@@ -414,7 +527,7 @@ export default function OnboardingWizard() {
             </div>
           );
 
-      case 4:
+      case 5:
         return (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Education</h2>
@@ -426,7 +539,7 @@ export default function OnboardingWizard() {
             </div>
           );
 
-      case 5:
+      case 6:
         return (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Skills</h2>
@@ -439,7 +552,7 @@ export default function OnboardingWizard() {
             </div>
           );
 
-      case 6:
+      case 7:
         return (
           <div className="max-w-lg mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Resume</h2>
@@ -452,7 +565,26 @@ export default function OnboardingWizard() {
             </div>
           );
 
-      case 7:
+      case 8:
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Equal Employment Opportunity</h2>
+            <p className="text-gray-600 mb-8">
+              Help us ensure equal opportunity for all candidates (All questions are optional)
+            </p>
+            <EEOQuestionnaire
+              data={{
+                gender: candidateData.gender,
+                race: candidateData.race,
+                veteran_status: candidateData.veteran_status,
+                disability_status: candidateData.disability_status
+              }}
+              onChange={(eeoData) => setCandidateData({ ...candidateData, ...eeoData })}
+            />
+          </div>
+        );
+
+      case 9:
         return (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Profile</h2>
@@ -466,7 +598,7 @@ export default function OnboardingWizard() {
     }
   };
 
-  if (!user) {
+  if (!clerkUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="w-10 h-10 animate-spin text-pink-500" />

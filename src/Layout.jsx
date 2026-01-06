@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { base44 } from '@/api/base44Client';
+import { useClerkAuth } from '@/components/auth/ClerkAuthProvider';
 import { Briefcase, User, MessageCircle, LogOut, Search, Home, TrendingUp, UserPlus, Sparkles, FileText } from 'lucide-react';
 import NotificationBell from '@/components/alerts/NotificationBell';
 import { cn } from '@/lib/utils';
@@ -19,8 +19,7 @@ import ErrorLogger from '@/components/debugging/ErrorLogger';
 import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
 
             export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, clerkUser, logout } = useClerkAuth();
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const navigate = useNavigate();
 
@@ -38,12 +37,6 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
       document.removeEventListener('click', initAudio);
       document.removeEventListener('touchstart', initAudio);
     };
-  }, []);
-
-  useEffect(() => {
-    // No auth - just load immediately
-    setLoading(false);
-    setUser({ id: 'demo-user', email: 'demo@swipehire.com', full_name: 'Demo User' });
   }, []);
 
   const hideLayout = ['Welcome', 'Onboarding', 'OnboardingWizard', 'Chat'].includes(currentPageName);
@@ -184,15 +177,13 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
             </div>
           )}
           <button
-            onClick={() => {
+            onClick={async () => {
               try {
-                localStorage.removeItem('swipehire_user');
-                localStorage.removeItem('swipehire_view_mode');
-                base44.auth.logout(createPageUrl('Welcome'));
+                localStorage.removeItem('onboarding_draft_v2');
+                await logout();
+                navigate('/sign-in');
               } catch (err) {
                 console.error('Logout failed:', err);
-                localStorage.clear();
-                window.location.href = '/';
               }
             }}
             className="flex items-center gap-3 px-4 py-3 w-full text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
