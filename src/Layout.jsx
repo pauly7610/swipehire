@@ -22,6 +22,11 @@ import { ClerkAuthProvider, useClerkAuth } from '@/components/auth/ClerkAuthProv
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+console.log('[Layout] Clerk Key Check:', { 
+  hasKey: !!PUBLISHABLE_KEY, 
+  envKeys: Object.keys(import.meta.env).filter(k => k.includes('CLERK'))
+});
+
 function LayoutContent({ children, currentPageName }) {
   const { user, isLoadingAuth, logout } = useClerkAuth();
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
